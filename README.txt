@@ -1,3 +1,8 @@
+Install virtualenv; start virtualenv
+
+pip install -r requirements.txtx
+
+
 Start the server:
 - cd api; python app.py
 
