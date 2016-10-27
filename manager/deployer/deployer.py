@@ -4,13 +4,17 @@ Created on Oct 26, 2016
 @author: devdatta
 '''
 from common import task_definition as td
+import local_deployer as ld
 
 class Deployer(object):
     
     def __init__(self, task_def):
-        self.task = task_def
-        self.app_name = task_def.task_definition['app_name']
-        self.app_location = task_def.task_definition['app_location']
+        self.task_def = task_def
+        self.cloud = task_def.cloud_data['cloud']
         
-    def deploy(self):
-        print("Deployer called for app %s" % self.app_name)
+    def deploy(self, deploy_type, deploy_name):
+        if self.cloud == 'local':
+            result = ld.LocalDeployer(self.task_def).deploy(deploy_type, deploy_name)
+        else:
+            print("Cloud %s not supported" % self.cloud)
+        return result

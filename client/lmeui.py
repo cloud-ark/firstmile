@@ -21,7 +21,23 @@ source_dir = './tmp/test'
 make_tarfile(tarfile_name, source_dir)
 tarfile_content = read_tarfile(tarfile_name)
 
-data = {'app_name':app_name, 'app_tar_name': tarfile_name, 'app_content':tarfile_content}
+cloud = 'local'
+service_name = 'mysql-service'
+service_type = 'mysql'
+
+app_data = {'app_name':app_name, 'app_tar_name': tarfile_name, 
+            'app_content':tarfile_content, 'app_type': 'python',
+            'run_cmd': 'python application.py'}
+cloud_data = {'cloud': cloud}
+
+service_details = {'db_var': 'DB', 'host_var': 'HOST', 
+                   'user_var': 'USER', 'password_var': 'PASSWORD',
+                   'db_name': 'test-db'}
+
+service_data = {'service_name':service_name, 'service_type': service_type, 
+                'service_details': service_details}
+
+data = {'app': app_data, 'service': [service_data], 'cloud': cloud_data}
 
 req = urllib2.Request("http://localhost:5000/deployments")
 req.add_header('Content-Type', 'application/octet-stream')

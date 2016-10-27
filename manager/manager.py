@@ -13,17 +13,34 @@ class Manager(threading.Thread):
     
     def __init__(self, name, task_def):
         threading.Thread.__init__(self)
-        self.task = task_def
-        self.app_name = task_def.task_definition['app_name']
-        self.app_location = task_def.task_definition['app_location']
         self.name = name
+        self.task_def = task_def
         
     def run(self):
-        print "Starting " + self.name
-        print("Task received: %s" % self.task.task_definition)
-        bld.Builder(self.task).build()
-        gen.Generator(self.task).generate()
-        dep.Deployer(self.task).deploy()
+        print "Starting build/deploy for " + self.name
+        
+        # Two-step protocol
+        # Step 1: For each service build and deploy. Collect the IP address of deployed service
+        # Step 2: Generate, build, deploy application. Pass the IP addresses of the services
+        
+        # Step 1:
+        service_ip_addresses = {}
+        services = self.task_def.service_data
+        for serv in services:
+            service_name = serv['service_name']
+            service_type = serv['service_type']
+            service_details = serv['service_details']
+
+            bld.Builder(self.task_def).build(build_type='service', build_name=service_name)
+            serv_ip_addr = dep.Deployer(self.task_def).deploy(deploy_type='service', 
+                                                              deploy_name=service_name)
+            service_ip_addresses[service_name] = serv_ip_addr
+        
+        # Step 2:
+        # - Generate, build, deploy app
+        gen.Generator(self.task_def).generate(service_ip_addresses)
+        
+
         
         
 

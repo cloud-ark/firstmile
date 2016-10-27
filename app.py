@@ -66,17 +66,26 @@ class Deployments(Resource):
     def post(self):
         #args = parser.parse_args()
         args = request.get_json(force=True)
-        app_name = args['app_name']
-        app_tar_name = args['app_tar_name']
-        content = args['app_content']
+        print(args)
+        
+        app_data = args['app']
+        cloud_data = args['cloud']
+        service_data = args['service']
+        
+        app_name = app_data['app_name']
+        app_tar_name = app_data['app_tar_name']
+        content = app_data['app_content']
+        cloud = cloud_data['cloud']
 
         app_location = self._store_app_contents(app_name, app_tar_name, content)
         
         # dispatch the handler thread
-        task_dict = {}
-        task_dict['app_name'] = app_name
-        task_dict['app_location'] = app_location
-        task_def = task_definition.TaskDefinition(task_dict)
+        #task_dict = {}
+        #task_dict['app_name'] = app_name
+        #task_dict['app_location'] = app_location
+        #task_dict['cloud'] = cloud
+        app_data['app_location'] = app_location
+        task_def = task_definition.TaskDefinition(app_data, cloud_data, service_data)
         delegatethread = mgr.Manager(app_name, task_def)
         delegatethread.start()        
 

@@ -5,13 +5,16 @@ Created on Oct 26, 2016
 '''
 
 from common import task_definition as td
+import local_builder as lb
 
 class Builder(object):
     
     def __init__(self, task_def):
-        self.task = task_def
-        self.app_name = task_def.task_definition['app_name']
-        self.app_location = task_def.task_definition['app_location']
+        self.task_def = task_def
+        self.cloud = task_def.cloud_data['cloud']
         
-    def build(self):
-        print("Builder called for app %s" % self.app_name)
+    def build(self, build_type, build_name):
+        if self.cloud == 'local':
+            lb.LocalBuilder(self.task_def).build(build_type, build_name)
+        else:
+            print("Cloud %s not supported" % self.cloud)
