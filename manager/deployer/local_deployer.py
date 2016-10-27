@@ -31,6 +31,7 @@ class LocalDeployer(object):
                    "MYSQL_PASSWORD": "ebroot123"}
             cont_name = _get_cont_name()
                         
+            self.docker_client.import_image(image="mysql:5.5")
             serv_cont = self.docker_client.create_container('mysql:5.5', detach=True, environment=env, name=cont_name)
             self.docker_client.start(serv_cont)
             cont_data = self.docker_client.inspect_container(serv_cont)

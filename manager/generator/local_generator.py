@@ -9,6 +9,7 @@ class LocalGenerator(object):
         self.task_def = task_def
         self.app_type = task_def.app_data['app_type']
         self.app_dir = task_def.app_data['app_location']
+        self.app_name = task_def.app_data['app_name']
         
     def _generate_for_python_app(self, service_ip_dict):
         
@@ -29,20 +30,24 @@ class LocalGenerator(object):
                
         df = ("FROM ubuntu:14.04\n"
               "RUN apt-get update -y\n"
-              "RUN apt-get install -y python-setuptools\n"
-              "ADD .\n"
-              "pip install -r requirements.txt\n"
+              "RUN apt-get install -y python-setuptools python-pip\n"
+              "ADD requirements.txt /src/requirements.txt\n"
+              "RUN cd /src; pip install -r requirements.txt\n"
+              "ADD . /src\n"
               "EXPOSE 5000\n"
               "ENV {DB} {db_name}\n"
               "ENV {USER} lmeuser\n"
               "ENV {PASSWORD} lmeuserpass\n"
               "ENV {HOST} {host}\n"
-              "CMD \"{run_cmd}\"\n"
+              "CMD /src/runapp.sh\n"
               "").format(DB=DB, db_name=db_name, USER=USER, 
                          PASSWORD=PASSWORD, HOST=HOST, host=host, run_cmd=run_cmd)
         
         print("App dir: %s" % self.app_dir)
-        docker_file = open(self.app_dir + "/Dockerfile", "w")
+        docker_file_dir = ("{app_dir}/{app_name}").format(app_dir=self.app_dir, 
+                                                          app_name=self.app_name)
+        print("Dockerfile dir:%s" % docker_file_dir)
+        docker_file = open(docker_file_dir + "/Dockerfile", "w")
         docker_file.write(df)
         docker_file.close()
 

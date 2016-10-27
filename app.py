@@ -57,7 +57,7 @@ class Deployments(Resource):
         app_tar_file = ("{versioned_app_path}/{app_tar_name}").format(versioned_app_path=versioned_app_path, 
                                                                       app_tar_name=app_tar_name)
         app_file = open(app_tar_file, "w")
-        app_file.write(content)
+        app_file.write(content.encode("ISO-8859-1"))
 
         # expand the directory
         self._untar_the_app(app_tar_file, versioned_app_path)
@@ -66,7 +66,6 @@ class Deployments(Resource):
     def post(self):
         #args = parser.parse_args()
         args = request.get_json(force=True)
-        print(args)
         
         app_data = args['app']
         cloud_data = args['cloud']
