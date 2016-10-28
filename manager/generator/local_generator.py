@@ -39,7 +39,8 @@ class LocalGenerator(object):
               "ENV {USER} lmeuser\n"
               "ENV {PASSWORD} lmeuserpass\n"
               "ENV {HOST} {host}\n"
-              "CMD /src/runapp.sh\n"
+              #"CMD /src/runapp.sh\n"
+              "CMD [\"python\", \"/src/application.py\"]"
               "").format(DB=DB, db_name=db_name, USER=USER, 
                          PASSWORD=PASSWORD, HOST=HOST, host=host, run_cmd=run_cmd)
         

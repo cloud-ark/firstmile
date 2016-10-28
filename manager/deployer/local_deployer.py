@@ -4,6 +4,7 @@ Created on Oct 26, 2016
 @author: devdatta
 '''
 from docker import Client
+from common import app
 
 class LocalDeployer(object):
     
@@ -25,10 +26,10 @@ class LocalDeployer(object):
             
             print("Deploy mysql container")
             db_name = service_details['db_name']            
-            env = {"MYSQL_ROOT_PASSWORD": "ebroot123",
+            env = {"MYSQL_ROOT_PASSWORD": "lmeuserpass",
                    "MYSQL_DATABASE": db_name,
-                   "MYSQL_USER": "ebroot",
-                   "MYSQL_PASSWORD": "ebroot123"}
+                   "MYSQL_USER": "lmeuser",
+                   "MYSQL_PASSWORD": "lmeuserpass"}
             cont_name = _get_cont_name()
                         
             self.docker_client.import_image(image="mysql:5.5")
@@ -54,14 +55,40 @@ class LocalDeployer(object):
         return serv_ip_addr
     
     def _deploy_app_container(self):
-        return 'app-ip-address'
+
+        app_obj = app.App(self.task_def.app_data)
+        app_cont_name = app_obj.get_cont_name()
+        self.docker_client.import_image(image=app_cont_name)
+        port_list = []
+        port_list.append(5000)
+        host_cfg = self.docker_client.create_host_config(publish_all_ports=True)
+        app_cont = self.docker_client.create_container(app_cont_name, detach=True,
+                                                       ports=port_list, name=app_cont_name,
+                                                       host_config=host_cfg)
+        self.docker_client.start(app_cont)
+        
+        cont_data = self.docker_client.inspect_container(app_cont)
+        
+        app_ip_addr = cont_data['NetworkSettings']['IPAddress']
+        
+        # get host port
+        # app_port_list = cont_data['NetworkSettings']['Ports']
+        # port_list = app_port_list["5000/tcp"]
+        # app_host_port = port_list[0]["HostPort"]
+        
+        app_url = ("{app_ip_addr}:{app_port}").format(app_ip_addr=app_ip_addr, app_port=5000)
+        
+        print("App URL:%s" % app_url)
+        return app_url
 
     def deploy(self, deploy_type, deploy_name):
         print("Local deployer called for app %s" % self.task_def.app_data['app_name'])
 
         if deploy_type == 'service':
             service_ip_addr = self._deploy_service_container(deploy_name)
+            ip_addr = service_ip_addr
         elif deploy_type == 'app':
             app_ip_addr = self._deploy_app_container()
+            ip_addr = app_ip_addr
              
-        return service_ip_addr
+        return ip_addr

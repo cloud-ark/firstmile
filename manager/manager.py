@@ -9,6 +9,8 @@ from builder import builder as bld
 from generator import generator as gen
 from deployer import deployer as dep
 
+from common import app
+
 class Manager(threading.Thread):
     
     def __init__(self, name, task_def):
@@ -18,6 +20,8 @@ class Manager(threading.Thread):
         
     def run(self):
         print "Starting build/deploy for " + self.name
+        app_obj = app.App(self.task_def.app_data)
+        app_cont_name = app_obj.get_cont_name()
         
         # Two-step protocol
         # Step 1: For each service build and deploy. Collect the IP address of deployed service
@@ -39,6 +43,8 @@ class Manager(threading.Thread):
         # Step 2:
         # - Generate, build, deploy app
         gen.Generator(self.task_def).generate(service_ip_addresses)
+        bld.Builder(self.task_def).build(build_type='app', build_name=self.task_def.app_data['app_name'])
+        dep.Deployer(self.task_def).deploy(deploy_type='app', deploy_name=self.task_def.app_data['app_name'])
         
 
         

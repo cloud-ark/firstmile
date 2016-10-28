@@ -48,7 +48,7 @@ class Deployments(Resource):
             os.makedirs(app_path)
 
         ts = time.time()
-        st = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d-%H:%M:%S')
+        st = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d-%H-%M-%S')
 
         versioned_app_path = ("{app_path}/{st}").format(app_path=app_path, st=st)
         os.makedirs(versioned_app_path)
