@@ -1,19 +1,23 @@
+Local deployment POC
+--------------------
+Assumptions:
+- Docker is installed on the Host
+- Python on the Host
+- Sample application is an application using MySQL service
+
+
+Steps:
+------
 1) Install virtualenv (pip install virtualenv)
-
 2) Create virtualenv (virtualenv test-lme)
-
 3) Start virtualenv (source test-lme/bin/activate)
-
 4) Install lme (pip install -r requirements.txt)
-
 5) Start the server:
    - python app.py
-
 6) Create a deployment
    - cd client; python lmeui.py post
      - this will ask for path of application folder. (Provide the complete app folder path)
      - the deployment action will output a app URL, which can be used to track the deployment
-
 7) Track a deployment
   - python lmeui.py get <url-of-the-deployment> (from step 6)
 
