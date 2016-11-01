@@ -17,13 +17,12 @@ class LocalBuilder(object):
     def _build_service_container(self):
         pass
     
-    def _build_app_container(self):
+    def _build_app_container(self, app_obj):
         cwd = os.getcwd()
         app_dir = self.task_def.app_data['app_location']
         app_name = self.task_def.app_data['app_name']
         os.chdir(app_dir + "/" + app_name)
-        
-        app_obj = app.App(self.task_def.app_data)
+
         cont_name = app_obj.get_cont_name()
         
         build_cmd = ("docker build -t {name} .").format(name=cont_name)
@@ -37,6 +36,7 @@ class LocalBuilder(object):
         if build_type == 'service':
             self._build_service_container()
         elif build_type == 'app':
-            self._build_app_container()
-        
+            app_obj = app.App(self.task_def.app_data)
+            app_obj.update_app_status("Starting app build")
+            self._build_app_container(app_obj)
         return 0

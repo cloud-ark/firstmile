@@ -15,6 +15,16 @@ class App(object):
         app_loc = self.app_location[k+1:]
         app_loc = app_loc.replace(":","-")
         cont_name = self.app_name + "-" + app_loc                
-        return cont_name    
+        return cont_name
+
+    def update_app_status(self, status):
+        app_status_file = open(self.app_location + "/app-status.txt", "a")
+        app_status_file.write("status:" + status + "\n")
+        app_status_file.close()
+
+    def update_app_ip(self, app_ip):
+        app_status_file = open(self.app_location + "/app-status.txt", "a")
+        app_status_file.write("App IP Address:" + app_ip + "\n")
+        app_status_file.close()
         
     

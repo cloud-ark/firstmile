@@ -54,9 +54,7 @@ class LocalDeployer(object):
 
         return serv_ip_addr
     
-    def _deploy_app_container(self):
-
-        app_obj = app.App(self.task_def.app_data)
+    def _deploy_app_container(self, app_obj):
         app_cont_name = app_obj.get_cont_name()
         self.docker_client.import_image(image=app_cont_name)
         port_list = []
@@ -88,7 +86,9 @@ class LocalDeployer(object):
             service_ip_addr = self._deploy_service_container(deploy_name)
             ip_addr = service_ip_addr
         elif deploy_type == 'app':
-            app_ip_addr = self._deploy_app_container()
+            app_obj = app.App(self.task_def.app_data)
+            app_obj.update_app_status("Deploying app")
+            app_ip_addr = self._deploy_app_container(app_obj)
             ip_addr = app_ip_addr
-             
+            app_obj.update_app_ip(ip_addr)
         return ip_addr

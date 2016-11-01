@@ -26,7 +26,34 @@ APP_STORE_PATH = ("{home_dir}/.lme/data/deployments").format(home_dir=home_dir)
 
 class Deployment(Resource):
     def get(self, dep_id):
-        return {'LME': 'This is LME'}
+        print("Dep id:%s" % dep_id)
+
+        def _get_app_location(dep_id):
+            k = dep_id.rfind("--")
+            app_version = dep_id[k+2:]
+            print("App version:%s" % app_version)
+
+            dep_id = dep_id[:k]
+            l = dep_id.rfind("/")
+            app_name = dep_id[l+1:]
+            print("App name:%s" % app_name)
+            return APP_STORE_PATH + "/" + app_name + "/" + app_version
+
+        app_location = _get_app_location(dep_id)
+        print("App location:%s" % app_location)
+
+        app_status_file = open(app_location + "/app-status.txt", "r")
+        app_status_data = app_status_file.read()
+        print("--- App status ---")
+        print(app_status_data)
+        print("--- App status ---")
+        
+        resp_data = {}
+        resp_data['app_data'] = app_status_data
+
+        response = jsonify(**resp_data)
+        response.status_code = 201
+        return response
 
 class Deployments(Resource):
     def _untar_the_app(self, app_tar_file, versioned_app_path):
@@ -48,9 +75,9 @@ class Deployments(Resource):
             os.makedirs(app_path)
 
         ts = time.time()
-        st = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d-%H-%M-%S')
+        app_version = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d-%H-%M-%S')
 
-        versioned_app_path = ("{app_path}/{st}").format(app_path=app_path, st=st)
+        versioned_app_path = ("{app_path}/{st}").format(app_path=app_path, st=app_version)
         os.makedirs(versioned_app_path)
 
         # store file content
@@ -61,7 +88,7 @@ class Deployments(Resource):
 
         # expand the directory
         self._untar_the_app(app_tar_file, versioned_app_path)
-        return versioned_app_path
+        return versioned_app_path, app_version
     
     def post(self):
         #args = parser.parse_args()
@@ -76,7 +103,7 @@ class Deployments(Resource):
         content = app_data['app_content']
         cloud = cloud_data['cloud']
 
-        app_location = self._store_app_contents(app_name, app_tar_name, content)
+        app_location, app_version = self._store_app_contents(app_name, app_tar_name, content)
         
         # dispatch the handler thread
         #task_dict = {}
@@ -88,7 +115,15 @@ class Deployments(Resource):
         delegatethread = mgr.Manager(app_name, task_def)
         delegatethread.start()        
 
-        return content, 201
+        response = jsonify()
+        response.status_code = 201
+        app_id = ("{app_name}--{app_version}").format(app_name=app_name, app_version=app_version)
+        print("App id:%s" % app_id)
+        response.headers['location'] = ('/deployments/{app_id}').format(app_id=app_id)
+        print("Response:%s" % response)
+
+        return response
+
 
 api.add_resource(Deployment, '/deployments/<dep_id>')
 api.add_resource(Deployments, '/deployments')
