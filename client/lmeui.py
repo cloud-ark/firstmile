@@ -21,11 +21,11 @@ class Deployment(object):
             return contents
 
     def post(self):
-        #app_name = raw_input("Enter app name:")
-        app_name = 'express-checkout'
+        app_name = raw_input("Enter app name:")
+        #app_name = 'express-checkout'
         tarfile_name = app_name + ".tar"
-        #source_dir = raw_input("Enter app directory:")
-        source_dir = './express-checkout'
+        source_dir = raw_input("Enter app directory:")
+        #source_dir = './express-checkout'
 
         self._make_tarfile(tarfile_name, source_dir)
         tarfile_content = self._read_tarfile(tarfile_name)
