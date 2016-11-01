@@ -15,6 +15,7 @@ class Deployer(object):
     def deploy(self, deploy_type, deploy_name):
         if self.cloud == 'local':
             result = ld.LocalDeployer(self.task_def).deploy(deploy_type, deploy_name)
+            print("Result:%s" % result)
         else:
             print("Cloud %s not supported" % self.cloud)
         return result

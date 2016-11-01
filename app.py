@@ -2,6 +2,7 @@ import os
 import tarfile
 import datetime
 import time
+import thread
 
 from os.path import expanduser
 
@@ -23,6 +24,8 @@ home_dir = expanduser("~")
 
 APP_STORE_PATH = ("{home_dir}/.lme/data/deployments").format(home_dir=home_dir)
 
+def start_thread(delegatethread):
+    delegatethread.run()
 
 class Deployment(Resource):
     def get(self, dep_id):
@@ -92,6 +95,7 @@ class Deployments(Resource):
     
     def post(self):
         #args = parser.parse_args()
+        print("Received POST request.")
         args = request.get_json(force=True)
         
         app_data = args['app']
@@ -112,8 +116,11 @@ class Deployments(Resource):
         #task_dict['cloud'] = cloud
         app_data['app_location'] = app_location
         task_def = task_definition.TaskDefinition(app_data, cloud_data, service_data)
+
         delegatethread = mgr.Manager(app_name, task_def)
-        delegatethread.start()        
+
+        #delegatethread.start()
+        thread.start_new_thread(start_thread, (delegatethread, ))
 
         response = jsonify()
         response.status_code = 201
@@ -132,4 +139,4 @@ if __name__ == '__main__':
     # Create the data directory if it does not exist
     if not os.path.exists(APP_STORE_PATH):
         os.makedirs(APP_STORE_PATH)
-    app.run(debug=True)
+    app.run(debug=True, threaded=True)
