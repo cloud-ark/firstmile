@@ -19,12 +19,12 @@ class App(object):
 
     def update_app_status(self, status):
         app_status_file = open(self.app_location + "/app-status.txt", "a")
-        app_status_file.write("status:" + status + "\n")
+        app_status_file.write(status + ", ")
         app_status_file.close()
 
     def update_app_ip(self, app_ip):
         app_status_file = open(self.app_location + "/app-status.txt", "a")
-        app_status_file.write("App IP Address:" + app_ip + "\n")
+        app_status_file.write("App URL:http://" + app_ip)
         app_status_file.close()
         
     

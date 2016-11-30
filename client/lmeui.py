@@ -6,7 +6,9 @@ from Tkinter import *
 import Tkinter as tk
 from PIL import ImageTk, Image
 import tkMessageBox, tkFont, Tkconstants, tkFileDialog
-import deployment as dp
+import lmecmds.deployment as dp
+
+import json
 
 frame4 = NONE
 
@@ -45,10 +47,17 @@ class LME(Frame):
         frame3.pack(side="top")
 
         path = "small-devcentric.png"
-        img = ImageTk.PhotoImage(Image.open(path))
-        panel = tk.Label(frame3, image = img)
-        panel.pack(side = "top", fill = "x", expand = "no")
-        
+        #img = ImageTk.PhotoImage(Image.open(path))
+        #panel = tk.Label(frame3, image = img)
+        #panel.pack(side = "top", fill = "x", expand = "no")
+
+        logo = PhotoImage(file="small-devcentric.png")
+        w1 = Label(frame3, justify=RIGHT, image=logo).pack(side="right")
+        explanation = """Local multi-cloud engine"""
+        msg = Message(frame3, text=explanation, width=500)
+        msg.config(padx=105, pady=15, bg='darkgray', font=('times', 16, 'italic'))
+        msg.pack()
+
         # defining options for opening a directory
         self.dir_opt = options = {}
         options['initialdir'] = 'C:\\'
@@ -59,11 +68,15 @@ class LME(Frame):
 
     def deploy(self):
         print("Deploy the app")
-        project_location = self.dirname.get()
-        #project_location = self.app_directory
+        #project_location = self.dirname.get()
+        if not self.app_directory:
+            print("App folder not selected")
+            tkMessageBox.showerror("Deploy", "Application folder not selected.")
+            return
+        
+        project_location = self.app_directory
         print("Dir name:%s" % project_location)
-        
-        
+
         cloud_picked = self.cloud_option.get()
         print("Cloud picked:%s" % cloud_picked)
         if cloud_picked == 'Local':
@@ -92,13 +105,16 @@ class LME(Frame):
         self.track_frame = Frame(self.parent)
         self.track_frame.pack()
 
-        status_text = Text(self.track_frame)
+        status_text = Text(self.track_frame, height=5)
         status_text.insert(INSERT, "Deployment url:" + self.dep_track_url)
-        status_text.pack(side="bottom")
-            
+        status_text.pack()
+
     def askdirectory(self):
         self.directory = tkFileDialog.askdirectory(**self.dir_opt)
+        self.app_directory = self.directory
         print("Selected directory:%s" % self.directory)
+        self.selected_app_name_lab.config(text=self.app_directory)
+        self.selected_app_name_lab.pack(side="left")
 
     def create_deployment(self):
         print("Create a deployment")
@@ -108,20 +124,29 @@ class LME(Frame):
 
         frame0 = Frame(self.parent)
         frame0.pack(fill=X)
-        labelText_project=StringVar()
-        labelText_project.set("Specify application folder")
-        labelDir=Label(frame0, textvariable=labelText_project, height=4)
-        labelDir.pack(side="left")
+        #labelText_project=StringVar()
+        #labelText_project.set("Specify application folder")
+        #labelDir=Label(frame0, textvariable=labelText_project, height=4)
+        #labelDir.pack(side="left")
         
         # options for buttons
-        #button_opt = {'padx': 5, 'pady': 5}
-        #tk.Button(frame0, text='Browse', 
-        #          command=self.askdirectory).pack(**button_opt)
+        button_opt = {'padx': 1, 'pady': 10, 'side': 'left'}
+        button = tk.Button(frame0, text='Select application folder', 
+                           command=self.askdirectory).pack(**button_opt)
         #app_selector.pack(side="left")
-
-        directory=StringVar(None, value="")
-        self.dirname=Entry(frame0,textvariable=directory,width=50)
-        self.dirname.pack(side="left")
+        #directory=StringVar(None, value="")
+        #self.dirname=Entry(frame0,textvariable=directory,width=50)
+        #self.dirname.pack(side="left")
+        
+        selected_app_frame = Frame(self.parent)
+        selected_app_frame.pack(fill=X)
+        selected_app_text=StringVar()
+        selected_app_text.set("Selected application folder: ")
+        selected_app_folder_lab=Label(selected_app_frame, textvariable=selected_app_text, height=4)
+        selected_app_folder_lab.pack(side="left")
+        
+        self.selected_app_name_lab=Label(selected_app_frame, text="None", height=4)
+        self.selected_app_name_lab.pack(side="left")
 
         frame1 = Frame(self.parent)
         frame1.pack(fill=X)
@@ -140,10 +165,10 @@ class LME(Frame):
         frame_r = Frame(self.parent)
         frame_r.pack(fill=X)
         self.service_selection = IntVar()
-        R1 = Radiobutton(frame_r, text="Use the existing service instance", variable=self.service_selection, value=0)
+        R1 = Radiobutton(frame_r, text="Use the existing service instance", variable=self.service_selection, value=1)
         R1.pack(side="left")
 
-        R2 = Radiobutton(frame_r, text="Create a new service instance", variable=self.service_selection, value=1)
+        R2 = Radiobutton(frame_r, text="Create a new service instance", variable=self.service_selection, value=0)
         R2.pack(side="left")
 
         framec = Frame(self.parent)
@@ -170,13 +195,20 @@ class LME(Frame):
         b = Button(frame2, text="Deploy", command=self.deploy)
         b.pack(pady=50, side="left")
         
-        #track_button = Button(frame2, text="Track", command=self.track_deployment)
-        #track_button.pack(pady=50, side="left")
+        track_button = Button(frame2, text="Track", command=self.track_deployment)
+        track_button.pack(pady=50, side="left")
 
     def track_deployment(self):
         print("Track a deployment")
-        project_location = self.dirname.get()
+        #project_location = self.dirname.get()
+        project_location = self.app_directory
         print("Dir name:%s" % project_location)
+
+        if not self.dep_track_url:
+            error_msg = "No deployment done yet. Nothing to track."
+            print(error_msg)
+            tkMessageBox.showerror("Track", error_msg)
+            return
         
         cloud_picked = self.cloud_option.get()
         print("Cloud picked:%s" % cloud_picked)
@@ -196,17 +228,42 @@ class LME(Frame):
             status = "Tracking for Amazon not implemented yet."
             print(status)
 
-        status_text = Text(self.track_frame)
-        status_text.insert(INSERT, status)
+        status_json = json.loads(status)
+        status_val = status_json['app_data']
+
+        status_text = Text(self.track_frame, height=5)
+        status_text.insert(INSERT, status_val)
         status_text.pack(side="bottom")
 
     def best_practices(self):
+        msg = """
+        Docker images are stored in:
+        /var/lib/docker/aufs
+        /var/lib/docker/mnt
+        /var/lib/docker/containers
+        /var/lib/docker/volumes
+        It is safe to delete contents of above directories
+        when you are low on disk space
+        (keep the directories).
+        """
+        tkMessageBox.showinfo("LME Best practices", msg)
         print("Best practices")    
     
     def glossary(self):
+        msg = """
+        Deployment: Workflow representing artifacts related to deploying an application 
+        """
+        tkMessageBox.showinfo("Glossary of terms", msg)
         print("Glossary")
         
     def about(self):
+        msg = """
+        Version: 0.0.1
+        Copyright: Devcentric Inc.
+        Contact: contact@devcentric.io
+        http://devcentric.io/
+        """
+        tkMessageBox.showinfo("Local Multi-cloud Engine (LME)", msg)
         print("About")
 
 def main():
@@ -217,7 +274,7 @@ def main():
     root.option_add("*Font", default_font)
 
     w = 900 # width for the Tk root
-    h = 800 # height for the Tk root
+    h = 700 # height for the Tk root
 
     # get screen width and height
     ws = root.winfo_screenwidth() # width of the screen

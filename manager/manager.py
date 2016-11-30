@@ -43,8 +43,8 @@ class Manager(threading.Thread):
                                                               deploy_name=service_name)
             service_ip_addresses[service_name] = serv_ip_addr
 
-            # Allow time for database to get created
-            time.sleep(5)
+            # Allow time for service container to be deployed and started
+            time.sleep(10)
         
         # Step 2:
         # - Generate, build, deploy app
