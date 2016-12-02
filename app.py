@@ -1,4 +1,6 @@
+import logging
 import os
+import subprocess
 import tarfile
 import datetime
 import time
@@ -29,27 +31,33 @@ def start_thread(delegatethread):
 
 class Deployment(Resource):
     def get(self, dep_id):
-        print("Dep id:%s" % dep_id)
+        logging.debug("Executing GET for dep id:%s" % dep_id)
 
         def _get_app_location(dep_id):
             k = dep_id.rfind("--")
             app_version = dep_id[k+2:]
-            print("App version:%s" % app_version)
+            logging.debug("App version:%s" % app_version)
 
             dep_id = dep_id[:k]
             l = dep_id.rfind("/")
             app_name = dep_id[l+1:]
-            print("App name:%s" % app_name)
+            logging.debug("App name:%s" % app_name)
             return APP_STORE_PATH + "/" + app_name + "/" + app_version
 
         app_location = _get_app_location(dep_id)
-        print("App location:%s" % app_location)
+        logging.debug("App location:%s" % app_location)
 
-        app_status_file = open(app_location + "/app-status.txt", "r")
-        app_status_data = app_status_file.read()
-        print("--- App status ---")
-        print(app_status_data)
-        print("--- App status ---")
+        try:
+            app_status_data = "No status available yet."
+            status_file = app_location + "/app-status.txt"
+            app_status_file = open(status_file, "r")
+            app_status_data = app_status_file.read()
+            logging.debug("--- App status ---")
+            logging.debug(app_status_data)
+            logging.debug("--- App status ---")
+        except IOError:
+            logging.error("Status file does not exist:%s" % str(status_file))
+            logging.error("App status: %s" % app_status_data)
         
         resp_data = {}
         resp_data['app_data'] = app_status_data
@@ -67,9 +75,13 @@ class Deployments(Resource):
         #    tar.extractfile(member)
         #tar.close()
 
-        untar_cmd = ("tar -xvf {app_tar_file} -C {versioned_app_path}").format(app_tar_file=app_tar_file,
+        logging.debug("Untarring received app tar file %s" % app_tar_file)
+
+        untar_cmd = ("tar -xf {app_tar_file} -C {versioned_app_path}").format(app_tar_file=app_tar_file,
                                                                                versioned_app_path=versioned_app_path)
-        os.system(untar_cmd)
+
+        result = subprocess.check_output(untar_cmd, shell=True)
+        logging.debug(result)
 
     def _store_app_contents(self, app_name, app_tar_name, content):
         # create directory
@@ -95,7 +107,7 @@ class Deployments(Resource):
     
     def post(self):
         #args = parser.parse_args()
-        print("Received POST request.")
+        logging.debug("Received POST request.")
         args = request.get_json(force=True)
         
         app_data = args['app']
@@ -125,9 +137,9 @@ class Deployments(Resource):
         response = jsonify()
         response.status_code = 201
         app_id = ("{app_name}--{app_version}").format(app_name=app_name, app_version=app_version)
-        print("App id:%s" % app_id)
+        logging.debug("App id:%s" % app_id)
         response.headers['location'] = ('/deployments/{app_id}').format(app_id=app_id)
-        print("Response:%s" % response)
+        logging.debug("Response:%s" % response)
 
         return response
 
@@ -137,6 +149,11 @@ api.add_resource(Deployments, '/deployments')
 
 if __name__ == '__main__':
     # Create the data directory if it does not exist
+
+    logging.basicConfig(filename="lme.log", level=logging.DEBUG, filemode='a')
+    logging.basicConfig(format='%(asctime)s %(message)s',
+                        datefmt='%m/%d/%Y %I:%M:%S %p')
     if not os.path.exists(APP_STORE_PATH):
         os.makedirs(APP_STORE_PATH)
-    app.run(debug=True, threaded=True)
+    logging.info("Starting lme server")
+    app.run(debug=True, threaded=True, host='0.0.0.0', port=5002)

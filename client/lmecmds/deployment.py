@@ -3,6 +3,7 @@ Created on Nov 2, 2016
 
 @author: devdatta
 '''
+import logging
 import json 
 import tarfile
 import urllib2
@@ -12,6 +13,9 @@ import gzip
 import sys
 
 class Deployment(object):
+
+    log = logging.getLogger(__name__)
+    log.setLevel(logging.INFO)
 
     def __init__(self):
         pass
@@ -35,8 +39,6 @@ class Deployment(object):
         tarfile_content = self._read_tarfile(tarfile_name)
 
         cloud = cloud
-        service_name = service_info['service_name']
-        service_type = service_info['service_type']
 
         app_type = app_info['app_type']
         entry_point = app_info['entrypoint']
@@ -46,26 +48,33 @@ class Deployment(object):
 
         cloud_data = {'cloud': cloud}
 
-        service_details = {'db_var': 'DB', 'host_var': 'HOST', 
-                           'user_var': 'USER', 'password_var': 'PASSWORD',
-                           'db_name': 'checkout'}
+        service_list = []
+        if bool(service_info):
+            service_name = service_info['service_name']
+            service_type = service_info['service_type']
+            service_details = {'db_var': 'DB', 'host_var': 'HOST',
+                               'user_var': 'USER', 'password_var': 'PASSWORD',
+                               'db_name': 'checkout'}
 
-        service_data = {'service_name':service_name, 'service_type': service_type, 
-                        'service_details': service_details}
+            service_data = {'service_name':service_name, 'service_type': service_type,
+                            'service_details': service_details}
+            service_list.append(service_data)
 
-        data = {'app': app_data, 'service': [service_data], 'cloud': cloud_data}
+        data = {'app': app_data, 'service': service_list, 'cloud': cloud_data}
 
-        req = urllib2.Request("http://localhost:5000/deployments")
+        req = urllib2.Request("http://localhost:5002/deployments")
+        #req = urllib2.Request("http://127.0.0.1:5000/deployments")
+        #req = urllib2.Request("http://192.168.33.10:5000/deployments")
         req.add_header('Content-Type', 'application/octet-stream')
 
         response = urllib2.urlopen(req, json.dumps(data, ensure_ascii=True, encoding='ISO-8859-1'))
         track_url = response.headers.get('location')
-        print("Deployment ID:%s" % track_url)
+        self.log.debug("Deployment ID:%s" % track_url)
         return track_url
 
     def get(self, app_url):
         req = urllib2.Request(app_url)
         response = urllib2.urlopen(req)
         app_data = response.fp.read()
-        print("Response:%s" % app_data)
+        self.log.debug("Response:%s" % app_data)
         return app_data

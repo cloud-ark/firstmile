@@ -3,6 +3,7 @@ Created on Oct 26, 2016
 
 @author: devdatta
 '''
+import logging
 import threading
 import time
 from common import task_definition as td
@@ -20,7 +21,7 @@ class Manager(threading.Thread):
         self.task_def = task_def
         
     def run(self):
-        print "Starting build/deploy for " + self.name
+        logging.debug("Starting build/deploy for %s" % self.name)
         app_obj = app.App(self.task_def.app_data)
         app_cont_name = app_obj.get_cont_name()
         
@@ -28,7 +29,7 @@ class Manager(threading.Thread):
         # Step 1: For each service build and deploy. Collect the IP address of deployed service
         # Step 2: Generate, build, deploy application. Pass the IP addresses of the services
         
-        app_obj.update_app_status("Starting build")
+        # app_obj.update_app_status("Starting app build and deploy")
 
         # Step 1:
         service_ip_addresses = {}
@@ -51,7 +52,7 @@ class Manager(threading.Thread):
         gen.Generator(self.task_def).generate(service_ip_addresses)
         bld.Builder(self.task_def).build(build_type='app', build_name=self.task_def.app_data['app_name'])
         result = dep.Deployer(self.task_def).deploy(deploy_type='app', deploy_name=self.task_def.app_data['app_name'])
-        print("Manager, result:%s" % result)
+        logging.debug("Result:%s" % result)
         
 
         

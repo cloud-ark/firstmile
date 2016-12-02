@@ -3,6 +3,8 @@ Created on Oct 26, 2016
 
 @author: devdatta
 '''
+import logging
+
 from docker import Client
 from common import app
 
@@ -24,7 +26,7 @@ class LocalDeployer(object):
                 cont_name = app_name + "-" + app_loc + "-mysql"                
                 return cont_name
             
-            print("Deploy mysql container")
+            logging.debug("Deploying mysql container")
             db_name = service_details['db_name']            
             env = {"MYSQL_ROOT_PASSWORD": "lmeuserpass",
                    "MYSQL_DATABASE": db_name,
@@ -37,7 +39,7 @@ class LocalDeployer(object):
             self.docker_client.start(serv_cont)
             cont_data = self.docker_client.inspect_container(serv_cont)
             service_ip_addr = cont_data['NetworkSettings']['IPAddress']
-            print("Service IP Address:%s" % service_ip_addr)
+            logging.debug("MySQL Service IP Address:%s" % service_ip_addr)
             return service_ip_addr
         
         services = self.task_def.service_data
@@ -76,11 +78,12 @@ class LocalDeployer(object):
         
         app_url = ("{app_ip_addr}:{app_port}").format(app_ip_addr=app_ip_addr, app_port=5000)
         
-        print("App URL:%s" % app_url)
+        logging.debug("App URL: %s" % app_url)
         return app_url
 
     def deploy(self, deploy_type, deploy_name):
-        print("Local deployer called for app %s" % self.task_def.app_data['app_name'])
+        logging.debug("Local deployer called for app %s" %
+                      self.task_def.app_data['app_name'])
 
         if deploy_type == 'service':
             service_ip_addr = self._deploy_service_container(deploy_name)

@@ -10,6 +10,7 @@ class Deploy(Command):
     "Build and deploy application"
 
     log = logging.getLogger(__name__)
+    log.setLevel(logging.INFO)
 
     def get_parser(self, prog_name):
         parser = super(Deploy, self).get_parser(prog_name)
@@ -23,19 +24,16 @@ class Deploy(Command):
         return parser
 
     def take_action(self, parsed_args):
-        self.log.info('deploying application')
-        self.log.debug('debugging')
-        self.app.stdout.write('deploying application!\n')
+        self.log.info('Deploying application')
+        self.log.debug('Deploying application. Passed args:%s' % parsed_args)
 
-        #self.app.stdout.write('File name:%s' % parsed_args.filename)
-        #self.app.stdout.write("Passed args:%s" % parsed_args)
         service = parsed_args.service
         if service:
-            self.log.info("Service:%s" % service)
+            self.log.debug("Service:%s" % service)
         
         dest = parsed_args.cloud
         if dest:
-            self.log.info("Destination:%s" % dest)
+            self.log.debug("Destination:%s" % dest)
             
         app_port = '5000'
         
@@ -45,11 +43,12 @@ class Deploy(Command):
         app_info['entrypoint'] = 'application.py'
             
         service_info = {}
-        service_info['service_name'] = 'mysql-service'
-        service_info['service_type'] = 'mysql'
+        if service and service.lower() == 'mysql':
+            service_info['service_name'] = 'mysql-service'
+            service_info['service_type'] = 'mysql'
 
         project_location = os.getcwd()
-        self.log.info("App directory:%s" % project_location)
+        self.log.debug("App directory:%s" % project_location)
         
         self.dep_track_url = dp.Deployment().post(project_location, app_info, 
                                                   service_info, cloud='local')
