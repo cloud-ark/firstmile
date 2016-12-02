@@ -73,6 +73,6 @@ class LocalBuilder(object):
             self._build_service_container()
         elif build_type == 'app':
             app_obj = app.App(self.task_def.app_data)
-            app_obj.update_app_status("Starting app build")
+            app_obj.update_app_status("status::BUILDING")
             self._build_app_container(app_obj)
         return 0
