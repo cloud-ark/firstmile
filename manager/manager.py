@@ -24,6 +24,7 @@ class Manager(threading.Thread):
         logging.debug("Starting build/deploy for %s" % self.name)
         app_obj = app.App(self.task_def.app_data)
         app_obj.update_app_status("name::" + self.name)
+        app_obj.update_app_status("cloud::" + self.task_def.cloud_data['cloud'])
         app_cont_name = app_obj.get_cont_name()
         
         # Two-step protocol

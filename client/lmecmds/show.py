@@ -30,32 +30,36 @@ class Show(Command):
             
             status_json = json.loads(result)
             status_val = status_json['app_data']
-            
+
             status_val_list = status_val.split(',')
 
             x = prettytable.PrettyTable()
-            x.field_names = ["App Name", "Deploy ID", "Status", "App URL"]
+            x.field_names = ["App Name", "Deploy ID", "Status", "Cloud", "App URL"]
 
             app_name = ''
             app_deploy_id = parsed_args.deployid
             app_deploy_time = ''
             app_status = ''
             app_url = ''
+            cloud = ''
             for stat in status_val_list:
                 stat = stat.rstrip().lstrip()
-                if stat.lower().find("name") >= 0:
+                if stat.lower().find("name::") >= 0:
                     l = stat.split("::")
                     app_name = l[1]
-                elif stat.lower().find("deploy_id") >= 0:
+                elif stat.lower().find("deploy_id::") >= 0:
                     l = stat.split("::")
                     app_deploy_id = l[1]
-                elif stat.lower().find("status") >= 0:
+                elif stat.lower().find("cloud::") >= 0:
+                    l = stat.split("::")
+                    cloud = l[1]
+                elif stat.lower().find("status::") >= 0:
                     l = stat.split("::")
                     app_status = l[1]
-                elif stat.lower().find("url") >= 0:
+                elif stat.lower().find("url::") >= 0:
                     l = stat.split("::")
                     app_url = l[1]
 
-            row = [app_name, app_deploy_id, app_status, app_url]
+            row = [app_name, app_deploy_id, app_status, cloud, app_url]
             x.add_row(row)
             self.app.stdout.write("%s\n" % x)

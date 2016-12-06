@@ -4,7 +4,13 @@ import prettytable
 
 import deployment as dp
 
+from os.path import expanduser
+
 from cliff.command import Command
+
+home_dir = expanduser("~")
+
+APP_STORE_PATH = ("{home_dir}/.lme/data/deployments").format(home_dir=home_dir)
 
 
 class Deploy(Command):
@@ -24,6 +30,24 @@ class Deploy(Command):
                             help="Destination to deploy application (local, AWS, Google)")        
         return parser
 
+    def _setup_aws(self, dest):
+        aws_creds_path = APP_STORE_PATH + "/aws-creds"
+        if not os.path.exists(aws_creds_path):
+            os.makedirs(aws_creds_path)
+            access_key_id = raw_input("Enter AWS Access Key:")
+            secret_access_key = raw_input("Enter AWS Secret Access Key:")
+            fp = open(aws_creds_path + "/credentials", "w")
+            fp.write("[default]\n")
+            fp.write("aws_access_key_id = %s\n" % access_key_id)
+            fp.write("aws_secret_access_key = %s\n" % secret_access_key)
+            fp.close()
+
+            fp = open(aws_creds_path + "/config", "w")
+            fp.write("[default]\n")
+            fp.write("output = json\n")
+            fp.write("region = us-west-2\n")
+            fp.close()
+
     def take_action(self, parsed_args):
         self.log.info('Deploying application')
         self.log.debug('Deploying application. Passed args:%s' % parsed_args)
@@ -35,6 +59,8 @@ class Deploy(Command):
         dest = parsed_args.cloud
         if dest:
             self.log.debug("Destination:%s" % dest)
+            if dest.lower() == 'aws':
+                self._setup_aws(dest)
             
         app_port = '5000'
         
@@ -52,7 +78,7 @@ class Deploy(Command):
         self.log.debug("App directory:%s" % project_location)
         
         self.dep_track_url = dp.Deployment().post(project_location, app_info, 
-                                                  service_info, cloud='local')
+                                                  service_info, cloud=dest)
         self.log.debug("App tracking url:%s" % self.dep_track_url)
 
         k = project_location.rfind("/")
@@ -62,9 +88,9 @@ class Deploy(Command):
         dep_id = self.dep_track_url[l+1:]
 
         x = prettytable.PrettyTable()
-        x.field_names = ["App Name", "Deploy ID"]
+        x.field_names = ["App Name", "Deploy ID", "Cloud"]
 
-        x.add_row([app_name, dep_id])
+        x.add_row([app_name, dep_id, dest])
         self.app.stdout.write("%s\n" % x)
         self.log.debug(x)
 

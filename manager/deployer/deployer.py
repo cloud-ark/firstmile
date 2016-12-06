@@ -6,6 +6,7 @@ Created on Oct 26, 2016
 import logging
 from common import task_definition as td
 import local_deployer as ld
+import aws_deployer as ad
 
 class Deployer(object):
     
@@ -16,7 +17,11 @@ class Deployer(object):
     def deploy(self, deploy_type, deploy_name):
         if self.cloud == 'local':
             result = ld.LocalDeployer(self.task_def).deploy(deploy_type, deploy_name)
-            logging.debug("Deployment result:%s" % result)
+        elif self.cloud == 'aws':
+            result = ad.AWSDeployer(self.task_def).deploy(deploy_type, deploy_name)
         else:
             print("Cloud %s not supported" % self.cloud)
+
+        if result:
+            logging.debug("Deployment result:%s" % result)
         return result

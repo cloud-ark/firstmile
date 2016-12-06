@@ -55,11 +55,14 @@ class LocalBuilder(object):
         os.chdir(app_dir + "/" + app_name)
 
         cont_name = app_obj.get_cont_name()
+        logging.debug("Container name that will be used in building:%s" % cont_name)
         
         # Following is not working, so continuing to use 'docker build'
         # self._do_docker_build(cont_name)
 
         build_cmd = ("docker build -t {name} . ").format(name=cont_name)
+        logging.debug("Docker build command:%s" % build_cmd)
+
         result = subprocess.check_output(build_cmd, shell=True)
         logging.debug(result)
 

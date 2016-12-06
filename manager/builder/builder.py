@@ -14,7 +14,7 @@ class Builder(object):
         self.cloud = task_def.cloud_data['cloud']
         
     def build(self, build_type, build_name):
-        if self.cloud == 'local':
+        if self.cloud == 'local' or self.cloud == 'aws':
             lb.LocalBuilder(self.task_def).build(build_type, build_name)
         else:
             print("Cloud %s not supported" % self.cloud)
