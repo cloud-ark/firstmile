@@ -37,7 +37,7 @@ class Show(Command):
             x.field_names = ["App Name", "Deploy ID", "Status", "App URL"]
 
             app_name = ''
-            app_deploy_id = ''
+            app_deploy_id = parsed_args.deployid
             app_deploy_time = ''
             app_status = ''
             app_url = ''

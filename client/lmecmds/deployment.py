@@ -72,7 +72,8 @@ class Deployment(object):
         self.log.debug("Deployment ID:%s" % track_url)
         return track_url
 
-    def get(self, app_url):
+    def get(self, dep_id):
+        app_url = "http://localhost:5002/deployments/" + dep_id
         req = urllib2.Request(app_url)
         response = urllib2.urlopen(req)
         app_data = response.fp.read()

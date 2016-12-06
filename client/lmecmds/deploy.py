@@ -1,5 +1,6 @@
 import logging
 import os
+import prettytable
 
 import deployment as dp
 
@@ -52,7 +53,22 @@ class Deploy(Command):
         
         self.dep_track_url = dp.Deployment().post(project_location, app_info, 
                                                   service_info, cloud='local')
-        print("App tracking url:%s" % self.dep_track_url)
+        self.log.debug("App tracking url:%s" % self.dep_track_url)
+
+        k = project_location.rfind("/")
+        app_name = project_location[k+1:]
+
+        l = self.dep_track_url.rfind("/")
+        dep_id = self.dep_track_url[l+1:]
+
+        x = prettytable.PrettyTable()
+        x.field_names = ["App Name", "Deploy ID"]
+
+        x.add_row([app_name, dep_id])
+        self.app.stdout.write("%s\n" % x)
+        self.log.debug(x)
+
+
 
             
 

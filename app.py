@@ -33,7 +33,16 @@ class Deployment(Resource):
     def get(self, dep_id):
         logging.debug("Executing GET for dep id:%s" % dep_id)
 
-        def _get_app_location(dep_id):
+        def _get_app_location(app_id):
+
+            f = open(APP_STORE_PATH + "/app_ids.txt")
+            all_lines = f.readlines()
+            for line in all_lines:
+                line_contents = line.split(" ")
+                if line_contents[0] == app_id:
+                    dep_id = line_contents[1].rstrip().lstrip()
+                    break
+
             k = dep_id.rfind("--")
             app_version = dep_id[k+2:]
             logging.debug("App version:%s" % app_version)
@@ -105,6 +114,31 @@ class Deployments(Resource):
         self._untar_the_app(app_tar_file, versioned_app_path)
         return versioned_app_path, app_version
     
+    def _get_app_id(self, app_name, app_version):
+        # Method 1:
+        # app_id = ("{app_name}--{app_version}").format(app_name=app_name, app_version=app_version)
+
+        # Method 2:
+        # open app_ids.txt file available at APP_STORE_PATH
+        id_count = 1
+        if os.path.exists(APP_STORE_PATH + "/app_ids.txt"):
+            try:
+                f = open(APP_STORE_PATH + "/app_ids.txt", "r")
+                all_lines = f.readlines()
+                if all_lines:
+                    last_line = all_lines[-1]
+                    last_line_parts = last_line.split(" ")
+                    id_count = int(last_line_parts[0]) + 1
+                f.close()
+            except IOError:
+                logging.error("app_ids.txt does not exist yet. Creating..")
+
+        f = open(APP_STORE_PATH + "/app_ids.txt", "a")
+        app_id = id_count
+        f.write(str(app_id) + " " + app_name + "--" + app_version + "\n")
+
+        return app_id
+
     def post(self):
         #args = parser.parse_args()
         logging.debug("Received POST request.")
@@ -136,9 +170,12 @@ class Deployments(Resource):
 
         response = jsonify()
         response.status_code = 201
-        app_id = ("{app_name}--{app_version}").format(app_name=app_name, app_version=app_version)
+
+        app_id = self._get_app_id(app_name, app_version)
+
         logging.debug("App id:%s" % app_id)
         response.headers['location'] = ('/deployments/{app_id}').format(app_id=app_id)
+        logging.debug("Location header:%s" % response.headers['location'])
         logging.debug("Response:%s" % response)
 
         return response
