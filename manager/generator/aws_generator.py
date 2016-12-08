@@ -5,6 +5,8 @@ Created on Dec 6, 2016
 '''
 import logging
 import os
+import stat as s
+
 from common import app
 
 from os.path import expanduser
@@ -87,6 +89,10 @@ class AWSGenerator(object):
             runapp_fp.write(runapp)
             runapp_fp.close()
             
+            # Setting permission to 555
+            permission = s.S_IRUSR | s.S_IRGRP | s.S_IROTH | s.S_IXUSR | s.S_IXGRP | s.S_IXOTH
+            os.chmod(app_dir + "/runapp.sh", permission)
+
             # Generate Dockerfile
             fp = open(app_dir + "/Dockerfile.aws", "w")
             df = ("FROM ubuntu:14.04\n"

@@ -20,20 +20,23 @@ class AWSDeployer(object):
         
     def _process_logs(self, cont_id, app_obj):
         
-        # Provide RDS username and password
-        try:
-            docker_attach_cmd = ("docker attach {cont_id}").format(cont_id=cont_id)
-            logging.debug("docker attach cmd:%s" % docker_attach_cmd)
-            child = pexpect.spawn(docker_attach_cmd)
-            child.logfile = sys.stdout
-            child.expect("Enter an RDS DB username*")
-            child.sendline("lmeroot")
-            child.expect("Enter an RDS DB master password*")
-            child.sendline("lmeroot123")
-            child.expect("Retype password to confirm*")
-            child.sendline("lmeroot123")
-        except Exception as e:
-            print(e)
+        services = self.task_def.service_data
+
+        if services:
+            # Provide RDS username and password
+            try:
+                docker_attach_cmd = ("docker attach {cont_id}").format(cont_id=cont_id)
+                logging.debug("docker attach cmd:%s" % docker_attach_cmd)
+                child = pexpect.spawn(docker_attach_cmd)
+                child.logfile = sys.stdout
+                child.expect("Enter an RDS DB username*")
+                child.sendline("lmeroot")
+                child.expect("Enter an RDS DB master password*")
+                child.sendline("lmeroot123")
+                child.expect("Retype password to confirm*")
+                child.sendline("lmeroot123")
+            except Exception as e:
+                logging.error(e)
         logging.debug("Done providing db creds to eb create command.")
 
         docker_logs_cmd = ("docker logs {cont_id}").format(cont_id=cont_id)
@@ -49,6 +52,12 @@ class AWSDeployer(object):
                 if line.find("CNAME:") >= 0:
                     stat = line.split(":")
                     cname = stat[1].rstrip().lstrip()
+                if line.find("ERROR:") >= 0:
+                    stat = line.split(":")
+                    error = stat[1].rstrip().lstrip()
+                    if error not in logged_status:
+                        logged_status.append(error)
+                        app_obj.update_app_status("status::" + error)
                 if line.find("INFO:") >= 0:
                     stat = line.split(":")
                     status = stat[1]

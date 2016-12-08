@@ -54,7 +54,9 @@ class Manager(threading.Thread):
         # - Generate, build, deploy app
         gen.Generator(self.task_def).generate(service_ip_addresses, services)
         bld.Builder(self.task_def).build(build_type='app', build_name=self.task_def.app_data['app_name'])
-        result = dep.Deployer(self.task_def).deploy(deploy_type='app', deploy_name=self.task_def.app_data['app_name'])
+        result = dep.Deployer(self.task_def).deploy(deploy_type='app',
+                                                    deploy_name=self.task_def.app_data['app_name']
+                                                    )
         logging.debug("Result:%s" % result)
         
 
