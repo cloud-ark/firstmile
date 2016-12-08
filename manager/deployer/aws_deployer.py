@@ -5,7 +5,9 @@ Created on Dec 6, 2016
 '''
 import logging
 import os
+import pexpect
 import subprocess
+import sys
 
 from docker import Client
 from common import app
@@ -17,12 +19,29 @@ class AWSDeployer(object):
         self.docker_client = Client(base_url='unix://var/run/docker.sock', version='1.18')
         
     def _process_logs(self, cont_id, app_obj):
-        is_env_ok = False
+        
+        # Provide RDS username and password
+        try:
+            docker_attach_cmd = ("docker attach {cont_id}").format(cont_id=cont_id)
+            logging.debug("docker attach cmd:%s" % docker_attach_cmd)
+            child = pexpect.spawn(docker_attach_cmd)
+            child.logfile = sys.stdout
+            child.expect("Enter an RDS DB username*")
+            child.sendline("lmeroot")
+            child.expect("Enter an RDS DB master password*")
+            child.sendline("lmeroot123")
+            child.expect("Retype password to confirm*")
+            child.sendline("lmeroot123")
+        except Exception as e:
+            print(e)
+        logging.debug("Done providing db creds to eb create command.")
+
         docker_logs_cmd = ("docker logs {cont_id}").format(cont_id=cont_id)
         logging.debug("Fetching Docker logs")
         logging.debug("Docker logs command:%s" % docker_logs_cmd)
         logged_status = []
         cname = "1.2.3.4"
+        is_env_ok = False
         while not is_env_ok:
             log_lines = subprocess.check_output(docker_logs_cmd, shell=True)
             log_lines = log_lines.split("\n")

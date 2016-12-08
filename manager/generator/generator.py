@@ -13,10 +13,10 @@ class Generator(object):
         self.task_def = task_def
         self.cloud = task_def.cloud_data['cloud']
         
-    def generate(self, service_ip_addresses_dict):
+    def generate(self, service_ip_addresses_dict, services):
         if self.cloud == 'local':
             lg.LocalGenerator(self.task_def).generate(service_ip_addresses_dict)
         elif self.cloud == 'aws':
-            ag.AWSGenerator(self.task_def).generate(service_ip_addresses_dict)
+            ag.AWSGenerator(self.task_def).generate(service_ip_addresses_dict, services)
         else:
             print("Cloud %s not supported" % self.cloud)

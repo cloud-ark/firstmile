@@ -36,22 +36,23 @@ class Manager(threading.Thread):
         # Step 1:
         service_ip_addresses = {}
         services = self.task_def.service_data
-        for serv in services:
-            service_name = serv['service_name']
-            service_type = serv['service_type']
-            service_details = serv['service_details']
+        
+        if self.task_def.cloud_data['cloud'] == 'local':      
+            for serv in services:
+                service_name = serv['service_name']
+                service_type = serv['service_type']
+                service_details = serv['service_details']
 
-            bld.Builder(self.task_def).build(build_type='service', build_name=service_name)
-            serv_ip_addr = dep.Deployer(self.task_def).deploy(deploy_type='service', 
-                                                              deploy_name=service_name)
-            service_ip_addresses[service_name] = serv_ip_addr
-
+                bld.Builder(self.task_def).build(build_type='service', build_name=service_name)
+                serv_ip_addr = dep.Deployer(self.task_def).deploy(deploy_type='service', 
+                                                                  deploy_name=service_name)
+                service_ip_addresses[service_name] = serv_ip_addr
             # Allow time for service container to be deployed and started
             time.sleep(10)
         
         # Step 2:
         # - Generate, build, deploy app
-        gen.Generator(self.task_def).generate(service_ip_addresses)
+        gen.Generator(self.task_def).generate(service_ip_addresses, services)
         bld.Builder(self.task_def).build(build_type='app', build_name=self.task_def.app_data['app_name'])
         result = dep.Deployer(self.task_def).deploy(deploy_type='app', deploy_name=self.task_def.app_data['app_name'])
         logging.debug("Result:%s" % result)
