@@ -129,10 +129,12 @@ class AWSGenerator(object):
         env_name = app_obj.get_cont_name()
         logging.debug("Environment name:%s" % env_name)
         
-        entrypt_cmd = ("ENTRYPOINT [\"eb\", \"create\", \"{env_name}\", \"-c\", \"{env_name}\"]  \n").format(env_name=env_name)
+        entrypt_cmd = ("ENTRYPOINT [\"eb\", \"create\", \"{env_name}\", \"-c\", "
+                       "\"{env_name}\", \"--timeout\", \"20\"]  \n").format(env_name=env_name)
         dockerfile_maneuver = ("RUN mv Dockerfile Dockerfile.bak \n")
         if service_info:
-            entrypt_cmd = ("ENTRYPOINT [\"eb\", \"create\", \"{env_name}\", \"-c\", \"{env_name}\", \"-db\"] \n").format(env_name=env_name)
+            entrypt_cmd = ("ENTRYPOINT [\"eb\", \"create\", \"{env_name}\", \"-c\", "
+                           "\"{env_name}\", \"-db\", \"--timeout\", \"20\"] \n").format(env_name=env_name)
             dockerfile_maneuver = ("RUN mv Dockerfile Dockerfile.bak \n"
                                    "RUN mv Dockerfile.aws Dockerfile \n")
             
