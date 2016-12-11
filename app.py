@@ -29,6 +29,57 @@ APP_STORE_PATH = ("{home_dir}/.lme/data/deployments").format(home_dir=home_dir)
 def start_thread(delegatethread):
     delegatethread.run()
 
+class Cloud(Resource):
+    def get(self, cloud_name):
+        logging.debug("Executing GET for cloud:%s" % cloud_name)
+        app_lines = list()
+
+        f = open(APP_STORE_PATH + "/app_ids.txt")
+        all_lines = f.readlines()
+        for line in all_lines:
+            line_contents = line.split(" ")
+            app_line = {}
+
+            app_version = line_contents[1]
+            k = app_version.find("--")
+            app_name = app_version[:k]
+            app_version = app_version[k+2:].rstrip().lstrip()
+            found_cloud = line_contents[2].rstrip().lstrip()
+
+            if found_cloud == cloud_name:
+                app_stat_file = APP_STORE_PATH + "/" + app_name + "/" + app_version + "/app-status.txt"
+
+                if os.path.exists(app_stat_file):
+                    app_line['dep_id'] = line_contents[0]
+                    app_line['app_version'] = app_version
+                    app_line['app_name'] = app_name
+                    app_stat_file = open(app_stat_file)
+                    stat_line = app_stat_file.read()
+
+                    parts = stat_line.split(',')
+                    cloud = ''
+                    url = ''
+                    for p in parts:
+                        if p.find("cloud::") >= 0:
+                            c = p.split("::")
+                            cloud = c[1]
+                        if p.find("URL::") >= 0:
+                            u = p.split("::")
+                            url = u[1]
+                    app_line['cloud'] = cloud
+                    app_line['url'] = url
+
+                    app_lines.append(app_line)
+
+        resp_data = {}
+
+        resp_data['app_data'] = app_lines
+
+        response = jsonify(**resp_data)
+        response.status_code = 201
+        return response
+
+
 class App(Resource):
     def get(self, app_name):
         logging.debug("Executing GET for app:%s" % app_name)
@@ -163,7 +214,7 @@ class Deployments(Resource):
         self._untar_the_app(app_tar_file, versioned_app_path)
         return versioned_app_path, app_version
     
-    def _get_app_id(self, app_name, app_version):
+    def _get_app_id(self, app_name, app_version, cloud):
         # Method 1:
         # app_id = ("{app_name}--{app_version}").format(app_name=app_name, app_version=app_version)
 
@@ -184,7 +235,7 @@ class Deployments(Resource):
 
         f = open(APP_STORE_PATH + "/app_ids.txt", "a")
         app_id = id_count
-        f.write(str(app_id) + " " + app_name + "--" + app_version + "\n")
+        f.write(str(app_id) + " " + app_name + "--" + app_version + " " + cloud + "\n")
 
         return app_id
 
@@ -220,7 +271,7 @@ class Deployments(Resource):
         response = jsonify()
         response.status_code = 201
 
-        app_id = self._get_app_id(app_name, app_version)
+        app_id = self._get_app_id(app_name, app_version, cloud)
 
         logging.debug("App id:%s" % app_id)
         response.headers['location'] = ('/deployments/{app_id}').format(app_id=app_id)
@@ -229,7 +280,7 @@ class Deployments(Resource):
 
         return response
 
-
+api.add_resource(Cloud, '/clouds/<cloud_name>')
 api.add_resource(App, '/apps/<app_name>')
 api.add_resource(Deployment, '/deployments/<dep_id>')
 api.add_resource(Deployments, '/deployments')
