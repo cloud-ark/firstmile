@@ -17,6 +17,9 @@ class Show(Command):
         parser.add_argument('--deploy-id',
                                  dest='deployid',
                                  help="Deployment ID/URL")
+        parser.add_argument('--app-name',
+                                 dest='appname',
+                                 help="Name of the application")
         return parser
 
     def take_action(self, parsed_args):
@@ -25,6 +28,28 @@ class Show(Command):
         #self.app.stdout.write('Show app info\n')
         #self.app.stdout.write("Passed args:%s" % parsed_args)
         
+        if parsed_args.appname:
+            result = dp.Deployment().get_app_info(parsed_args.appname)
+
+            status_json = json.loads(result)
+            app_status_list = status_json['app_data']
+
+            logging.debug(app_status_list)
+
+            x = prettytable.PrettyTable()
+            x.field_names = ["Deploy ID", "App Version", "Cloud", "App URL"]
+
+            for line in app_status_list:
+                dep_id = line['dep_id']
+                version = line['app_version']
+                cloud = line['cloud']
+                app_url = line['url']
+
+                row = [dep_id, version, cloud, app_url]
+                x.add_row(row)
+
+            self.app.stdout.write("%s\n" % x)
+
         if parsed_args.deployid:
             result = dp.Deployment().get(parsed_args.deployid)
             

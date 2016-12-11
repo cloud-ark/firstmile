@@ -29,6 +29,55 @@ APP_STORE_PATH = ("{home_dir}/.lme/data/deployments").format(home_dir=home_dir)
 def start_thread(delegatethread):
     delegatethread.run()
 
+class App(Resource):
+    def get(self, app_name):
+        logging.debug("Executing GET for app:%s" % app_name)
+        app_lines = list()
+
+        f = open(APP_STORE_PATH + "/app_ids.txt")
+        all_lines = f.readlines()
+        for line in all_lines:
+            line_contents = line.split(" ")
+            app_line = {}
+
+            app_version = line_contents[1]
+            k = app_version.find("--")
+            found_app_name = app_version[:k]
+            app_version = app_version[k+2:].rstrip().lstrip()
+
+            if found_app_name == app_name:
+
+                app_stat_file = APP_STORE_PATH + "/" + app_name + "/" + app_version + "/app-status.txt"
+
+                if os.path.exists(app_stat_file):
+                    app_line['dep_id'] = line_contents[0]
+                    app_line['app_version'] = app_version
+                    app_stat_file = open(app_stat_file)
+                    stat_line = app_stat_file.read()
+
+                    parts = stat_line.split(',')
+                    cloud = ''
+                    url = ''
+                    for p in parts:
+                        if p.find("cloud::") >= 0:
+                            c = p.split("::")
+                            cloud = c[1]
+                        if p.find("URL::") >= 0:
+                            u = p.split("::")
+                            url = u[1]
+                    app_line['cloud'] = cloud
+                    app_line['url'] = url
+
+                    app_lines.append(app_line)
+
+        resp_data = {}
+
+        resp_data['app_data'] = app_lines
+
+        response = jsonify(**resp_data)
+        response.status_code = 201
+        return response
+
 class Deployment(Resource):
     def get(self, dep_id):
         logging.debug("Executing GET for dep id:%s" % dep_id)
@@ -181,6 +230,7 @@ class Deployments(Resource):
         return response
 
 
+api.add_resource(App, '/apps/<app_name>')
 api.add_resource(Deployment, '/deployments/<dep_id>')
 api.add_resource(Deployments, '/deployments')
 
