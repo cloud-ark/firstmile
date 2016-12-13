@@ -15,12 +15,13 @@ class Deployer(object):
         self.cloud = task_def.cloud_data['cloud']
         
     def deploy(self, deploy_type, deploy_name):
+        result = ''
         if self.cloud == 'local':
             result = ld.LocalDeployer(self.task_def).deploy(deploy_type, deploy_name)
         elif self.cloud == 'aws':
             result = ad.AWSDeployer(self.task_def).deploy(deploy_type, deploy_name)
         else:
-            print("Cloud %s not supported" % self.cloud)
+            print("(Deployer) Cloud %s not supported" % self.cloud)
 
         if result:
             logging.debug("Deployment result:%s" % result)
