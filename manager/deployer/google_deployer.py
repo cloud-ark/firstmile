@@ -23,19 +23,21 @@ class GoogleDeployer(object):
         logging.debug("Fetching Docker logs")
         #logging.debug("Docker logs command:%s" % docker_logs_cmd)
 
-        docker_run_cmd = ("docker run -i -t {app_container}").format(app_container=app_cont_name)
-
+        docker_run_cmd = ("docker run {app_container} >& /tmp/lme-google-deploy-output.txt").format(app_container=app_cont_name)
         logged_status = []
         app_url = "1.2.3.4"
         deployment_done = False
-        while not deployment_done:
-            log_ = subprocess.Popen(docker_run_cmd, stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE, shell=True).communicate()[0]
 
-            log_lines = subprocess.check_output(docker_run_cmd, shell=True)
-            log_lines = log_lines.split("\n")
+        #log_lines = subprocess.Popen(docker_run_cmd, stdout=subprocess.PIPE,
+        #                             stderr=subprocess.PIPE, shell=True).communicate()[0]
+        os.system(docker_run_cmd)
+        fp = open("/tmp/lme-google-deploy-output.txt")
+        while not deployment_done:
+            #log_lines = subprocess.check_output(docker_run_cmd, shell=True)
+            log_lines = fp.readlines()
+            logging.debug("Log lines:%s" % log_lines)
             for line in log_lines:
-                line = line.rstrip().lstrip()          
+                line = line.rstrip().lstrip()
                 if line.find("Deployed URL") >= 0:
                     logged_status.append(line)
                     parts = line.split("[")
@@ -46,6 +48,7 @@ class GoogleDeployer(object):
                         app_obj.update_app_status("status::" + line)
                 if line.find("Deployed service [default] to") >= 0:
                     deployment_done = True
+                    os.remove("/tmp/lme-google-deploy-output.txt")
         return app_url
 
     def _deploy_app_container(self, app_obj):
