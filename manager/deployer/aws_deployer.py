@@ -113,7 +113,7 @@ class AWSDeployer(object):
         #logging.debug(response)
         
     def deploy(self, deploy_type, deploy_name):
-        logging.debug("Local deployer called for app %s" %
+        logging.debug("AWS deployer called for app %s" %
                       self.task_def.app_data['app_name'])
         app_obj = app.App(self.task_def.app_data)
         app_obj.update_app_status("status::DEPLOYING")

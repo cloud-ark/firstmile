@@ -7,6 +7,7 @@ import logging
 from common import task_definition as td
 import local_deployer as ld
 import aws_deployer as ad
+import google_deployer as gd
 
 class Deployer(object):
     
@@ -20,6 +21,8 @@ class Deployer(object):
             result = ld.LocalDeployer(self.task_def).deploy(deploy_type, deploy_name)
         elif self.cloud == 'aws':
             result = ad.AWSDeployer(self.task_def).deploy(deploy_type, deploy_name)
+        elif self.cloud == 'google':
+            result = gd.GoogleDeployer(self.task_def).deploy(deploy_type, deploy_name)
         else:
             print("(Deployer) Cloud %s not supported" % self.cloud)
 
