@@ -19,14 +19,20 @@ class GoogleDeployer(object):
         self.task_def = task_def
         
     def _process_logs(self, cont_id, app_cont_name, app_obj):
-        docker_logs_cmd = ("docker logs {cont_id}").format(cont_id=cont_id)
+        #docker_logs_cmd = ("docker logs {cont_id}").format(cont_id=cont_id)
         logging.debug("Fetching Docker logs")
-        logging.debug("Docker logs command:%s" % docker_logs_cmd)
+        #logging.debug("Docker logs command:%s" % docker_logs_cmd)
+
+        docker_run_cmd = ("docker run -i -t {app_container}").format(app_container=app_cont_name)
+
         logged_status = []
         app_url = "1.2.3.4"
         deployment_done = False
         while not deployment_done:
-            log_lines = subprocess.check_output(docker_logs_cmd, shell=True)
+            log_ = subprocess.Popen(docker_run_cmd, stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE, shell=True).communicate()[0]
+
+            log_lines = subprocess.check_output(docker_run_cmd, shell=True)
             log_lines = log_lines.split("\n")
             for line in log_lines:
                 line = line.rstrip().lstrip()          
@@ -48,13 +54,14 @@ class GoogleDeployer(object):
         
         services = self.task_def.service_data
         cont_id = ''
-        if not services:
-            docker_run_cmd = ("docker run -i -t -d {app_container}").format(app_container=app_cont_name)
-            cont_id = subprocess.check_output(docker_run_cmd, shell=True)
-            logging.debug("Running container id:%s" % cont_id)
+        app_url = ''
+        #if not services:
+            #docker_run_cmd = ("docker run -i -t -d {app_container}").format(app_container=app_cont_name)
+            #cont_id = subprocess.check_output(docker_run_cmd, shell=True)
+            #logging.debug("Running container id:%s" % cont_id)
         
-        cname = self._process_logs(cont_id, app_cont_name, app_obj)
-        return cname
+        app_url = self._process_logs(cont_id, app_cont_name, app_obj)
+        return app_url
 
     def deploy(self, deploy_type, deploy_name):
         logging.debug("Google deployer called for app %s" %
