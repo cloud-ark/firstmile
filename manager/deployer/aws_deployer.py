@@ -51,7 +51,7 @@ class AWSDeployer(object):
                 #child.close()
             except Exception as e:
                 logging.error(e)
-        logging.debug("Done providing db creds to eb create command.")
+            logging.debug("Done providing db creds to eb create command.")
 
         cont_id = self._parse_container_id(app_cont_name)
 
