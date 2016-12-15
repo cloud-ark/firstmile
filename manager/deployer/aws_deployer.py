@@ -50,6 +50,7 @@ class AWSDeployer(object):
             log_lines = log_lines.split("\n")
             #logging.debug("Log lines:%s" % log_lines)
             for line in log_lines:
+                line = line.rstrip().lstrip()
                 if line.find("CNAME:") >= 0:
                     stat = line.split(":")
                     cname = stat[1].rstrip().lstrip()
@@ -66,7 +67,9 @@ class AWSDeployer(object):
                     if status not in logged_status:
                         logged_status.append(status)
                         #trimmed_status = status.replace("named"," ")
-                        app_obj.update_app_status("status::" + status)
+                        a = line.find("INFO:")
+                        line = line[a+5:]
+                        app_obj.update_app_status("status::" + line)
                     if status.lower().find("successfully launched environment") >= 0:
                         is_env_ok = True
             time.sleep(1)
