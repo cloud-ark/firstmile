@@ -23,6 +23,7 @@ class GoogleDeployer(object):
         self.app_dir = task_def.app_data['app_location']
         self.app_name = task_def.app_data['app_name']
         self.app_version = task_def.app_data['app_version']
+        self.access_token_cont_name = "google-access-token-cont-" + self.app_name + "-" + self.app_version
         
     def _process_logs(self, cont_id, app_cont_name, app_obj):
         #docker_logs_cmd = ("docker logs {cont_id}").format(cont_id=cont_id)
@@ -206,7 +207,7 @@ class GoogleDeployer(object):
         # Run the container
         cwd = os.getcwd()
         os.chdir(app_deploy_dir)
-        docker_run_cmd = "docker run -i -t -d google-access-token-cont"
+        docker_run_cmd = ("docker run -i -t -d {google_access_token_cont}").format(google_access_token_cont=self.access_token_cont_name)
         #cmd = "docker ps -a | grep google-access-token-cont | head -1 | cut -d ' ' -f 1"
         logging.debug(docker_run_cmd)
 
@@ -223,6 +224,23 @@ class GoogleDeployer(object):
         logging.debug("Obtained access token:%s" % access_token)
         os.remove(app_deploy_dir + "/access_token.txt/access_token.txt")
         os.removedirs(app_deploy_dir + "/access_token.txt")
+
+        # Stop and remove container generated for obtaining new access_token
+        logging.debug("Stopping the container started for obtaining access_token")
+        stop_cmd = ("docker ps | grep {google_access_token_cont} | cut -d ' ' -f 1 | xargs docker stop").format(google_access_token_cont=self.access_token_cont_name)
+        logging.debug("stop command:%s" % stop_cmd)
+        os.system(stop_cmd)
+
+        logging.debug("Removing the container started for obtaining access_token")
+        rm_cmd = ("docker ps -a | grep {google_access_token_cont} | cut -d ' ' -f 1 | xargs docker rm").format(google_access_token_cont=self.access_token_cont_name)
+        logging.debug("rm command:%s" % rm_cmd)
+        os.system(rm_cmd)
+
+        logging.debug("Removing container built for obtaining access_token")
+        rmi_cmd = ("docker images | grep {google_access_token_cont}  | awk \'{{print $3}}\' | xargs docker rmi").format(google_access_token_cont=self.access_token_cont_name)
+        logging.debug("rmi command:%s" % rmi_cmd)
+        os.system(rmi_cmd)
+
         os.chdir(cwd)
         return access_token
 

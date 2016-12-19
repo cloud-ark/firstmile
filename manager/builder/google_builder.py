@@ -19,7 +19,9 @@ class GoogleBuilder(object):
         self.task_def = task_def
         self.app_dir = task_def.app_data['app_location']
         self.app_name = task_def.app_data['app_name']
+        self.app_version = task_def.app_data['app_version']
         self.docker_client = Client(base_url='unix://var/run/docker.sock', version='1.18')
+        self.access_token_cont_name = "google-access-token-cont-" + self.app_name + "-" + self.app_version
 
     def _build_service_container(self):
         logging.debug("Building service container")
@@ -28,7 +30,7 @@ class GoogleBuilder(object):
 
         cwd = os.getcwd()
         os.chdir(app_deploy_dir)
-        cmd = "docker build -t google-access-token-cont -f Dockerfile.access_token . "
+        cmd = ("docker build -t {google_access_token_cont} -f Dockerfile.access_token . ").format(google_access_token_cont=self.access_token_cont_name)
         try:
             os.system(cmd)
         except Exception as e:
