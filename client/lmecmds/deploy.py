@@ -137,6 +137,8 @@ class Deploy(Command):
             self.log.debug("Service:%s" % service)
         
         dest = parsed_args.cloud
+        project_id = ''
+        user_email = ''
         if dest:
             self.log.debug("Destination:%s" % dest)
             if dest.lower() == 'aws':

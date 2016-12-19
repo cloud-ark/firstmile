@@ -190,10 +190,10 @@ class GoogleDeployer(object):
         perm = stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
         os.chmod(app_deploy_dir + "/create-db.sh", perm)
 
-        docker_build_cmd = "docker build -t google-create-db -f Dockerfile.create-db ."
+        docker_build_cmd = ("docker build -t google-create-db-{app_name} -f Dockerfile.create-db .").format(app_name=self.app_name)
         os.system(docker_build_cmd)
 
-        docker_run_cmd = "docker run -i -t -d google-create-db"
+        docker_run_cmd = ("docker run -i -t -d google-create-db-{app_name}").format(app_name=self.app_name)
         os.system(docker_run_cmd)
 
         os.chdir(cwd)
