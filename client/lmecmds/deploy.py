@@ -50,6 +50,40 @@ class Deploy(Command):
             fp.write("region = us-west-2\n")
             fp.close()
 
+    def _get_google_project_user_details(self, project_location):
+        google_app_details_path = APP_STORE_PATH + "/google-creds/app_details.txt"
+        app_name = project_location[project_location.rfind("/")+1:]
+        project_id = ''
+        user_email = ''
+        if os.path.exists(google_app_details_path):
+            fp = open(google_app_details_path, "r")
+            lines = fp.readlines()
+            for line in lines:
+                parts = line.split(":")
+                potential_project_id = parts[1].rstrip().lstrip()
+                if line.find("User Email") >=0:
+                    user_email = parts[1].rstrip().lstrip()
+                if potential_project_id.find(app_name) >= 0:
+                    project_id = potential_project_id
+            if not user_email:
+                user_email = raw_input("Enter Gmail address associated with your Google App Engine account>")
+                fp = open(google_app_details_path, "a")
+                fp.write("User Email:%s\n" % user_email)
+                fp.close()
+            if not project_id:
+                project_id = raw_input("Enter project id>")
+                fp = open(google_app_details_path, "a")
+                fp.write("Project ID:%s\n" % project_id)
+                fp.close()
+        else:
+            project_id = raw_input("Enter project id>")
+            user_email = raw_input("Enter Gmail address associated with your Google App Engine account>")
+            fp = open(google_app_details_path, "w")
+            fp.write("User Email:%s\n" % user_email)
+            fp.write("Project ID:%s\n" % project_id)
+            fp.close()
+        return project_id, user_email
+
     def _setup_google(self, project_location, dest):
         google_creds_path = APP_STORE_PATH + "/google-creds"
         if not os.path.exists(google_creds_path):
@@ -109,8 +143,9 @@ class Deploy(Command):
                 self._setup_aws(dest)
             if dest.lower() == 'google':
                 self._setup_google(project_location, dest)
-                project_id = raw_input("Enter project id>")
-                user_email = raw_input("Enter Gmail address associated with your Google App Engine account>")
+                project_id, user_email = self._get_google_project_user_details(project_location)
+                print("Using project_id:%s" % project_id)
+                print("Using user email:%s" % user_email)
             
         app_port = '5000'
         
