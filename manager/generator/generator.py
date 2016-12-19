@@ -14,12 +14,12 @@ class Generator(object):
         self.task_def = task_def
         self.cloud = task_def.cloud_data['cloud']
         
-    def generate(self, service_ip_addresses_dict, services):
+    def generate(self, build_type, service_ip_addresses_dict, services):
         if self.cloud == 'local':
             lg.LocalGenerator(self.task_def).generate(service_ip_addresses_dict)
         elif self.cloud == 'aws':
             ag.AWSGenerator(self.task_def).generate(service_ip_addresses_dict, services)
         elif self.cloud == 'google':
-            gg.GoogleGenerator(self.task_def).generate(service_ip_addresses_dict, services)
+            gg.GoogleGenerator(self.task_def).generate(build_type, service_ip_addresses_dict, services)
         else:
             print("Cloud %s not supported" % self.cloud)

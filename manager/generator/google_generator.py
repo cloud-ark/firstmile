@@ -25,7 +25,7 @@ class GoogleGenerator(object):
         self.app_dir = task_def.app_data['app_location']
         self.app_name = task_def.app_data['app_name']
         
-    def _generate_app_yaml(self, app_deploy_dir):
+    def _generate_app_yaml(self, app_deploy_dir, service_ip_dict):
         app_yaml = ("runtime: python27 \n"
                     "api_version: 1 \n"
                     "threadsafe: true \n"
@@ -35,7 +35,15 @@ class GoogleGenerator(object):
                     "  static_dir: static \n"
                     "- url: /.* \n"
                     "  script: application.app \n"
-                    "")
+                    "\n")
+
+        if service_ip_dict:
+            app_yaml = app_yaml + ("env_variables:\n"
+                                   "    USER: 'lmeroot' \n"
+                                   "    HOST: '{service_ip}' \n"
+                                   "    DB: 'greetings' \n"
+                                   "    PASSWORD: 'lme123' \n"
+                                   ).format(service_ip=service_ip_dict['mysql-service'])
 
         fp = open(app_deploy_dir + "/app.yaml", "w")
         fp.write(app_yaml)
@@ -53,10 +61,16 @@ class GoogleGenerator(object):
     def _generate_appengine_config(self, app_deploy_dir):
         appengine_config = ("from google.appengine.ext import vendor \n\n"
                             "vendor.add('lib')")
-
         fp = open(app_deploy_dir + "/appengine_config.py", "w")
         fp.write(appengine_config)
         fp.close()
+
+    def _check_if_first_time_app_deploy(self):
+        df_first_time_loc = self.app_dir[:self.app_dir.rfind("/")]
+        if not os.path.exists(df_first_time_loc + "/app-created.txt"):
+            return True
+        else:
+            return False
     
     def _generate_docker_file(self, app_deploy_dir):
 
@@ -81,16 +95,31 @@ class GoogleGenerator(object):
               "WORKDIR /src \n"
               "RUN /google-cloud-sdk/bin/gcloud config set account {user_email} \n"
               "RUN /google-cloud-sdk/bin/gcloud config set project {project_id} \n"
-              #"RUN /google-cloud-sdk/bin/gcloud beta app create --region us-central \n"
-              "ENTRYPOINT [\"/google-cloud-sdk/bin/gcloud\", \"app\", \"deploy\", \"--quiet\"] \n"
-              ).format(cmd_1=cmd_1, cmd_2=cmd_2, user_email="cc1h499@gmail.com", project_id="hello-world-152322")
+             )
+
+        first_time = self._check_if_first_time_app_deploy()
+        if first_time:
+            df1 = df + ("RUN /google-cloud-sdk/bin/gcloud beta app create --region us-central \n")
+            df1 = df1.format(cmd_1=cmd_1, cmd_2=cmd_2, user_email=self.task_def.app_data['user_email'],
+                             project_id=self.task_def.app_data['project_id'])
+
+        df = df + ("ENTRYPOINT [\"/google-cloud-sdk/bin/gcloud\", \"app\", \"deploy\", \"--quiet\"] \n")
+
+        df = df.format(cmd_1=cmd_1, cmd_2=cmd_2, user_email=self.task_def.app_data['user_email'],
+                       project_id=self.task_def.app_data['project_id'])
+
+        if first_time:
+            df_first_time_loc = self.app_dir[:self.app_dir.rfind("/")]
+            logging.debug("First time app location:%s" % df_first_time_loc)
+            first_time_df = open(app_deploy_dir + "/Dockerfile.first_time", "w")
+            first_time_df.write(df1)
+            first_time_df.close()
 
         fp = open(app_deploy_dir + "/Dockerfile", "w")
         fp.write(df)
         fp.close()
 
-    def _generate_for_python_app(self, app_obj, service_ip_dict, service_info):
-
+    def _copy_creds_to_app_dir(self):
         app_deploy_dir = ("{app_dir}/{app_name}").format(app_dir=self.app_dir, 
                                                          app_name=self.app_name)
 
@@ -102,22 +131,57 @@ class GoogleGenerator(object):
         logging.debug(cp_cmd)
 
         os.system(cp_cmd)
-        self._generate_app_yaml(app_deploy_dir)
+
+    def _generate_for_python_app(self, app_obj, service_ip_dict, service_info):
+        app_deploy_dir = ("{app_dir}/{app_name}").format(app_dir=self.app_dir,
+                                                         app_name=self.app_name)
+        self._copy_creds_to_app_dir()
+        self._generate_app_yaml(app_deploy_dir, service_ip_dict)
         self._generate_lib_dir(app_deploy_dir)
         self._generate_appengine_config(app_deploy_dir)
         self._generate_docker_file(app_deploy_dir)
 
-    def generate(self, service_ip_dict, service_info):
+    def _generate_docker_file_for_service(self, app_obj):
+        logging.debug("Generating Docker file that will give new access token.")
+        app_obj.update_app_status("status::GENERATING Google ARTIFACTS for MySQL service")
+
+        self._copy_creds_to_app_dir()
+
+        app_deploy_dir = ("{app_dir}/{app_name}").format(app_dir=self.app_dir,
+                                                         app_name=self.app_name)
+        cmd_1 = ("RUN sed -i 's/{pat}access_token{pat}.*/{pat}access_token{pat}/' credentials \n").format(pat="\\\"")
+        df = ("FROM ubuntu:14.04 \n"
+              "RUN apt-get update && apt-get install -y wget python \n"
+              "RUN sudo wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-126.0.0-linux-x86_64.tar.gz && \ \n"
+              "    sudo gunzip google-cloud-sdk-126.0.0-linux-x86_64.tar.gz && \ \n"
+              "    sudo tar -xvf google-cloud-sdk-126.0.0-linux-x86_64.tar \n"
+              "RUN /google-cloud-sdk/bin/gcloud components install beta \n"
+              "COPY . /src \n"
+              "COPY google-creds/gcloud  /root/.config/gcloud \n"
+              "WORKDIR /root/.config/gcloud \n"
+              #"{cmd_1}"
+              "RUN token=`/google-cloud-sdk/bin/gcloud beta auth application-default print-access-token` && \ \n"
+              "    echo $token > /src/access_token.txt"
+            ).format(cmd_1=cmd_1)
+
+        fp = open(app_deploy_dir + "/Dockerfile.access_token", "w")
+        fp.write(df)
+        fp.close()
+
+    def generate(self, build_type, service_ip_dict, service_info):
         logging.debug("Google generator called for app %s" %
                       self.task_def.app_data['app_name'])
         
-        app_obj = app.App(self.task_def.app_data)
-        app_obj.update_app_status("status::GENERATING Google ARTIFACTS")
-
-        if self.app_type == 'python':
-            self._generate_for_python_app(app_obj, service_ip_dict, service_info)
+        if build_type == 'service':
+            app_obj = app.App(self.task_def.app_data)
+            self._generate_docker_file_for_service(app_obj)
         else:
-            print("Application of type %s not supported." % self.app_type)        
+            app_obj = app.App(self.task_def.app_data)
+            app_obj.update_app_status("status::GENERATING Google ARTIFACTS for App")
+            if self.app_type == 'python':
+                self._generate_for_python_app(app_obj, service_ip_dict, service_info)
+            else:
+                print("Application of type %s not supported." % self.app_type)
         return 0
 
 

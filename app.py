@@ -261,6 +261,7 @@ class Deployments(Resource):
         #task_dict['app_location'] = app_location
         #task_dict['cloud'] = cloud
         app_data['app_location'] = app_location
+        app_data['app_version'] = app_version
         task_def = task_definition.TaskDefinition(app_data, cloud_data, service_data)
 
         delegatethread = mgr.Manager(app_name, task_def)

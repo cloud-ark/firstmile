@@ -50,7 +50,7 @@ class Deploy(Command):
             fp.write("region = us-west-2\n")
             fp.close()
 
-    def _setup_google(self, dest):
+    def _setup_google(self, project_location, dest):
         google_creds_path = APP_STORE_PATH + "/google-creds"
         if not os.path.exists(google_creds_path):
             os.makedirs(google_creds_path)
@@ -95,6 +95,9 @@ class Deploy(Command):
         self.log.info('Deploying application')
         self.log.debug('Deploying application. Passed args:%s' % parsed_args)
 
+        project_location = os.getcwd()
+        self.log.debug("App directory:%s" % project_location)
+
         service = parsed_args.service
         if service:
             self.log.debug("Service:%s" % service)
@@ -105,7 +108,9 @@ class Deploy(Command):
             if dest.lower() == 'aws':
                 self._setup_aws(dest)
             if dest.lower() == 'google':
-                self._setup_google(dest)
+                self._setup_google(project_location, dest)
+                project_id = raw_input("Enter project id>")
+                user_email = raw_input("Enter Gmail address associated with your Google App Engine account>")
             
         app_port = '5000'
         
@@ -113,15 +118,14 @@ class Deploy(Command):
         app_info = {}
         app_info['app_type'] = 'python'
         app_info['entrypoint'] = 'application.py'
+        app_info['project_id'] = project_id
+        app_info['user_email'] = user_email
             
         service_info = {}
         if service and service.lower() == 'mysql':
             service_info['service_name'] = 'mysql-service'
             service_info['service_type'] = 'mysql'
 
-        project_location = os.getcwd()
-        self.log.debug("App directory:%s" % project_location)
-        
         self.dep_track_url = dp.Deployment().post(project_location, app_info, 
                                                   service_info, cloud=dest)
         self.log.debug("App tracking url:%s" % self.dep_track_url)

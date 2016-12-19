@@ -30,29 +30,29 @@ class Manager(threading.Thread):
         # Two-step protocol
         # Step 1: For each service build and deploy. Collect the IP address of deployed service
         # Step 2: Generate, build, deploy application. Pass the IP addresses of the services
-        
-        # app_obj.update_app_status("Starting app build and deploy")
 
         # Step 1:
         service_ip_addresses = {}
         services = self.task_def.service_data
-        
-        if self.task_def.cloud_data['cloud'] == 'local':      
+
+        if self.task_def.cloud_data['cloud'] == 'local' or self.task_def.cloud_data['cloud'] == 'google':
             for serv in services:
                 service_name = serv['service_name']
                 service_type = serv['service_type']
                 service_details = serv['service_details']
 
+                gen.Generator(self.task_def).generate('service', service_ip_addresses, services)
                 bld.Builder(self.task_def).build(build_type='service', build_name=service_name)
-                serv_ip_addr = dep.Deployer(self.task_def).deploy(deploy_type='service', 
+                serv_ip_addr = dep.Deployer(self.task_def).deploy(deploy_type='service',
                                                                   deploy_name=service_name)
+                logging.debug("IP Address of the service:%s" % serv_ip_addr)
                 service_ip_addresses[service_name] = serv_ip_addr
             # Allow time for service container to be deployed and started
             time.sleep(10)
         
         # Step 2:
         # - Generate, build, deploy app
-        gen.Generator(self.task_def).generate(service_ip_addresses, services)
+        gen.Generator(self.task_def).generate('app', service_ip_addresses, services)
         bld.Builder(self.task_def).build(build_type='app', build_name=self.task_def.app_data['app_name'])
         result = dep.Deployer(self.task_def).deploy(deploy_type='app',
                                                     deploy_name=self.task_def.app_data['app_name']

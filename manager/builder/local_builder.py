@@ -67,7 +67,7 @@ class LocalBuilder(object):
         logging.debug(result)
 
         os.chdir(cwd)
-        
+
     def build(self, build_type, build_name):
         logging.debug("Local builder called for app %s" %
                       self.task_def.app_data['app_name'])
