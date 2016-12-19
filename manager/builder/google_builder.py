@@ -38,14 +38,12 @@ class GoogleBuilder(object):
     def _build_first_time_container(self, app_obj):
         df_first_time_loc = self.app_dir[:self.app_dir.rfind("/")]
         
-        first_time = False
         try:
-            first_time = os.path.isfile(df_first_time_loc + "/app-created.txt")
+            gae_app_created = os.path.isfile(df_first_time_loc + "/app-created.txt")
         except Exception as e:
             logging.debug(e)
-            first_time = True
             
-        if first_time:
+        if not gae_app_created:
             app_obj.update_app_status("status::BUILDING FIRST TIME APP CONTAINER")
             cwd = os.getcwd()
             app_dir = self.task_def.app_data['app_location']
@@ -61,7 +59,8 @@ class GoogleBuilder(object):
                 result = subprocess.check_output(build_cmd, shell=True)
                 logging.debug(result)
             except Exception as e:
-                print(e)
+                logging.debug(e)
+                logging.debug("Probably gae app was already created.")
 
             os.chdir(cwd)
 
