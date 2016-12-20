@@ -23,6 +23,7 @@ class GoogleGenerator(object):
         self.app_type = task_def.app_data['app_type']
         self.app_dir = task_def.app_data['app_location']
         self.app_name = task_def.app_data['app_name']
+        self.service_details = task_def.service_data[0]['service_details']
         
     def _generate_app_yaml(self, app_deploy_dir, service_ip_dict):
         app_yaml = ("runtime: python27 \n"
@@ -37,12 +38,23 @@ class GoogleGenerator(object):
                     "\n")
 
         if service_ip_dict:
+            # Read the values for username and password from lme.conf
+            # Read the key names and value for db_name to use in env_vars from service_info object
+            username_val = 'lmeroot'
+            password_val = 'lme123'
             app_yaml = app_yaml + ("env_variables:\n"
-                                   "    USER: 'lmeroot' \n"
-                                   "    HOST: '{service_ip}' \n"
-                                   "    DB: 'greetings' \n"
-                                   "    PASSWORD: 'lme123' \n"
-                                   ).format(service_ip=service_ip_dict['mysql-service'])
+                                   "    {username_key}: '{username_val}' \n"
+                                   "    {host_key}: '{service_ip}' \n"
+                                   "    {db_key}: '{db_name}' \n"
+                                   "    {password_key}: '{password_val}' \n"
+                                   ).format(username_key=self.service_details['user_var'],
+                                            username_val=username_val,
+                                            host_key=self.service_details['host_var'],
+                                            service_ip=service_ip_dict['mysql-service'],
+                                            db_key=self.service_details['db_var'],
+                                            db_name=self.service_details['db_name'],
+                                            password_key=self.service_details['password_var'],
+                                            password_val=password_val)
 
         fp = open(app_deploy_dir + "/app.yaml", "w")
         fp.write(app_yaml)

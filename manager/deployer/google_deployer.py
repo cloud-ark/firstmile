@@ -24,6 +24,7 @@ class GoogleDeployer(object):
         self.access_token_cont_name = "google-access-token-cont-" + self.app_name + "-" + self.app_version
         self.create_db_cont_name = "google-create-db-" + self.app_name + "-" + self.app_version
         self.docker_handler = docker_lib.DockerLib()
+        self.service_details = task_def.service_data[0]['service_details']
 
     def _deploy_app_container(self, app_obj):
         app_cont_name = app_obj.get_cont_name()
@@ -74,10 +75,13 @@ class GoogleDeployer(object):
 
         self._wait_for_db_instance_to_get_ready(access_token, project_id, db_server)
 
+        username_val = 'lmeroot'
+        password_val = 'lme123'
         cmd = ('curl --header "Authorization: Bearer {access_token}" --header '
-               '"Content-Type: application/json" --data \'{{"name":"lmeroot", "password":"lme123"}}\''
-               ' https://www.googleapis.com/sql/v1beta4/projects/{project_id}/instances/{db_server}/users?host=%25&name=lmeroot -X PUT '
-               ).format(access_token=access_token, db_server=db_server, project_id=project_id)
+               '"Content-Type: application/json" --data \'{{"name":"{username_val}", "password":"{password_val}"}}\''
+               ' https://www.googleapis.com/sql/v1beta4/projects/{project_id}/instances/{db_server}/users?host=%25&name={username_val} -X PUT '
+               ).format(access_token=access_token, db_server=db_server, project_id=project_id,
+                        username_val=username_val, password_val=password_val)
         logging.debug("Setting Cloud SQL credentials")
         logging.debug(cmd)
         try:
@@ -183,11 +187,13 @@ class GoogleDeployer(object):
         app_deploy_dir = ("{app_dir}/{app_name}").format(app_dir=self.app_dir,
                                                          app_name=self.app_name)
 
+        # Read these values from lme.conf file
         db_user = 'lmeroot'
         db_password = 'lme123'
-        cmd = (" echo \" create database greetings \" | mysql -h{db_ip} --user={db_user} --password={db_password}  ").format(db_ip=db_ip,
+        cmd = (" echo \" create database {db_name} \" | mysql -h{db_ip} --user={db_user} --password={db_password}  ").format(db_ip=db_ip,
                                                                                                                              db_user=db_user,
-                                                                                                                             db_password=db_password)
+                                                                                                                             db_password=db_password,
+                                                                                                                             db_name=self.service_details['db_name'])
         fp = open(app_deploy_dir + "/create-db.sh", "w")
         fp.write("#!/bin/sh \n")
         fp.write(cmd)

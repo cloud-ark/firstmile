@@ -125,6 +125,74 @@ class Deploy(Command):
 
             os.chdir(cwd)
 
+    def _get_app_details(self):
+        cwd = os.getcwd()
+        lmefile = cwd + "/lme.yml"
+        app_port = '5000'
+        if not os.path.exists(lmefile):
+            entry_point = "application.py"
+            entry_point = raw_input("Enter file name that has main function in it (e.g.: application.py)")
+            fp = open(lmefile, "a")
+            fp.write("entry_point:%s\n" % entry_point)
+            fp.write("app_port:5000\n")
+            fp.close()
+        else:
+            fp = open(lmefile, "r")
+            lines = fp.readlines()
+            for line in lines:
+                parts = line.split(":")
+                if line.find("entry_point") >= 0:
+                    entry_point = parts[1].rstrip().lstrip()
+                if line.find("port") >=0:
+                    app_port = parts[1].rstrip().lstrip()
+        return app_port, entry_point
+
+    def _get_service_details(self, service_info):
+        cwd = os.getcwd()
+        lmefile = cwd + "/lme.yml"
+        db_var = host_var = user_var = password_var = db_name = ''
+        fp = open(lmefile, "a+")
+        if os.path.exists(lmefile):
+            lines = fp.readlines()
+            for line in lines:
+                parts = line.split(":")
+                if line.find("db_var") >= 0:
+                    db_var = parts[1].rstrip().lstrip()
+                if line.find("host_var") >= 0:
+                    host_var = parts[1].rstrip().lstrip()
+                if line.find("user_var") >= 0:
+                    user_var = parts[1].rstrip().lstrip()
+                if line.find("password_var") >= 0:
+                    password_var = parts[1].rstrip().lstrip()
+                if line.find("db_name") >= 0:
+                    db_name = parts[1].rstrip().lstrip()
+
+        if not db_var:
+            db_var = raw_input("Enter name of variable in your app used to reference the database>")
+            fp.write("db_var:%s\n" % db_var)
+        if not host_var:
+            host_var = raw_input("Enter name of variable in your app used to reference the db server/host>")
+            fp.write("host_var:%s\n" % host_var)
+        if not user_var:
+            user_var = raw_input("Enter name of variable in your app used to reference the db user>")
+            fp.write("user_var:%s\n" % user_var)
+        if not password_var:
+            password_var = raw_input("Enter name of variable in your app used to reference the db password>")
+            fp.write("password_var:%s\n" % password_var)
+        if not db_name:
+            db_name = raw_input("Enter name for the database. LME will create this database on target cloud.>")
+            fp.write("db_name:%s\n" % db_name)
+
+        fp.close()
+
+        service_info["db_var"] = db_var
+        service_info["host_var"] = host_var
+        service_info["user_var"] = user_var
+        service_info["password_var"] = password_var
+        service_info["db_name"] = db_name
+
+        return service_info
+
     def take_action(self, parsed_args):
         self.log.info('Deploying application')
         self.log.debug('Deploying application. Passed args:%s' % parsed_args)
@@ -148,13 +216,14 @@ class Deploy(Command):
                 project_id, user_email = self._get_google_project_user_details(project_location)
                 print("Using project_id:%s" % project_id)
                 print("Using user email:%s" % user_email)
-            
-        app_port = '5000'
+
+        app_port, entry_point = self._get_app_details()
         
         # We need to figure out application details
         app_info = {}
+        app_info['app_port'] = app_port
         app_info['app_type'] = 'python'
-        app_info['entrypoint'] = 'application.py'
+        app_info['entrypoint'] = entry_point
         app_info['project_id'] = project_id
         app_info['user_email'] = user_email
             
@@ -162,6 +231,10 @@ class Deploy(Command):
         if service and service.lower() == 'mysql':
             service_info['service_name'] = 'mysql-service'
             service_info['service_type'] = 'mysql'
+            service_info = self._get_service_details(service_info)
+        else:
+            print("Service %s not supported. Supported services are: mysql" % service)
+            exit(0)
 
         self.dep_track_url = dp.Deployment().post(project_location, app_info, 
                                                   service_info, cloud=dest)

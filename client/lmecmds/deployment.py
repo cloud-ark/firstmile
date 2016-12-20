@@ -53,9 +53,19 @@ class Deployment(object):
         if bool(service_info):
             service_name = service_info['service_name']
             service_type = service_info['service_type']
-            service_details = {'db_var': 'DB', 'host_var': 'HOST',
-                               'user_var': 'USER', 'password_var': 'PASSWORD',
-                               'db_name': 'checkout'}
+            db_var = service_info['db_var']
+            host_var = service_info['host_var']
+            user_var = service_info['user_var']
+            password_var = service_info['password_var']
+            db_name = service_info['db_name']
+
+            service_details = {'db_var': db_var, 'host_var': host_var,
+                               'user_var': user_var, 'password_var': password_var,
+                               'db_name': db_name}
+
+            #service_details = {'db_var': 'DB', 'host_var': 'HOST',
+            #                   'user_var': 'USER', 'password_var': 'PASSWORD',
+            #                   'db_name': 'checkout'}
 
             service_data = {'service_name':service_name, 'service_type': service_type,
                             'service_details': service_details}
