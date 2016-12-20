@@ -273,11 +273,14 @@ class GoogleDeployer(object):
         os.chdir(cwd)
         return access_token
 
-    def _cleanup(self):
+    def _cleanup(self, app_obj):
         # Stop and remove container generated for creating the database
-        self.docker_handler.stop_container(self.create_db_cont_name, "container created to create db no longer needed")
-        self.docker_handler.remove_container(self.create_db_cont_name, "container created to create db no longer needed")
-        self.docker_handler.remove_container_image(self.create_db_cont_name, "container created to create db no longer needed")
+        self.docker_handler.stop_container(self.create_db_cont_name, "container created to create db no longer needed.")
+        self.docker_handler.remove_container(self.create_db_cont_name, "container created to create db no longer needed.")
+        self.docker_handler.remove_container_image(self.create_db_cont_name, "container created to create db no longer needed.")
+
+        # Remove app container
+        self.docker_handler.remove_container(app_obj.get_cont_name(), "container created to deploy application no longer needed.")
 
     def deploy(self, deploy_type, deploy_name):
         if deploy_type == 'service':
@@ -301,6 +304,6 @@ class GoogleDeployer(object):
             app_obj.update_app_ip(app_ip_addr)
             logging.debug("Google deployment complete.")
             logging.debug("Removing temporary containers created to assist in the deployment.")
-            self._cleanup()
+            self._cleanup(app_obj)
         else:
             logging.debug("Unsupported deployment type specified.")
