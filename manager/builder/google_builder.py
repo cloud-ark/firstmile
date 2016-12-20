@@ -3,13 +3,10 @@ Created on Dec 18, 2016
 
 @author: devdatta
 '''
-import json
 import logging
 import os
 import subprocess
-import re
 
-from io import BytesIO
 from docker import Client
 from common import app
 
@@ -26,8 +23,7 @@ class GoogleBuilder(object):
     def _build_service_container(self):
         logging.debug("Building service container")
         app_deploy_dir = ("{app_dir}/{app_name}").format(app_dir=self.app_dir, 
-                                                         app_name=self.app_name)        
-
+                                                         app_name=self.app_name)
         cwd = os.getcwd()
         os.chdir(app_deploy_dir)
         cmd = ("docker build -t {google_access_token_cont} -f Dockerfile.access_token . ").format(google_access_token_cont=self.access_token_cont_name)

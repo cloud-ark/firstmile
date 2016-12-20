@@ -5,7 +5,6 @@ Created on Dec 13, 2016
 '''
 import logging
 import os
-import stat as s
 
 from common import app
 
@@ -183,6 +182,3 @@ class GoogleGenerator(object):
             else:
                 print("Application of type %s not supported." % self.app_type)
         return 0
-
-
-        

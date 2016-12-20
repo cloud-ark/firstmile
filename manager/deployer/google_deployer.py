@@ -5,13 +5,10 @@ Created on Dec 13, 2016
 '''
 import logging
 import os
-import pexpect
 import subprocess
-import sys
 import stat
 import time
 
-from docker import Client
 from common import app
 from common import docker_lib
 
@@ -27,24 +24,20 @@ class GoogleDeployer(object):
         self.access_token_cont_name = "google-access-token-cont-" + self.app_name + "-" + self.app_version
         self.create_db_cont_name = "google-create-db-" + self.app_name + "-" + self.app_version
         self.docker_handler = docker_lib.DockerLib()
-        
-    def _process_logs(self, cont_id, app_cont_name, app_obj):
-        #docker_logs_cmd = ("docker logs {cont_id}").format(cont_id=cont_id)
-        logging.debug("Fetching Docker logs")
-        #logging.debug("Docker logs command:%s" % docker_logs_cmd)
 
+    def _deploy_app_container(self, app_obj):
+        app_cont_name = app_obj.get_cont_name()
+        logging.debug("Deploying app container:%s" % app_cont_name)
         docker_run_cmd = ("docker run {app_container} >& {tmp_log_file}").format(app_container=app_cont_name,
                                                                                  tmp_log_file=TMP_LOG_FILE)
         logged_status = []
-        app_url = "1.2.3.4"
+
         deployment_done = False
 
-        #log_lines = subprocess.Popen(docker_run_cmd, stdout=subprocess.PIPE,
-        #                             stderr=subprocess.PIPE, shell=True).communicate()[0]
         os.system(docker_run_cmd)
-        fp = open("/tmp/lme-google-deploy-output.txt")
+        fp = open(TMP_LOG_FILE)
+        app_url = ""
         while not deployment_done:
-            #log_lines = subprocess.check_output(docker_run_cmd, shell=True)
             log_lines = fp.readlines()
             logging.debug("Log lines:%s" % log_lines)
             for line in log_lines:
@@ -60,21 +53,7 @@ class GoogleDeployer(object):
                 if line.find("Deployed service [default] to") >= 0:
                     deployment_done = True
                     os.remove(TMP_LOG_FILE)
-        return app_url
 
-    def _deploy_app_container(self, app_obj):
-        app_cont_name = app_obj.get_cont_name()        
-        logging.debug("Deploying app container:%s" % app_cont_name)
-        
-        services = self.task_def.service_data
-        cont_id = ''
-        app_url = ''
-        #if not services:
-            #docker_run_cmd = ("docker run -i -t -d {app_container}").format(app_container=app_cont_name)
-            #cont_id = subprocess.check_output(docker_run_cmd, shell=True)
-            #logging.debug("Running container id:%s" % cont_id)
-        
-        app_url = self._process_logs(cont_id, app_cont_name, app_obj)
         return app_url
 
     def _deploy_service(self, access_token, project_id, db_server):
@@ -248,7 +227,6 @@ class GoogleDeployer(object):
         cwd = os.getcwd()
         os.chdir(app_deploy_dir)
         docker_run_cmd = ("docker run -i -t -d {google_access_token_cont}").format(google_access_token_cont=self.access_token_cont_name)
-        #cmd = "docker ps -a | grep google-access-token-cont | head -1 | cut -d ' ' -f 1"
         logging.debug(docker_run_cmd)
 
         cont_id = subprocess.check_output(docker_run_cmd, shell=True).rstrip().lstrip()
