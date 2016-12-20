@@ -13,6 +13,7 @@ import time
 
 from docker import Client
 from common import app
+from common import docker_lib
 
 TMP_LOG_FILE = "/tmp/lme-google-deploy-output.txt"
 
@@ -24,6 +25,8 @@ class GoogleDeployer(object):
         self.app_name = task_def.app_data['app_name']
         self.app_version = task_def.app_data['app_version']
         self.access_token_cont_name = "google-access-token-cont-" + self.app_name + "-" + self.app_version
+        self.create_db_cont_name = "google-create-db-" + self.app_name + "-" + self.app_version
+        self.docker_handler = docker_lib.DockerLib()
         
     def _process_logs(self, cont_id, app_cont_name, app_obj):
         #docker_logs_cmd = ("docker logs {cont_id}").format(cont_id=cont_id)
@@ -88,7 +91,7 @@ class GoogleDeployer(object):
         except Exception as e:
             print(e)
 
-    def _set_db_password(self, access_token, project_id, db_server):
+    def _create_db_user(self, access_token, project_id, db_server):
 
         self._wait_for_db_instance_to_get_ready(access_token, project_id, db_server)
 
@@ -99,9 +102,43 @@ class GoogleDeployer(object):
         logging.debug("Setting Cloud SQL credentials")
         logging.debug(cmd)
         try:
-            os.system(cmd)
+            output = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                                          stderr=subprocess.PIPE, shell=True).communicate()[0]
         except Exception as e:
             print(e)
+
+        self_link = ''
+        for line in output.split("\n"):
+            line = line.lstrip().rstrip()
+            if line and line.find("selfLink") >= 0:
+                parts = line.split(" ")
+                self_link = parts[1].rstrip().lstrip()
+                self_link = self_link.replace(",","").replace("\"","")
+                logging.debug("Link for tracking create user operation:%s" % self_link)
+
+        if self_link:
+            user_created = False
+            track_usr_cmd = ('curl --header "Authorization: Bearer {access_token}" '
+                             ' {track_op} -X GET').format(access_token=access_token, track_op=self_link)
+            logging.debug("Track user create operation cmd:%s" % track_usr_cmd)
+            logging.debug(track_usr_cmd)
+
+            while not user_created:
+                try:
+                    output = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                                              stderr=subprocess.PIPE, shell=True).communicate()[0]
+                except Exception as e:
+                    print(e)
+                for line in output.split("\n"):
+                    line = line.lstrip().rstrip()
+                    if line and line.find("status") >= 0:
+                        parts = line.split(" ")
+                        is_done = parts[1].rstrip().lstrip()
+                        if is_done.find("DONE") >= 0:
+                            user_created = True
+                time.sleep(2)
+
+            logging.debug("Creating user done.")
 
     def _wait_for_db_instance_to_get_ready(self, access_token, project_id, db_server):
         cmd = ('curl --header "Authorization: Bearer {access_token}" '
@@ -163,27 +200,15 @@ class GoogleDeployer(object):
 
     def _create_database(self, db_ip):
         logging.debug("Creating database")
+
+        app_deploy_dir = ("{app_dir}/{app_name}").format(app_dir=self.app_dir,
+                                                         app_name=self.app_name)
+
         db_user = 'lmeroot'
         db_password = 'lme123'
         cmd = (" echo \" create database greetings \" | mysql -h{db_ip} --user={db_user} --password={db_password}  ").format(db_ip=db_ip,
                                                                                                                              db_user=db_user,
                                                                                                                              db_password=db_password)
-        df = ("FROM ubuntu:14.04 \n"
-              "RUN apt-get update && apt-get install -y mysql-client-core-5.5\n"
-              "COPY create-db.sh . \n"
-              "CMD ./create-db.sh"
-              )
-
-        app_deploy_dir = ("{app_dir}/{app_name}").format(app_dir=self.app_dir,
-                                                         app_name=self.app_name)
-
-        cwd = os.getcwd()
-        os.chdir(app_deploy_dir)
-
-        fp = open(app_deploy_dir + "/Dockerfile.create-db", "w")
-        fp.write(df)
-        fp.close()
-
         fp = open(app_deploy_dir + "/create-db.sh", "w")
         fp.write("#!/bin/sh \n")
         fp.write(cmd)
@@ -191,10 +216,25 @@ class GoogleDeployer(object):
         perm = stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
         os.chmod(app_deploy_dir + "/create-db.sh", perm)
 
-        docker_build_cmd = ("docker build -t google-create-db-{app_name} -f Dockerfile.create-db .").format(app_name=self.app_name)
+        cwd = os.getcwd()
+        os.chdir(app_deploy_dir)
+
+        # Create Dockerfile
+        df = ("FROM ubuntu:14.04 \n"
+              "RUN apt-get update && apt-get install -y mysql-client-core-5.5\n"
+              "COPY create-db.sh . \n"
+              "CMD ./create-db.sh"
+              )
+        fp = open(app_deploy_dir + "/Dockerfile.create-db", "w")
+        fp.write(df)
+        fp.close()
+
+        docker_build_cmd = ("docker build -t {create_db_cont_name} -f Dockerfile.create-db .").format(create_db_cont_name=self.create_db_cont_name)
+        logging.debug("Docker build cmd for database create cont:%s" % docker_build_cmd)
         os.system(docker_build_cmd)
 
-        docker_run_cmd = ("docker run -i -t -d google-create-db-{app_name}").format(app_name=self.app_name)
+        docker_run_cmd = ("docker run -i -t -d {create_db_cont_name}").format(create_db_cont_name=self.create_db_cont_name)
+        logging.debug("Docker run cmd for database create cont:%s" % docker_run_cmd)
         os.system(docker_run_cmd)
 
         os.chdir(cwd)
@@ -226,23 +266,18 @@ class GoogleDeployer(object):
         os.removedirs(app_deploy_dir + "/access_token.txt")
 
         # Stop and remove container generated for obtaining new access_token
-        logging.debug("Stopping the container started for obtaining access_token")
-        stop_cmd = ("docker ps | grep {google_access_token_cont} | cut -d ' ' -f 1 | xargs docker stop").format(google_access_token_cont=self.access_token_cont_name)
-        logging.debug("stop command:%s" % stop_cmd)
-        os.system(stop_cmd)
-
-        logging.debug("Removing the container started for obtaining access_token")
-        rm_cmd = ("docker ps -a | grep {google_access_token_cont} | cut -d ' ' -f 1 | xargs docker rm").format(google_access_token_cont=self.access_token_cont_name)
-        logging.debug("rm command:%s" % rm_cmd)
-        os.system(rm_cmd)
-
-        logging.debug("Removing container built for obtaining access_token")
-        rmi_cmd = ("docker images | grep {google_access_token_cont}  | awk \'{{print $3}}\' | xargs docker rmi").format(google_access_token_cont=self.access_token_cont_name)
-        logging.debug("rmi command:%s" % rmi_cmd)
-        os.system(rmi_cmd)
+        self.docker_handler.stop_container(self.access_token_cont_name, "access token container no longer needed")
+        self.docker_handler.remove_container(self.access_token_cont_name, "access token container no longer needed")
+        self.docker_handler.remove_container_image(self.access_token_cont_name, "access token container no longer needed")
 
         os.chdir(cwd)
         return access_token
+
+    def _cleanup(self):
+        # Stop and remove container generated for creating the database
+        self.docker_handler.stop_container(self.create_db_cont_name, "container created to create db no longer needed")
+        self.docker_handler.remove_container(self.create_db_cont_name, "container created to create db no longer needed")
+        self.docker_handler.remove_container_image(self.create_db_cont_name, "container created to create db no longer needed")
 
     def deploy(self, deploy_type, deploy_name):
         if deploy_type == 'service':
@@ -252,7 +287,7 @@ class GoogleDeployer(object):
             db_server = self.app_name + "-" + self.app_version + "-db-instance"
             project_id = self.task_def.app_data['project_id']
             self._deploy_service(access_token, project_id, db_server)
-            self._set_db_password(access_token, project_id, db_server)
+            self._create_db_user(access_token, project_id, db_server)
             service_ip = self._get_ip_address_of_db(access_token, project_id, db_server)
             self._create_database(service_ip)
             return service_ip
@@ -264,5 +299,8 @@ class GoogleDeployer(object):
             app_ip_addr = self._deploy_app_container(app_obj)
             app_obj.update_app_status("status::DEPLOYMENT_COMPLETE")
             app_obj.update_app_ip(app_ip_addr)
+            logging.debug("Google deployment complete.")
+            logging.debug("Removing temporary containers created to assist in the deployment.")
+            self._cleanup()
         else:
             logging.debug("Unsupported deployment type specified.")
