@@ -24,6 +24,7 @@ class AWSGenerator(object):
         self.app_type = task_def.app_data['app_type']
         self.app_dir = task_def.app_data['app_location']
         self.app_name = task_def.app_data['app_name']
+        self.entry_point = app.App(task_def.app_data).get_entrypoint_file_name()
         
     def _generate_elasticbeanstalk_dir(self, service_info, env_name):
         # Generate .elasticbeanstalk/config.yml
@@ -84,8 +85,8 @@ class AWSGenerator(object):
                       "export USER=$RDS_USERNAME \n"
                       "export PASSWORD=$RDS_PASSWORD \n"
                       "export HOST=$RDS_HOSTNAME \n"
-                      "python /src/application.py \n"                      
-                      )
+                      "python /src/{entry_point} \n"
+                      ).format(entry_point=self.entry_point + ".py")
             runapp_fp.write(runapp)
             runapp_fp.close()
             

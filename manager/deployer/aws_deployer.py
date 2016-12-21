@@ -108,21 +108,23 @@ class AWSDeployer(object):
                 #logging.debug("Allowing AWS to do its thing. Waiting for 20 seconds before continuing..")
                 #time.sleep(20)
                 #child = pexpect.spawn(docker_attach_cmd)
+
+                username_val = 'lmeroot'
+                password_val = 'lme123'
                 child = pexpect.spawn(docker_run_cmd)
                 child.logfile = sys.stdout
                 child.expect("Enter an RDS DB username*", timeout=120)
-                child.sendline("lmeroot")
+                child.sendline(username_val)
                 child.expect("Enter an RDS DB master password*")
-                child.sendline("lmeroot123")
+                child.sendline(password_val)
                 child.expect("Retype password to confirm*")
-                child.sendline("lmeroot123")
+                child.sendline(password_val)
                 logging.debug("Done providing db creds to eb create command.")
                 #child.close()
             except Exception as e:
                 logging.error(e)
         else:
             docker_run_cmd = ("docker run -i -t -d {app_container}").format(app_container=app_cont_name)
-                                                                                       #tmp_log_file=tmp_log_file_name)
             #os.system(docker_run_cmd)
             cont_id = subprocess.check_output(docker_run_cmd, shell=True)
             logging.debug("Running container id:%s" % cont_id)

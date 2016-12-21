@@ -17,6 +17,12 @@ class App(object):
         cont_name = self.app_name + "-" + app_loc                
         return cont_name
 
+    def get_entrypoint_file_name(self):
+        entry_point = self.app_data['entry_point']
+        k = entry_point.index(".py")
+        entry_point = entry_point[:k]
+        return entry_point
+
     def update_app_status(self, status):
         app_status_file = open(self.app_location + "/app-status.txt", "a")
         app_status_file.write(status + ", ")

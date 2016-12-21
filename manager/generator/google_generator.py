@@ -23,11 +23,9 @@ class GoogleGenerator(object):
         self.app_type = task_def.app_data['app_type']
         self.app_dir = task_def.app_data['app_location']
         self.app_name = task_def.app_data['app_name']
+        self.entry_point = app.App(task_def.app_data).get_entrypoint_file_name()
 
         # set the name of the entry_point
-        entry_point = task_def.app_data['entry_point']
-        k = entry_point.index(".py")
-        self.entry_point = entry_point[:k]
         if task_def.service_data:
             self.service_details = task_def.service_data[0]['service_details']
         
