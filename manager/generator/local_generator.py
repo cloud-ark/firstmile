@@ -37,7 +37,7 @@ class LocalGenerator(object):
                 if k == service_name:
                     host = v
 
-        run_cmd = self.task_def.app_data['run_cmd']
+        entry_point = self.task_def.app_data['entry_point']
 
         df = ''
         if bool(service_ip_dict):
@@ -54,7 +54,7 @@ class LocalGenerator(object):
                   "ENV {HOST} {host}\n"
                   "CMD [\"python\", \"/src/application.py\"]"
                   "").format(DB=DB, db_name=db_name, USER=USER,
-                             PASSWORD=PASSWORD, HOST=HOST, host=host, run_cmd=run_cmd)
+                             PASSWORD=PASSWORD, HOST=HOST, host=host, run_cmd=entry_point)
         else:
             df = ("FROM ubuntu:14.04\n"
                   "RUN apt-get update -y\n"
@@ -64,7 +64,7 @@ class LocalGenerator(object):
                   "ADD . /src\n"
                   "EXPOSE 5000\n"
                   "CMD [\"python\", \"/src/application.py\"]"
-                  "").format( run_cmd=run_cmd)
+                  "").format(run_cmd=entry_point)
 
         logging.debug("App dir: %s" % self.app_dir)
         docker_file_dir = ("{app_dir}/{app_name}").format(app_dir=self.app_dir, 

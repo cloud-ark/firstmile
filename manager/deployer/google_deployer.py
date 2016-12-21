@@ -24,7 +24,9 @@ class GoogleDeployer(object):
         self.access_token_cont_name = "google-access-token-cont-" + self.app_name + "-" + self.app_version
         self.create_db_cont_name = "google-create-db-" + self.app_name + "-" + self.app_version
         self.docker_handler = docker_lib.DockerLib()
-        self.service_details = task_def.service_data[0]['service_details']
+
+        if task_def.service_data:
+            self.service_details = task_def.service_data[0]['service_details']
 
     def _deploy_app_container(self, app_obj):
         app_cont_name = app_obj.get_cont_name()
@@ -259,9 +261,10 @@ class GoogleDeployer(object):
 
     def _cleanup(self, app_obj):
         # Stop and remove container generated for creating the database
-        self.docker_handler.stop_container(self.create_db_cont_name, "container created to create db no longer needed.")
-        self.docker_handler.remove_container(self.create_db_cont_name, "container created to create db no longer needed.")
-        self.docker_handler.remove_container_image(self.create_db_cont_name, "container created to create db no longer needed.")
+        if self.task_def.service_data:
+            self.docker_handler.stop_container(self.create_db_cont_name, "container created to create db no longer needed.")
+            self.docker_handler.remove_container(self.create_db_cont_name, "container created to create db no longer needed.")
+            self.docker_handler.remove_container_image(self.create_db_cont_name, "container created to create db no longer needed.")
 
         # Remove app container
         self.docker_handler.remove_container(app_obj.get_cont_name(), "container created to deploy application no longer needed.")

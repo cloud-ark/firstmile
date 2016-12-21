@@ -41,10 +41,10 @@ class Deployment(object):
         cloud = cloud
 
         app_type = app_info['app_type']
-        entry_point = app_info['entrypoint']
+        entry_point = app_info['entry_point']
         app_data = {'app_name':app_name, 'app_tar_name': tarfile_name, 
                     'app_content':tarfile_content, 'app_type': app_type,
-                    'run_cmd': entry_point, 'project_id': app_info['project_id'],
+                    'entry_point': entry_point, 'project_id': app_info['project_id'],
                     'user_email': app_info['user_email']}
 
         cloud_data = {'cloud': cloud}

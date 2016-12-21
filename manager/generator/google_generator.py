@@ -23,7 +23,13 @@ class GoogleGenerator(object):
         self.app_type = task_def.app_data['app_type']
         self.app_dir = task_def.app_data['app_location']
         self.app_name = task_def.app_data['app_name']
-        self.service_details = task_def.service_data[0]['service_details']
+
+        # set the name of the entry_point
+        entry_point = task_def.app_data['entry_point']
+        k = entry_point.index(".py")
+        self.entry_point = entry_point[:k]
+        if task_def.service_data:
+            self.service_details = task_def.service_data[0]['service_details']
         
     def _generate_app_yaml(self, app_deploy_dir, service_ip_dict):
         app_yaml = ("runtime: python27 \n"
@@ -34,8 +40,8 @@ class GoogleGenerator(object):
                     "- url: /static \n"
                     "  static_dir: static \n"
                     "- url: /.* \n"
-                    "  script: application.app \n"
-                    "\n")
+                    "  script: {app_entry_point}.app \n"
+                    "\n").format(app_entry_point=self.entry_point)
 
         if service_ip_dict:
             # Read the values for username and password from lme.conf
@@ -61,20 +67,21 @@ class GoogleGenerator(object):
         fp.close()
 
     def _generate_lib_dir(self, app_deploy_dir):
-        cwd = os.getcwd()
-        os.chdir(app_deploy_dir)
-
-        generate_lib_cmd = ("pip install -t lib -r requirements.txt")
-        logging.debug("Generating Python application libs:%s" % generate_lib_cmd)
-        os.system(generate_lib_cmd)
-        os.chdir(cwd)
+        if os.path.exists(app_deploy_dir + "/requirements.txt"):
+            cwd = os.getcwd()
+            os.chdir(app_deploy_dir)
+            generate_lib_cmd = ("pip install -t lib -r requirements.txt")
+            logging.debug("Generating Python application libs:%s" % generate_lib_cmd)
+            os.system(generate_lib_cmd)
+            os.chdir(cwd)
 
     def _generate_appengine_config(self, app_deploy_dir):
-        appengine_config = ("from google.appengine.ext import vendor \n\n"
-                            "vendor.add('lib')")
-        fp = open(app_deploy_dir + "/appengine_config.py", "w")
-        fp.write(appengine_config)
-        fp.close()
+        if os.path.exists(app_deploy_dir + "/requirements.txt"):
+            appengine_config = ("from google.appengine.ext import vendor \n\n"
+                                "vendor.add('lib')")
+            fp = open(app_deploy_dir + "/appengine_config.py", "w")
+            fp.write(appengine_config)
+            fp.close()
 
     def _check_if_first_time_app_deploy(self):
         df_first_time_loc = self.app_dir[:self.app_dir.rfind("/")]

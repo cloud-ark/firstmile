@@ -129,15 +129,9 @@ class Deploy(Command):
         cwd = os.getcwd()
         lmefile = cwd + "/lme.yml"
         app_port = '5000'
-        if not os.path.exists(lmefile):
-            entry_point = "application.py"
-            entry_point = raw_input("Enter file name that has main function in it (e.g.: application.py)")
-            fp = open(lmefile, "a")
-            fp.write("entry_point:%s\n" % entry_point)
-            fp.write("app_port:5000\n")
-            fp.close()
-        else:
-            fp = open(lmefile, "r")
+        entry_point = ''
+        fp = open(lmefile, "a+")
+        if os.path.exists(lmefile):
             lines = fp.readlines()
             for line in lines:
                 parts = line.split(":")
@@ -145,6 +139,14 @@ class Deploy(Command):
                     entry_point = parts[1].rstrip().lstrip()
                 if line.find("port") >=0:
                     app_port = parts[1].rstrip().lstrip()
+
+        if not entry_point:
+            entry_point = "application.py"
+            entry_point = raw_input("Enter file name that has main function in it (e.g.: application.py)>")
+            fp.write("entry_point:%s\n" % entry_point)
+            fp.write("app_port:5000\n")
+            fp.close()
+
         return app_port, entry_point
 
     def _get_service_details(self, service_info):
@@ -223,18 +225,19 @@ class Deploy(Command):
         app_info = {}
         app_info['app_port'] = app_port
         app_info['app_type'] = 'python'
-        app_info['entrypoint'] = entry_point
+        app_info['entry_point'] = entry_point
         app_info['project_id'] = project_id
         app_info['user_email'] = user_email
             
         service_info = {}
-        if service and service.lower() == 'mysql':
-            service_info['service_name'] = 'mysql-service'
-            service_info['service_type'] = 'mysql'
-            service_info = self._get_service_details(service_info)
-        else:
-            print("Service %s not supported. Supported services are: mysql" % service)
-            exit(0)
+        if service:
+            if service.lower() == 'mysql':
+                service_info['service_name'] = 'mysql-service'
+                service_info['service_type'] = 'mysql'
+                service_info = self._get_service_details(service_info)
+            else:
+                print("Service %s not supported. Supported services are: mysql" % service)
+                exit(0)
 
         self.dep_track_url = dp.Deployment().post(project_location, app_info, 
                                                   service_info, cloud=dest)
