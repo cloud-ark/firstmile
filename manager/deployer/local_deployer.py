@@ -90,9 +90,9 @@ class LocalDeployer(object):
             ip_addr = service_ip_addr
         elif deploy_type == 'app':
             app_obj = app.App(self.task_def.app_data)
-            app_obj.update_app_status("status::DEPLOYING")
+            app_obj.update_app_status("DEPLOYING")
             app_ip_addr = self._deploy_app_container(app_obj)
             ip_addr = app_ip_addr
-            app_obj.update_app_status("status::DEPLOYMENT_COMPLETE")
+            app_obj.update_app_status("DEPLOYMENT_COMPLETE")
             app_obj.update_app_ip(ip_addr)
         return ip_addr

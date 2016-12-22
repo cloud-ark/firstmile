@@ -159,7 +159,7 @@ class GoogleGenerator(object):
 
     def _generate_docker_file_for_service(self, app_obj):
         logging.debug("Generating Docker file that will give new access token.")
-        app_obj.update_app_status("status::GENERATING Google ARTIFACTS for MySQL service")
+        app_obj.update_app_status("GENERATING Google ARTIFACTS for MySQL service")
 
         self._copy_creds_to_app_dir()
 
@@ -193,7 +193,7 @@ class GoogleGenerator(object):
             self._generate_docker_file_for_service(app_obj)
         else:
             app_obj = app.App(self.task_def.app_data)
-            app_obj.update_app_status("status::GENERATING Google ARTIFACTS for App")
+            app_obj.update_app_status("GENERATING Google ARTIFACTS for App")
             if self.app_type == 'python':
                 self._generate_for_python_app(app_obj, service_ip_dict, service_info)
             else:

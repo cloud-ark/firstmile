@@ -60,7 +60,7 @@ class AWSDeployer(object):
                     error = stat[1].rstrip().lstrip()
                     if error not in logged_status:
                         logged_status.append(error)
-                        app_obj.update_app_status("status::" + error)
+                        app_obj.update_app_status(error)
                 if line.find("INFO:") >= 0:
                     stat = line.split(":")
                     status = stat[1]
@@ -69,7 +69,7 @@ class AWSDeployer(object):
                         #trimmed_status = status.replace("named"," ")
                         a = line.find("INFO:")
                         line = line[a+5:]
-                        app_obj.update_app_status("status::" + line)
+                        app_obj.update_app_status(line)
                     if status.lower().find("successfully launched environment") >= 0:
                         is_env_ok = True
             time.sleep(1)
@@ -136,8 +136,8 @@ class AWSDeployer(object):
         logging.debug("AWS deployer called for app %s" %
                       self.task_def.app_data['app_name'])
         app_obj = app.App(self.task_def.app_data)
-        app_obj.update_app_status("status::DEPLOYING")
+        app_obj.update_app_status("DEPLOYING")
         app_ip_addr = self._deploy_app_container(app_obj)
         ip_addr = app_ip_addr
-        app_obj.update_app_status("status::DEPLOYMENT_COMPLETE")
+        app_obj.update_app_status("DEPLOYMENT_COMPLETE")
         app_obj.update_app_ip(ip_addr)

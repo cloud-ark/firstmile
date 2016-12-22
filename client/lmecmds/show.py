@@ -101,13 +101,13 @@ class Show(Command):
                 stat = stat.rstrip().lstrip()
                 if stat.lower().find("name::") >= 0:
                     l = stat.split("::")
-                    app_name = l[1]
+                    app_name = l[2]
                 elif stat.lower().find("deploy_id::") >= 0:
                     l = stat.split("::")
                     app_deploy_id = l[1]
                 elif stat.lower().find("cloud::") >= 0:
                     l = stat.split("::")
-                    cloud = l[1]
+                    cloud = l[2]
                 elif stat.lower().find("status::") >= 0:
                     l = stat.split("::")
                     app_status = l[1]

@@ -61,8 +61,11 @@ class Cloud(Resource):
                     url = ''
                     for p in parts:
                         if p.find("cloud::") >= 0:
-                            c = p.split("::")
-                            cloud = c[1]
+                            cld = p.split("::")
+                            if len(cld) > 2:
+                                cloud = cld[2]
+                            else:
+                                cloud = cld[1]
                         if p.find("URL::") >= 0:
                             u = p.split("::")
                             url = u[1]
@@ -111,8 +114,11 @@ class App(Resource):
                     url = ''
                     for p in parts:
                         if p.find("cloud::") >= 0:
-                            c = p.split("::")
-                            cloud = c[1]
+                            cld = p.split("::")
+                            if len(cld) > 2:
+                                cloud = cld[2]
+                            else:
+                                cloud = cld[1]
                         if p.find("URL::") >= 0:
                             u = p.split("::")
                             url = u[1]

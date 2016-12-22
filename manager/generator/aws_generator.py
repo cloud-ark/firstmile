@@ -171,7 +171,7 @@ class AWSGenerator(object):
                       self.task_def.app_data['app_name'])
         
         app_obj = app.App(self.task_def.app_data)
-        app_obj.update_app_status("status::GENERATING AWS ARTIFACTS")
+        app_obj.update_app_status("GENERATING AWS ARTIFACTS")
 
         if self.app_type == 'python':
             self._generate_for_python_app(app_obj, service_ip_dict, service_info)

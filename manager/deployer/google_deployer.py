@@ -56,7 +56,7 @@ class GoogleDeployer(object):
                     app_url = app_url[:-1].rstrip().lstrip()
                 if line not in logged_status:
                         logged_status.append(line)
-                        app_obj.update_app_status("status::" + line)
+                        app_obj.update_app_status(line)
                 if line.find("Deployed service [default] to") >= 0:
                     deployment_done = True
                     os.remove(TMP_LOG_FILE)
@@ -124,9 +124,9 @@ class GoogleDeployer(object):
             logging.debug("Google deployer called for app %s" %
                           self.task_def.app_data['app_name'])
             app_obj = app.App(self.task_def.app_data)
-            app_obj.update_app_status("status::DEPLOYING")
+            app_obj.update_app_status("DEPLOYING")
             app_ip_addr = self._deploy_app_container(app_obj)
-            app_obj.update_app_status("status::DEPLOYMENT_COMPLETE")
+            app_obj.update_app_status("DEPLOYMENT_COMPLETE")
             app_obj.update_app_ip(app_ip_addr)
             logging.debug("Google deployment complete.")
             logging.debug("Removing temporary containers created to assist in the deployment.")
