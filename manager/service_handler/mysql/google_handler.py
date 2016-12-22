@@ -12,7 +12,7 @@ import time
 from common import docker_lib
 
 class MySQLServiceHandler(object):
-    
+
     def __init__(self, task_def, app_obj):
         self.task_def = task_def
 
@@ -25,7 +25,7 @@ class MySQLServiceHandler(object):
 
         if task_def.service_data:
             self.service_details = task_def.service_data[0]['service_details']
-        
+
     def _deploy_instance(self, access_token, project_id, db_server):
         cmd = ('curl --header "Authorization: Bearer {access_token}" --header '
                '"Content-Type: application/json" --data \'{{"name":"{db_server}",'
@@ -39,7 +39,7 @@ class MySQLServiceHandler(object):
             os.system(cmd)
         except Exception as e:
             print(e)
-            
+
         self._wait_for_db_instance_to_get_ready(access_token, project_id, db_server)
 
     def _create_user(self, access_token, project_id, db_server):
@@ -191,7 +191,7 @@ class MySQLServiceHandler(object):
         os.system(docker_run_cmd)
 
         os.chdir(cwd)
-    
+
     # Public interface
     def provision_and_setup(self, access_token):
         db_server = self.app_name + "-" + self.app_version + "-db-instance"
@@ -201,13 +201,10 @@ class MySQLServiceHandler(object):
         service_ip = self._get_ip_address_of_db(access_token, project_id, db_server)
         self._create_database(service_ip)
         return service_ip
-    
+
     def cleanup(self):
         # Stop and remove container generated for creating the database
         if self.task_def.service_data:
             self.docker_handler.stop_container(self.create_db_cont_name, "container created to create db no longer needed.")
             self.docker_handler.remove_container(self.create_db_cont_name, "container created to create db no longer needed.")
             self.docker_handler.remove_container_image(self.create_db_cont_name, "container created to create db no longer needed.")
-        
-        
-        
