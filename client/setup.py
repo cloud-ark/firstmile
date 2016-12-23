@@ -52,8 +52,8 @@ setup(
             'lme = lmecmds.main:main'
         ],
         'lme.cmds': [
-            'deploy = lmecmds.deploy:Deploy',
-            'show = lmecmds.show:Show',
+            'app deploy = lmecmds.deploy:Deploy',
+            'app show = lmecmds.show:Show',
         ],
     },
 

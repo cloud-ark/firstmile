@@ -29,7 +29,8 @@ class Deployment(object):
             contents = f.read()
             return contents
 
-    def post(self, app_path, app_info, service_info, cloud='local'):
+    def post(self, app_path, app_info, service_info, cloud_info):
+        import pdb; pdb.set_trace()
         source_dir = app_path
         k = source_dir.rfind("/")
         app_name = source_dir[k+1:]
@@ -38,39 +39,40 @@ class Deployment(object):
         self._make_tarfile(tarfile_name, source_dir)
         tarfile_content = self._read_tarfile(tarfile_name)
 
-        cloud = cloud
+        cloud = cloud_info['type']
 
         app_type = app_info['app_type']
         entry_point = app_info['entry_point']
         app_data = {'app_name':app_name, 'app_tar_name': tarfile_name, 
                     'app_content':tarfile_content, 'app_type': app_type,
-                    'entry_point': entry_point, 'project_id': app_info['project_id'],
-                    'user_email': app_info['user_email']}
+                    'entry_point': entry_point
+                    }
 
-        cloud_data = {'cloud': cloud}
+        cloud_data = {'cloud': cloud, 'project_id': cloud_info['project_id'],
+                      'user_email': cloud_info['user_email']}
 
         service_list = []
-        if bool(service_info):
-            service_name = service_info['service_name']
-            service_type = service_info['service_type']
-            db_var = service_info['db_var']
-            host_var = service_info['host_var']
-            user_var = service_info['user_var']
-            password_var = service_info['password_var']
-            db_name = service_info['db_name']
+
+        for service_type, service_obj in service_info.items():
+        #if bool(service_info):
+            service_name = service_type
+            service_type = service_type #service_info['service_type']
+            db_var = service_obj['service']['app_variables']['db_var']
+            host_var = service_obj['service']['app_variables']['host_var']
+            user_var = service_obj['service']['app_variables']['user_var']
+            password_var = service_obj['service']['app_variables']['password_var']
+            setup_script = service_obj['service']['setup_script']
+            #db_name = service_info['db_name']
 
             service_details = {'db_var': db_var, 'host_var': host_var,
                                'user_var': user_var, 'password_var': password_var,
-                               'db_name': db_name}
-
-            #service_details = {'db_var': 'DB', 'host_var': 'HOST',
-            #                   'user_var': 'USER', 'password_var': 'PASSWORD',
-            #                   'db_name': 'checkout'}
+                               'setup_script': setup_script}
 
             service_data = {'service_name':service_name, 'service_type': service_type,
                             'service_details': service_details}
             service_list.append(service_data)
 
+        import pdb; pdb.set_trace()
         data = {'app': app_data, 'service': service_list, 'cloud': cloud_data}
 
         req = urllib2.Request("http://localhost:5002/deployments")
