@@ -29,8 +29,43 @@ class Deployment(object):
             contents = f.read()
             return contents
 
+    def _parse_service_info(self, service_info):
+        service_list = []
+
+        for service_type, service_obj in service_info.items():
+            service_name = service_type
+            service_type = service_type #service_info['service_type']
+            db_var = service_obj['service']['app_variables']['db_var']
+            host_var = service_obj['service']['app_variables']['host_var']
+            user_var = service_obj['service']['app_variables']['user_var']
+            password_var = service_obj['service']['app_variables']['password_var']
+            setup_script = service_obj['service']['setup_script']
+            #db_name = service_info['db_name']
+
+            service_details = {'db_var': db_var, 'host_var': host_var,
+                               'user_var': user_var, 'password_var': password_var,
+                               'setup_script': setup_script}
+
+            service_data = {'service_name':service_name, 'service_type': service_type,
+                            'service_details': service_details}
+            service_list.append(service_data)
+        return service_list
+
+    def create_service_instance(self, service_info, cloud_info):
+        #service_list = self._parse_service_info(service_info)
+        req = urllib2.Request("http://localhost:5002/deployments")
+        #req = urllib2.Request("http://127.0.0.1:5000/deployments")
+        #req = urllib2.Request("http://192.168.33.10:5000/deployments")
+        req.add_header('Content-Type', 'application/octet-stream')
+
+        data = {'service': service_info, 'cloud': cloud_info}
+
+        response = urllib2.urlopen(req, json.dumps(data, ensure_ascii=True, encoding='ISO-8859-1'))
+        track_url = response.headers.get('location')
+        self.log.debug("Deployment ID:%s" % track_url)
+        return track_url
+
     def post(self, app_path, app_info, service_info, cloud_info):
-        import pdb; pdb.set_trace()
         source_dir = app_path
         k = source_dir.rfind("/")
         app_name = source_dir[k+1:]
@@ -51,28 +86,8 @@ class Deployment(object):
         cloud_data = {'cloud': cloud, 'project_id': cloud_info['project_id'],
                       'user_email': cloud_info['user_email']}
 
-        service_list = []
+        service_list = self._parse_service_info(service_info)
 
-        for service_type, service_obj in service_info.items():
-        #if bool(service_info):
-            service_name = service_type
-            service_type = service_type #service_info['service_type']
-            db_var = service_obj['service']['app_variables']['db_var']
-            host_var = service_obj['service']['app_variables']['host_var']
-            user_var = service_obj['service']['app_variables']['user_var']
-            password_var = service_obj['service']['app_variables']['password_var']
-            setup_script = service_obj['service']['setup_script']
-            #db_name = service_info['db_name']
-
-            service_details = {'db_var': db_var, 'host_var': host_var,
-                               'user_var': user_var, 'password_var': password_var,
-                               'setup_script': setup_script}
-
-            service_data = {'service_name':service_name, 'service_type': service_type,
-                            'service_details': service_details}
-            service_list.append(service_data)
-
-        import pdb; pdb.set_trace()
         data = {'app': app_data, 'service': service_list, 'cloud': cloud_data}
 
         req = urllib2.Request("http://localhost:5002/deployments")

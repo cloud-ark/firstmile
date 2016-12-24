@@ -11,9 +11,10 @@ from os.path import expanduser
 from flask import Flask, jsonify, request
 from flask_restful import reqparse, abort, Resource, Api
 
-
 from manager import manager as mgr
 from common import task_definition
+from common import utils
+
 
 app = Flask(__name__)
 api = Api(app)
@@ -25,6 +26,7 @@ parser.add_argument('app_name', location='form')
 home_dir = expanduser("~")
 
 APP_STORE_PATH = ("{home_dir}/.lme/data/deployments").format(home_dir=home_dir)
+SERVICE_STORE_PATH = APP_STORE_PATH + "/services"
 
 def start_thread(delegatethread):
     delegatethread.run()
@@ -198,6 +200,23 @@ class Deployments(Resource):
         result = subprocess.check_output(untar_cmd, shell=True)
         logging.debug(result)
 
+    def _store_service_contents(self, service_name, setup_file_content):
+        service_path = ("{SERVICE_STORE_PATH}/{service_name}").format(SERVICE_STORE_PATH=SERVICE_STORE_PATH,
+                                                                     service_name=service_name)
+        if not os.path.exists(service_path):
+            os.makedirs(service_path)
+
+        ts = time.time()
+        service_version = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d-%H-%M-%S')
+
+        versioned_service_path = ("{service_path}/{st}").format(service_path=service_path, st=service_version)
+        os.makedirs(versioned_service_path)
+
+        setup_file = open(versioned_service_path + "/setup.sh", "w")
+        setup_file.write(setup_file_content.encode("ISO-8859-1"))
+        setup_file.close()
+        return versioned_service_path, service_version
+
     def _store_app_contents(self, app_name, app_tar_name, content):
         # create directory
         app_path = ("{APP_STORE_PATH}/{app_name}").format(APP_STORE_PATH=APP_STORE_PATH, app_name=app_name)
@@ -219,69 +238,63 @@ class Deployments(Resource):
         # expand the directory
         self._untar_the_app(app_tar_file, versioned_app_path)
         return versioned_app_path, app_version
-    
-    def _get_app_id(self, app_name, app_version, cloud):
-        # Method 1:
-        # app_id = ("{app_name}--{app_version}").format(app_name=app_name, app_version=app_version)
 
-        # Method 2:
-        # open app_ids.txt file available at APP_STORE_PATH
-        id_count = 1
-        if os.path.exists(APP_STORE_PATH + "/app_ids.txt"):
-            try:
-                f = open(APP_STORE_PATH + "/app_ids.txt", "r")
-                all_lines = f.readlines()
-                if all_lines:
-                    last_line = all_lines[-1]
-                    last_line_parts = last_line.split(" ")
-                    id_count = int(last_line_parts[0]) + 1
-                f.close()
-            except IOError:
-                logging.error("app_ids.txt does not exist yet. Creating..")
-
-        f = open(APP_STORE_PATH + "/app_ids.txt", "a")
-        app_id = id_count
-        f.write(str(app_id) + " " + app_name + "--" + app_version + " " + cloud + "\n")
-
-        return app_id
-
+    # Handle service, app, and app+service deployments
     def post(self):
         #args = parser.parse_args()
         logging.debug("Received POST request.")
         args = request.get_json(force=True)
         
-        app_data = args['app']
-        cloud_data = args['cloud']
-        service_data = args['service']
-        
-        app_name = app_data['app_name']
-        app_tar_name = app_data['app_tar_name']
-        content = app_data['app_content']
-        cloud = cloud_data['cloud']
-
-        app_location, app_version = self._store_app_contents(app_name, app_tar_name, content)
-        
-        # dispatch the handler thread
-        #task_dict = {}
-        #task_dict['app_name'] = app_name
-        #task_dict['app_location'] = app_location
-        #task_dict['cloud'] = cloud
-        app_data['app_location'] = app_location
-        app_data['app_version'] = app_version
-        task_def = task_definition.TaskDefinition(app_data, cloud_data, service_data)
-
-        delegatethread = mgr.Manager(app_name, task_def)
-
-        #delegatethread.start()
-        thread.start_new_thread(start_thread, (delegatethread, ))
-
         response = jsonify()
         response.status_code = 201
 
-        app_id = self._get_app_id(app_name, app_version, cloud)
+        args_dict = dict(args)
 
-        logging.debug("App id:%s" % app_id)
-        response.headers['location'] = ('/deployments/{app_id}').format(app_id=app_id)
+        # Handle service deployment
+        if not 'app' in args_dict and (args_dict['service'] and args_dict['cloud']):
+            cloud_data = args['cloud']
+            cloud = cloud_data['type']
+            service_data = args['service']
+            task_name = service_name = service_data.values()[0]['service']['type']
+            setup_file_content = service_data.values()[0]['service']['setup_script_content']
+            service_location, service_version = self._store_service_contents(service_name, setup_file_content)
+            service_data['service_location'] = service_location
+            service_data['service_version'] = service_version
+            task_def = task_definition.TaskDefinition('', cloud_data, service_data)
+
+            service_id = utils.get_id(SERVICE_STORE_PATH, "service_ids.txt", service_name, 
+                                  service_version, cloud)
+            logging.debug("Service id:%s" % service_id)
+            response.headers['location'] = ('/deployments/{service_id}').format(service_id=service_id)
+        elif args['app'] and args['service'] and args['cloud']: #handle app and service deployment
+            app_data = args['app']
+            cloud_data = args['cloud']
+            service_data = args['service']
+        
+            task_name = app_name = app_data['app_name']
+            app_tar_name = app_data['app_tar_name']
+            content = app_data['app_content']
+            cloud = cloud_data['cloud']
+
+            app_location, app_version = self._store_app_contents(app_name, app_tar_name, content)
+
+            # dispatch the handler thread
+            #task_dict = {}
+            #task_dict['app_name'] = app_name
+            #task_dict['app_location'] = app_location
+            #task_dict['cloud'] = cloud
+            app_data['app_location'] = app_location
+            app_data['app_version'] = app_version
+            task_def = task_definition.TaskDefinition(app_data, cloud_data, service_data)
+
+            app_id = utils.get_id(APP_STORE_PATH, "app_ids.txt", app_name, app_version, cloud)
+            logging.debug("App id:%s" % app_id)
+            response.headers['location'] = ('/deployments/{app_id}').format(app_id=app_id)
+
+        delegatethread = mgr.Manager(task_name, task_def)
+
+        #delegatethread.start()
+        thread.start_new_thread(start_thread, (delegatethread, ))
         logging.debug("Location header:%s" % response.headers['location'])
         logging.debug("Response:%s" % response)
 
