@@ -7,6 +7,9 @@ import logging
 
 from docker import Client
 from common import app
+from common import service
+from common import utils
+from manager.service_handler.mysql import local_handler as lh
 
 class LocalDeployer(object):
     
@@ -14,47 +17,12 @@ class LocalDeployer(object):
         self.task_def = task_def
         self.docker_client = Client(base_url='unix://var/run/docker.sock', version='1.18')
         
-    def _deploy_service_container(self, service_name):
-        
-        def _deploy_mysql_container(service_details):            
-            def _get_cont_name():                
-                app_name = self.task_def.app_data['app_name']
-                app_loc = self.task_def.app_data['app_location']
-                k = app_loc.rfind("/")
-                app_loc = app_loc[k+1:]
-                app_loc = app_loc.replace(":","-")
-                cont_name = app_name + "-" + app_loc + "-mysql"                
-                return cont_name
-            
-            logging.debug("Deploying mysql container")
-            db_name = service_details['db_name']            
-            env = {"MYSQL_ROOT_PASSWORD": "lmeuserpass",
-                   "MYSQL_DATABASE": db_name,
-                   "MYSQL_USER": "lmeuser",
-                   "MYSQL_PASSWORD": "lmeuserpass"}
-            cont_name = _get_cont_name()
-                        
-            self.docker_client.import_image(image="mysql:5.5")
-            serv_cont = self.docker_client.create_container('mysql:5.5', detach=True, environment=env, name=cont_name)
-            self.docker_client.start(serv_cont)
-            cont_data = self.docker_client.inspect_container(serv_cont)
-            service_ip_addr = cont_data['NetworkSettings']['IPAddress']
-            logging.debug("MySQL Service IP Address:%s" % service_ip_addr)
-            return service_ip_addr
-        
-        services = self.task_def.service_data
-        service_to_deploy = ''
-        for serv in services:
-            if serv['service_name'] == service_name:
-                service_to_deploy = serv
-                break
-        
-        if service_to_deploy['service_type'] == 'mysql':
-            serv_ip_addr = _deploy_mysql_container(service_to_deploy['service_details'])
-        else:
-            print("Deployment of service %s not supported currently." % service_to_deploy['service_type'])
+        self.services = {}
 
-        return serv_ip_addr
+        if task_def.service_data:
+            self.service_obj = service.Service(task_def.service_data[0])
+            if self.service_obj.get_service_type() == 'mysql':
+                self.services['mysql'] = lh.MySQLServiceHandler(self.task_def)
     
     def _deploy_app_container(self, app_obj):
         app_cont_name = app_obj.get_cont_name()
@@ -82,13 +50,22 @@ class LocalDeployer(object):
         return app_url
 
     def deploy(self, deploy_type, deploy_name):
-        logging.debug("Local deployer called for app %s" %
-                      self.task_def.app_data['app_name'])
-
         if deploy_type == 'service':
-            service_ip_addr = self._deploy_service_container(deploy_name)
-            ip_addr = service_ip_addr
+            logging.debug("Local deployer called for service %s" % deploy_name)
+            utils.update_status(self.service_obj.get_status_file_location(), "Deploying service container")
+
+            serv_handler = self.services[deploy_name]
+            # Invoke public interface
+            access_token = ''
+            service_ip = serv_handler.provision_and_setup(access_token)
+            utils.update_status(self.service_obj.get_status_file_location(), "Deployment complete")
+            utils.update_ip(self.service_obj.get_status_file_location(), service_ip)
+
+            # TODO(devkulkarni): Add support for returning multiple service IPs
+            return service_ip
         elif deploy_type == 'app':
+            logging.debug("Local deployer called for app %s" %
+                          self.task_def.app_data['app_name'])
             app_obj = app.App(self.task_def.app_data)
             app_obj.update_app_status("DEPLOYING")
             app_ip_addr = self._deploy_app_container(app_obj)

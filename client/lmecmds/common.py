@@ -44,10 +44,10 @@ def read_service_info():
     fp = open(lmefile, "r")
     lme_obj = yaml.load(fp.read())
     services_list = lme_obj['services']
-    for service_obj in services_list:
-        service_info[service_obj['service']['type']] = service_obj
+    #for service_obj in services_list:
+    #    service_info[service_obj['service']['type']] = service_obj
 
-    return service_info
+    return services_list
 
 def read_cloud_info():
     cwd = os.getcwd()
@@ -64,8 +64,8 @@ def read_cloud_info():
     cloud_info['type'] = cloud_obj['type']
     if cloud_obj['type'] == 'local':
         app_port = '5000'
-        if cloud_obj['port']:
-            app_port = cloud_obj['port']
+        if cloud_obj['app_port']:
+            app_port = cloud_obj['app_port']
             cloud_info['app_port'] = app_port
     if cloud_obj['type'] == 'google':
         if not cloud_obj['project_id']:

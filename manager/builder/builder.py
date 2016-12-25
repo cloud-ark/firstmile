@@ -14,7 +14,7 @@ class Builder(object):
     
     def __init__(self, task_def):
         self.task_def = task_def
-        self.cloud = task_def.cloud_data['cloud']
+        self.cloud = task_def.cloud_data['type']
         
     def build(self, build_type, build_name):
         if self.cloud == 'local' or self.cloud == 'aws':

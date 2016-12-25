@@ -13,7 +13,7 @@ class Deployer(object):
     
     def __init__(self, task_def):
         self.task_def = task_def
-        self.cloud = task_def.cloud_data['cloud']
+        self.cloud = task_def.cloud_data['type']
         
     def deploy(self, deploy_type, deploy_name):
         result = ''

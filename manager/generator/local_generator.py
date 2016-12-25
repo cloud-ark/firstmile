@@ -10,9 +10,13 @@ class LocalGenerator(object):
 
     def __init__(self, task_def):
         self.task_def = task_def
-        self.app_type = task_def.app_data['app_type']
-        self.app_dir = task_def.app_data['app_location']
-        self.app_name = task_def.app_data['app_name']
+        if self.task_def.app_data:
+            self.app_type = task_def.app_data['app_type']
+            self.app_dir = task_def.app_data['app_location']
+            self.app_name = task_def.app_data['app_name']
+
+    def _generate_for_service(self):
+        pass
 
     def _generate_for_python_app(self, service_ip_dict):
         
@@ -74,12 +78,14 @@ class LocalGenerator(object):
         docker_file.write(df)
         docker_file.close()
 
-    def generate(self, service_ip_dict):
-        logging.debug("Local generator called for app %s" %
-                      self.task_def.app_data['app_name'])
-        
-        if self.app_type == 'python':
-            self._generate_for_python_app(service_ip_dict)
-        else:
-            print("Application of type %s not supported." % self.app_type)        
+    def generate(self, generate_type, service_ip_dict):
+        if generate_type == 'service':
+            self._generate_for_service()
+        elif generate_type == 'app':
+            logging.debug("Local generator called for app %s" %
+                          self.task_def.app_data['app_name'])
+            if self.app_type == 'python':
+                self._generate_for_python_app(service_ip_dict)
+            else:
+                print("Application of type %s not supported." % self.app_type)
         return 0

@@ -25,7 +25,7 @@ class ServiceDeploy(Command):
         return parser
     
     def _read_service_setup_script(self, service_info):
-        for serv_type, serv in service_info.iteritems():
+        for serv in service_info:
             setup_script_path = serv['service']['setup_script']
             if not os.path.exists(setup_script_path):
                 logging.error("Setup script path %s does not exist." % setup_script_path)
@@ -53,7 +53,7 @@ class ServiceDeploy(Command):
         x.field_names = ["Service Name", "Deploy ID", "Cloud"]
 
         cloud = cloud_info['type']
-        for serv in service_info.itervalues():
+        for serv in service_info:
             service_name = serv['service']['type']
             x.add_row([service_name, dep_id, cloud])
             self.app.stdout.write("%s\n" % x)

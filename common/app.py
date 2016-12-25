@@ -4,7 +4,7 @@ Created on Oct 27, 2016
 @author: devdatta
 '''
 class App(object):
-    
+
     def __init__(self, app_data):
         self.app_data = app_data
         self.app_name = app_data['app_name']

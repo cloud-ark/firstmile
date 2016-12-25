@@ -14,6 +14,7 @@ from flask_restful import reqparse, abort, Resource, Api
 from manager import manager as mgr
 from common import task_definition
 from common import utils
+from common import service
 
 
 app = Flask(__name__)
@@ -255,11 +256,14 @@ class Deployments(Resource):
             cloud_data = args['cloud']
             cloud = cloud_data['type']
             service_data = args['service']
-            task_name = service_name = service_data.values()[0]['service']['type']
-            setup_file_content = service_data.values()[0]['service']['setup_script_content']
+
+            # Currently supporting single service
+            service_obj = service.Service(service_data[0])
+            task_name = service_name = service_obj.get_service_name()
+            setup_file_content = service_obj.get_setup_file_content()
             service_location, service_version = self._store_service_contents(service_name, setup_file_content)
-            service_data['service_location'] = service_location
-            service_data['service_version'] = service_version
+            service_data[0]['service_location'] = service_location
+            service_data[0]['service_version'] = service_version
             task_def = task_definition.TaskDefinition('', cloud_data, service_data)
 
             service_id = utils.get_id(SERVICE_STORE_PATH, "service_ids.txt", service_name, 

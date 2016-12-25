@@ -69,12 +69,12 @@ class LocalBuilder(object):
         os.chdir(cwd)
 
     def build(self, build_type, build_name):
-        logging.debug("Local builder called for app %s" %
-                      self.task_def.app_data['app_name'])
-        
         if build_type == 'service':
+            logging.debug("Local builder called for service %s" % build_name)
             self._build_service_container()
         elif build_type == 'app':
+            logging.debug("Local builder called for app %s" %
+                          self.task_def.app_data['app_name'])
             app_obj = app.App(self.task_def.app_data)
             app_obj.update_app_status("BUILDING")
             self._build_app_container(app_obj)
