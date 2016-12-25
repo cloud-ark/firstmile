@@ -15,6 +15,37 @@ import common
 import deployment as dp
 
 
+class ServiceShow(Command):
+    "Show a service"
+
+    log = logging.getLogger(__name__)
+
+    def _service_name_show(self, service_name):
+        result = dp.Deployment().get_service_info(service_name)
+        x = prettytable.PrettyTable()
+        x.field_names = ["Deploy ID", "Service Version", "Cloud", "Service URL"]
+
+        if result:
+            pretty_table = common.artifact_name_show(result, x)
+
+        self.app.stdout.write("%s\n" % pretty_table)
+
+    def get_parser(self, prog_name):
+        parser = super(ServiceShow, self).get_parser(prog_name)
+
+        parser.add_argument('--service-name',
+                                 dest='service_name',
+                                 help="Name of the service")
+
+        return parser
+
+    def take_action(self, parsed_args):
+        self.log.info('Service show')
+
+        if parsed_args.service_name:
+            self._service_name_show(parsed_args.service_name)
+
+
 class ServiceDeploy(Command):
     "Deploy a service"
 
@@ -33,7 +64,7 @@ class ServiceDeploy(Command):
             setup_script_fp = open(setup_script_path, "r")
             setup_script_content = setup_script_fp.read()
             serv['service']['setup_script_content'] = setup_script_content
-    
+
     def take_action(self, parsed_args):
         self.log.info('Deploying service')
         

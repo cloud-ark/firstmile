@@ -4,6 +4,8 @@ Created on Dec 23, 2016
 @author: devdatta
 '''
 
+import json
+import logging
 import os
 import sys
 import yaml
@@ -82,3 +84,20 @@ def read_cloud_info():
             cloud_info['user_email'] = user_email
 
     return cloud_info
+
+def artifact_name_show(result, pretty_table):
+    status_json = json.loads(result)
+    app_status_list = status_json['data']
+
+    logging.debug(app_status_list)
+
+    for line in app_status_list:
+        dep_id = line['dep_id']
+        version = line['version']
+        cloud = line['cloud']
+        app_url = line['url']
+
+        row = [dep_id, version, cloud, app_url]
+        pretty_table.add_row(row)
+
+    return pretty_table

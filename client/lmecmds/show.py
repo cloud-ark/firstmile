@@ -5,6 +5,7 @@ import prettytable
 from cliff.command import Command
 
 import deployment as dp
+import common
 
 
 class Show(Command):
@@ -29,23 +30,11 @@ class Show(Command):
         result = dp.Deployment().get_app_info(appname)
         x = prettytable.PrettyTable()
         x.field_names = ["Deploy ID", "App Version", "Cloud", "App URL"]
+
         if result:
-            status_json = json.loads(result)
-            app_status_list = status_json['app_data']
+            pretty_table = common.artifact_name_show(result, x)
 
-            logging.debug(app_status_list)
-
-
-            for line in app_status_list:
-                dep_id = line['dep_id']
-                version = line['app_version']
-                cloud = line['cloud']
-                app_url = line['url']
-
-                row = [dep_id, version, cloud, app_url]
-                x.add_row(row)
-
-        self.app.stdout.write("%s\n" % x)
+        self.app.stdout.write("%s\n" % pretty_table)
 
     def _cloud_show(self, cloud):
         result = dp.Deployment().get_cloud_info(cloud)

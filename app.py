@@ -85,54 +85,27 @@ class Cloud(Resource):
         response.status_code = 201
         return response
 
+class Service(Resource):
+    def get(self, service_name):
+        logging.debug("Executing GET for service:%s" % service_name)
+
+        app_lines = utils.read_statues(SERVICE_STORE_PATH, "service_ids.txt", "service-status.txt", service_name)
+        resp_data = {}
+
+        resp_data['data'] = app_lines
+
+        response = jsonify(**resp_data)
+        response.status_code = 201
+        return response
 
 class App(Resource):
     def get(self, app_name):
         logging.debug("Executing GET for app:%s" % app_name)
-        app_lines = list()
 
-        f = open(APP_STORE_PATH + "/app_ids.txt")
-        all_lines = f.readlines()
-        for line in all_lines:
-            line_contents = line.split(" ")
-            app_line = {}
-
-            app_version = line_contents[1]
-            k = app_version.find("--")
-            found_app_name = app_version[:k]
-            app_version = app_version[k+2:].rstrip().lstrip()
-
-            if found_app_name == app_name:
-
-                app_stat_file = APP_STORE_PATH + "/" + app_name + "/" + app_version + "/app-status.txt"
-
-                if os.path.exists(app_stat_file):
-                    app_line['dep_id'] = line_contents[0]
-                    app_line['app_version'] = app_version
-                    app_stat_file = open(app_stat_file)
-                    stat_line = app_stat_file.read()
-
-                    parts = stat_line.split(',')
-                    cloud = ''
-                    url = ''
-                    for p in parts:
-                        if p.find("cloud::") >= 0:
-                            cld = p.split("::")
-                            if len(cld) > 2:
-                                cloud = cld[2]
-                            else:
-                                cloud = cld[1]
-                        if p.find("URL::") >= 0:
-                            u = p.split("::")
-                            url = u[1]
-                    app_line['cloud'] = cloud
-                    app_line['url'] = url
-
-                    app_lines.append(app_line)
-
+        app_lines = utils.read_statues(APP_STORE_PATH, "app_ids.txt", "app-status.txt", app_name)
         resp_data = {}
 
-        resp_data['app_data'] = app_lines
+        resp_data['data'] = app_lines
 
         response = jsonify(**resp_data)
         response.status_code = 201
@@ -306,6 +279,7 @@ class Deployments(Resource):
 
 api.add_resource(Cloud, '/clouds/<cloud_name>')
 api.add_resource(App, '/apps/<app_name>')
+api.add_resource(Service, '/services/<service_name>')
 api.add_resource(Deployment, '/deployments/<dep_id>')
 api.add_resource(Deployments, '/deployments')
 
