@@ -95,9 +95,12 @@ def artifact_name_show(result, pretty_table):
         dep_id = line['dep_id']
         version = line['version']
         cloud = line['cloud']
-        app_url = line['url']
+        artifact_info_dict = line['info']
 
-        row = [dep_id, version, cloud, app_url]
+        artifact_info = ''
+        for key, value in artifact_info_dict.iteritems():
+            artifact_info = artifact_info + key + ": " + value + "\n"
+        row = [dep_id, version, cloud, artifact_info]
         pretty_table.add_row(row)
 
     return pretty_table

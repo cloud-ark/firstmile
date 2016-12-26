@@ -41,7 +41,7 @@ def update_ip(file_path, ip):
         ip = "http://" + ip
     app_status_file.write("URL:: " + ip)
     app_status_file.close()
-    
+
 def read_statues(id_file_path, id_file_name, status_file_name, artifact_name):
     app_lines = list()
 
@@ -80,8 +80,45 @@ def read_statues(id_file_path, id_file_name, status_file_name, artifact_name):
                         u = p.split("::")
                         url = u[1]
                 app_line['cloud'] = cloud
-                app_line['url'] = url
+                app_line['info'] = {'url': url}
 
                 app_lines.append(app_line)
     return app_lines
 
+def read_service_details(id_file_path, id_file_name, details_file_name, artifact_name,
+                 artifact_status_lines):
+
+    f = open(id_file_path + "/" + id_file_name)
+    all_lines = f.readlines()
+
+    service_details = ''
+    for line in all_lines:
+        line_contents = line.split(" ")
+        app_line = {}
+
+        service_version = line_contents[1]
+        k = service_version.find("--")
+        found_app_name = service_version[:k]
+        service_version = service_version[k+2:].rstrip().lstrip()
+
+        if found_app_name == artifact_name:
+            service_details_file = id_file_path + "/" + artifact_name + "/" + service_version + "/" + details_file_name
+
+            if os.path.exists(service_details_file):
+                fp = open(service_details_file)
+                service_details = fp.read()
+
+                if service_details:
+                    artifact_info_dict = ''
+                    for line in artifact_status_lines:
+                        if line['info']:
+                            artifact_info_dict = line['info']
+                            for serv_detail_line in service_details.split("\n"):
+                                parts = serv_detail_line.split("::")
+                                if len(parts) == 2:
+                                    key = parts[0].rstrip().lstrip()
+                                    value = parts[1].rstrip().lstrip()
+                                    artifact_info_dict[key] = value
+                            line['info'] = artifact_info_dict
+
+    return artifact_status_lines

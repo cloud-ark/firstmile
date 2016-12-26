@@ -31,11 +31,11 @@ class MySQLServiceHandler(object):
         self.mysql_version = 'mysql:5.5'
         
         fp = open(self.service_obj.get_service_details_file_location(), "w")
-        fp.write("MYSQL_DB_NAME:%s\n" % self.mysql_db_name)
-        #fp.write("MYSQL_DB_USER:%s\n" % self.mysql_user)
-        #fp.write("MYSQL_DB_USER_PASSWORD:%s\n" % self.mysql_password)
-        fp.write("MYSQL_ROOT_USER_PASSWORD:%s\n" % self.mysql_root_password)
-        fp.write("MYSQL_VERSION:%s\n" % self.mysql_version)
+        fp.write("MYSQL_DB_NAME::%s\n" % self.mysql_db_name)
+        fp.write("MYSQL_DB_USER::%s\n" % self.mysql_user)
+        fp.write("MYSQL_DB_USER_PASSWORD::%s\n" % self.mysql_password)
+        fp.write("MYSQL_ROOT_USER_PASSWORD::%s\n" % self.mysql_root_password)
+        fp.write("MYSQL_VERSION::%s\n" % self.mysql_version)
         fp.close()
 
     def _get_cont_name(self):
@@ -66,8 +66,7 @@ class MySQLServiceHandler(object):
                                                         environment=env,
                                                         name=cont_name)
         self.docker_client.start(serv_cont)
-        
-        import pdb; pdb.set_trace()
+
         cont_data = self.docker_client.inspect_container(serv_cont)
         service_ip_addr = cont_data['NetworkSettings']['IPAddress']
         logging.debug("MySQL Service IP Address:%s" % service_ip_addr)

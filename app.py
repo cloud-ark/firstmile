@@ -89,10 +89,13 @@ class Service(Resource):
     def get(self, service_name):
         logging.debug("Executing GET for service:%s" % service_name)
 
-        app_lines = utils.read_statues(SERVICE_STORE_PATH, "service_ids.txt", "service-status.txt", service_name)
+        status_lines = utils.read_statues(SERVICE_STORE_PATH, "service_ids.txt", "service-status.txt", service_name)
+        status_and_details_lines = utils.read_service_details(SERVICE_STORE_PATH, "service_ids.txt",
+                                                              "service-details.txt", service_name, status_lines)
+
         resp_data = {}
 
-        resp_data['data'] = app_lines
+        resp_data['data'] = status_and_details_lines
 
         response = jsonify(**resp_data)
         response.status_code = 201
@@ -102,10 +105,10 @@ class App(Resource):
     def get(self, app_name):
         logging.debug("Executing GET for app:%s" % app_name)
 
-        app_lines = utils.read_statues(APP_STORE_PATH, "app_ids.txt", "app-status.txt", app_name)
+        status_lines = utils.read_statues(APP_STORE_PATH, "app_ids.txt", "app-status.txt", app_name)
         resp_data = {}
 
-        resp_data['data'] = app_lines
+        resp_data['data'] = status_lines
 
         response = jsonify(**resp_data)
         response.status_code = 201
