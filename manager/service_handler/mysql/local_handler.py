@@ -15,13 +15,14 @@ from common import docker_lib
 from common import service
 from common import utils
 
+from manager.service_handler.mysql import helper
+
 class MySQLServiceHandler(object):
     
     def __init__(self, task_def):
         self.task_def = task_def
         self.docker_client = Client(base_url='unix://var/run/docker.sock', version='1.18')
 
-        import pdb; pdb.set_trace()
         self.service_obj = service.Service(self.task_def.service_data[0])
         self.service_name = self.service_obj.get_service_name()
         self.mysql_db_name = 'testdb'
@@ -29,7 +30,16 @@ class MySQLServiceHandler(object):
         self.mysql_password = 'testuserpass'
         self.mysql_root_password = 'rootuserpass'
         self.mysql_version = 'mysql:5.5'
-        
+
+        self.db_info = {}
+        self.db_info['user'] = 'root'
+        self.db_info['password'] = self.mysql_root_password
+        self.db_info['setup_file'] = 'setup.sh'
+
+        self.service_info = {}
+        self.service_info['name'] = self.service_name
+        self.service_info['version'] = self.service_obj.get_service_version()
+
         fp = open(self.service_obj.get_service_details_file_location(), "w")
         fp.write("MYSQL_DB_NAME::%s\n" % self.mysql_db_name)
         fp.write("MYSQL_DB_USER::%s\n" % self.mysql_user)
@@ -70,15 +80,20 @@ class MySQLServiceHandler(object):
         cont_data = self.docker_client.inspect_container(serv_cont)
         service_ip_addr = cont_data['NetworkSettings']['IPAddress']
         logging.debug("MySQL Service IP Address:%s" % service_ip_addr)
+
+        self.db_info['host'] = service_ip_addr
+
         return service_ip_addr
     
     def _setup_service_container(self):
         logging.debug("Setting up service container")
-        pass
+        work_dir = self.service_obj.get_service_prov_work_location()
+        helper.setup_database(work_dir, self.db_info, self.service_info)
 
     # Public interface
     def provision_and_setup(self, access_token):
         service_ip = self._deploy_service_container()
+
         self._setup_service_container()
         return service_ip
     
