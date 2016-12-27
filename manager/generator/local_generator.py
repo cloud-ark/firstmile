@@ -67,8 +67,16 @@ class LocalGenerator(object):
                   "RUN cd /src; pip install -r requirements.txt\n"
                   "ADD . /src\n"
                   "EXPOSE 5000\n"
-                  "CMD [\"python\", \"/src/application.py\"]"
-                  "").format(run_cmd=entry_point)
+                  )
+
+            env_var_obj = self.task_def.app_data['env_variables']
+            env_vars = ''
+            if env_var_obj:
+                for key, value in env_var_obj.iteritems():
+                    env_vars = env_vars + ("ENV {key} {value}\n").format(key=key, value=value)
+                df = df + env_vars
+
+            df = df +  ("CMD [\"python\", \"/src/{entry_point}\"]").format(entry_point=entry_point)
 
         logging.debug("App dir: %s" % self.app_dir)
         docker_file_dir = ("{app_dir}/{app_name}").format(app_dir=self.app_dir, 

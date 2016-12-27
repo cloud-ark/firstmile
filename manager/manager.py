@@ -28,7 +28,7 @@ class Manager(threading.Thread):
         if self.task_def.app_data:
             app_obj = app.App(self.task_def.app_data)
             app_obj.update_app_status("name::" + self.name)
-            app_obj.update_app_status("cloud::" + self.task_def.cloud_data['cloud'])
+            app_obj.update_app_status("cloud::" + self.task_def.cloud_data['type'])
             app_cont_name = app_obj.get_cont_name()
         
         # Two-step protocol
@@ -58,7 +58,7 @@ class Manager(threading.Thread):
         # - Generate, build, deploy app
         if self.task_def.app_data:
             # Allow time for service container to be deployed and started
-            time.sleep(10)
+            time.sleep(5)
             gen.Generator(self.task_def).generate('app', service_ip_addresses, services)
             bld.Builder(self.task_def).build(build_type='app', build_name=self.task_def.app_data['app_name'])
             result = dep.Deployer(self.task_def).deploy(deploy_type='app',

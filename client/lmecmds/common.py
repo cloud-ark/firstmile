@@ -45,11 +45,12 @@ def read_service_info():
     service_info = {}
     fp = open(lmefile, "r")
     lme_obj = yaml.load(fp.read())
-    services_list = lme_obj['services']
+    if 'services' in lme_obj:
+        service_info = lme_obj['services']
     #for service_obj in services_list:
     #    service_info[service_obj['service']['type']] = service_obj
 
-    return services_list
+    return service_info
 
 def read_cloud_info():
     cwd = os.getcwd()

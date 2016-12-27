@@ -250,7 +250,7 @@ class Deployments(Resource):
             app_data = args['app']
             cloud_data = args['cloud']
             service_data = args['service']
-        
+
             task_name = app_name = app_data['app_name']
             app_tar_name = app_data['app_tar_name']
             content = app_data['app_content']
@@ -270,6 +270,25 @@ class Deployments(Resource):
             app_id = utils.get_id(APP_STORE_PATH, "app_ids.txt", app_name, app_version, cloud)
             logging.debug("App id:%s" % app_id)
             response.headers['location'] = ('/deployments/{app_id}').format(app_id=app_id)
+        elif 'app' in args_dict and 'cloud' in args_dict:
+
+            app_data = args['app']
+            cloud_data = args['cloud']
+            task_name = app_name = app_data['app_name']
+            app_tar_name = app_data['app_tar_name']
+            content = app_data['app_content']
+            cloud = cloud_data['type']
+
+            app_location, app_version = self._store_app_contents(app_name, app_tar_name, content)
+
+            app_data['app_location'] = app_location
+            app_data['app_version'] = app_version
+            task_def = task_definition.TaskDefinition(app_data, cloud_data, '')
+
+            app_id = utils.get_id(APP_STORE_PATH, "app_ids.txt", app_name, app_version, cloud)
+            logging.debug("App id:%s" % app_id)
+            response.headers['location'] = ('/deployments/{app_id}').format(app_id=app_id)
+
 
         delegatethread = mgr.Manager(task_name, task_def)
 

@@ -78,17 +78,24 @@ class Deployment(object):
 
         app_type = app_info['app_type']
         entry_point = app_info['entry_point']
-        app_data = {'app_name':app_name, 'app_tar_name': tarfile_name, 
-                    'app_content':tarfile_content, 'app_type': app_type,
-                    'entry_point': entry_point
-                    }
 
-        cloud_data = {'cloud': cloud, 'project_id': cloud_info['project_id'],
-                      'user_email': cloud_info['user_email']}
+        app_info['app_name'] = app_name
+        app_info['app_tar_name'] = tarfile_name
+        app_info['app_content'] = tarfile_content
+        app_info['app_type'] = app_type
+        app_info['entry_point'] = entry_point
 
-        service_list = self._parse_service_info(service_info)
+        #app_data = {'app_name':app_name, 'app_tar_name': tarfile_name,
+        #            'app_content':tarfile_content, 'app_type': app_type,
+        #            'entry_point': entry_point
+        #            }
 
-        data = {'app': app_data, 'service': service_list, 'cloud': cloud_data}
+        #cloud_data = {'cloud': cloud, 'project_id': cloud_info['project_id'],
+        #              'user_email': cloud_info['user_email']}
+
+        #service_list = self._parse_service_info(service_info)
+
+        data = {'app': app_info, 'service': service_info, 'cloud': cloud_info}
 
         req = urllib2.Request("http://localhost:5002/deployments")
         #req = urllib2.Request("http://127.0.0.1:5000/deployments")
