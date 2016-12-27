@@ -13,15 +13,13 @@ import yaml
 def read_app_info():
     cwd = os.getcwd()
     lmefile = cwd + "/lme.yaml"
-    if not os.path.exists(lmefile):
-        print("lme.yaml not present. Please create it and then try again.")
-        sys.exit(0)
-
     app_info = {}
+    if not os.path.exists(lmefile):
+        print("lme.yaml not present. Asking required app information from user.")
+        return app_info
 
     fp = open(lmefile, "r")
     lme_obj = yaml.load(fp.read())
-    #print(lme_obj)
     application_obj = lme_obj['application']
     app_type = application_obj['type']
     entry_point = application_obj['entry_point']
@@ -42,28 +40,25 @@ def read_app_info():
 def read_service_info():
     cwd = os.getcwd()
     lmefile = cwd + "/lme.yaml"
-    if not os.path.exists(lmefile):
-        print("lme.yaml not present. Please create it and then try again.")
-        sys.exit(0)
-
     service_info = {}
+    if not os.path.exists(lmefile):
+        print("lme.yaml not present. Asking required service information from user.")
+        return service_info
+
     fp = open(lmefile, "r")
     lme_obj = yaml.load(fp.read())
     if 'services' in lme_obj:
         service_info = lme_obj['services']
-    #for service_obj in services_list:
-    #    service_info[service_obj['service']['type']] = service_obj
 
     return service_info
 
 def read_cloud_info():
     cwd = os.getcwd()
     lmefile = cwd + "/lme.yaml"
-    if not os.path.exists(lmefile):
-        print("lme.yaml not present. Please create it and then try again.")
-        sys.exit(0)
-
     cloud_info = {}
+    if not os.path.exists(lmefile):
+        return cloud_info
+
     fp = open(lmefile, "r")
     lme_obj = yaml.load(fp.read())
     cloud_obj = lme_obj['cloud']

@@ -18,7 +18,8 @@ class LocalGenerator(object):
             self.app_type = task_def.app_data['app_type']
             self.app_dir = task_def.app_data['app_location']
             self.app_name = task_def.app_data['app_name']
-            self.app_variables = task_def.app_data['app_variables']
+            if 'app_variables' in task_def.app_data:
+                self.app_variables = task_def.app_data['app_variables']
 
         self.services = {}
 
@@ -31,13 +32,6 @@ class LocalGenerator(object):
         pass
 
     def _generate_for_python_app(self, service_ip_dict):
-        
-        DB = ''
-        db_name = ''
-        USER = ''
-        PASSWORD = ''
-        HOST = ''
-        host = ''
 
         if bool(service_ip_dict):
             serv = self.task_def.service_data[0]
@@ -59,14 +53,6 @@ class LocalGenerator(object):
                     env_val = service_instance_info[service_var]
                     df_env_vars = df_env_vars + ("ENV {key} {value}\n").format(key=env_key,
                                                                                value=env_val)
-            """
-            DB = serv['service_details']['db_var']
-            db_name = serv['service_details']['db_name']
-            USER = serv['service_details']['user_var']
-            PASSWORD = serv['service_details']['password_var']
-            HOST = serv['service_details']['host_var']
-            """
-
         entry_point = self.task_def.app_data['entry_point']
 
         df = ''
@@ -80,10 +66,6 @@ class LocalGenerator(object):
                   "EXPOSE 5000\n"
                   )
             df = df + df_env_vars
-                  #"ENV {DB} {db_name}\n"
-                  #"ENV {USER} lmeuser\n"
-                  #"ENV {PASSWORD} lmeuserpass\n"
-                  #"ENV {HOST} {host}\n"
             df = df + ("CMD [\"python\", \"/src/{entry_point}\"]").format(entry_point=entry_point)
         else:
             df = ("FROM ubuntu:14.04\n"
@@ -95,12 +77,13 @@ class LocalGenerator(object):
                   "EXPOSE 5000\n"
                   )
 
-            env_var_obj = self.task_def.app_data['env_variables']
-            env_vars = ''
-            if env_var_obj:
-                for key, value in env_var_obj.iteritems():
-                    env_vars = env_vars + ("ENV {key} {value}\n").format(key=key, value=value)
-                df = df + env_vars
+            if 'env_variables' in self.task_def.app_data:
+                env_var_obj = self.task_def.app_data['env_variables']
+                env_vars = ''
+                if env_var_obj:
+                    for key, value in env_var_obj.iteritems():
+                        env_vars = env_vars + ("ENV {key} {value}\n").format(key=key, value=value)
+                        df = df + env_vars
 
             df = df +  ("CMD [\"python\", \"/src/{entry_point}\"]").format(entry_point=entry_point)
 

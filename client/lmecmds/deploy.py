@@ -128,74 +128,43 @@ class Deploy(Command):
             os.chdir(cwd)
 
     def _get_app_details(self):
-        cwd = os.getcwd()
-        lmefile = cwd + "/lme.yaml"
         app_port = '5000'
-        entry_point = ''
-        fp = open(lmefile, "a+")
-        if os.path.exists(lmefile):
-            lines = fp.readlines()
-            for line in lines:
-                parts = line.split(":")
-                if line.find("entry_point") >= 0:
-                    entry_point = parts[1].rstrip().lstrip()
-                if line.find("port") >=0:
-                    app_port = parts[1].rstrip().lstrip()
+        app_type = 'python'
 
+        default_entry_point = "application.py"
+        entry_point = raw_input("Enter file name that has main function in it (e.g.: application.py)>")
         if not entry_point:
-            entry_point = "application.py"
-            entry_point = raw_input("Enter file name that has main function in it (e.g.: application.py)>")
-            fp.write("entry_point:%s\n" % entry_point)
-            fp.write("app_port:5000\n")
-            fp.close()
+            entry_point = default_entry_point
 
-        return app_port, entry_point
+        app_info = {}
+        app_info['entry_point'] = entry_point
+        app_info['app_port'] = app_port
+        app_info['app_type'] = app_type
+        return app_info
 
-    def _get_service_details(self, service_info):
-        cwd = os.getcwd()
-        lmefile = cwd + "/lme.yaml"
-        db_var = host_var = user_var = password_var = db_name = ''
-        fp = open(lmefile, "a+")
-        if os.path.exists(lmefile):
-            lines = fp.readlines()
-            for line in lines:
-                parts = line.split(":")
-                if line.find("db_var") >= 0:
-                    db_var = parts[1].rstrip().lstrip()
-                if line.find("host_var") >= 0:
-                    host_var = parts[1].rstrip().lstrip()
-                if line.find("user_var") >= 0:
-                    user_var = parts[1].rstrip().lstrip()
-                if line.find("password_var") >= 0:
-                    password_var = parts[1].rstrip().lstrip()
-                if line.find("db_name") >= 0:
-                    db_name = parts[1].rstrip().lstrip()
+    def _get_service_details(self, service):
+        service_details = {}
+        service_list = []
+        service_details['type'] = service
 
-        if not db_var:
-            db_var = raw_input("Enter name of variable in your app used to reference the database>")
-            fp.write("db_var:%s\n" % db_var)
-        if not host_var:
-            host_var = raw_input("Enter name of variable in your app used to reference the db server/host>")
-            fp.write("host_var:%s\n" % host_var)
-        if not user_var:
-            user_var = raw_input("Enter name of variable in your app used to reference the db user>")
-            fp.write("user_var:%s\n" % user_var)
-        if not password_var:
-            password_var = raw_input("Enter name of variable in your app used to reference the db password>")
-            fp.write("password_var:%s\n" % password_var)
-        if not db_name:
-            db_name = raw_input("Enter name for the database. LME will create this database on target cloud.>")
-            fp.write("db_name:%s\n" % db_name)
+        service_info = {}
+        service_info['service'] = service_details
+        service_list.append(service_info)
+        return service_list
 
-        fp.close()
+    def _get_app_service_details(self, app_info):
+        db_var = raw_input("Enter name of variable in your app used to reference the database>")
+        host_var = raw_input("Enter name of variable in your app used to reference the db server/host>")
+        user_var = raw_input("Enter name of variable in your app used to reference the db user>")
+        password_var = raw_input("Enter name of variable in your app used to reference the db password>")
 
+        service_info = {}
         service_info["db_var"] = db_var
         service_info["host_var"] = host_var
         service_info["user_var"] = user_var
         service_info["password_var"] = password_var
-        service_info["db_name"] = db_name
-
-        return service_info
+        app_info['app_variables'] = service_info
+        return app_info
 
     def take_action(self, parsed_args):
         self.log.info('Deploying application')
@@ -204,26 +173,40 @@ class Deploy(Command):
         project_location = os.getcwd()
         self.log.debug("App directory:%s" % project_location)
 
-        service = parsed_args.service
-        if service:
-            self.log.debug("Service:%s" % service)
-        
-        dest = parsed_args.cloud
-        project_id = ''
-        user_email = ''
-        if dest:
-            self.log.debug("Destination:%s" % dest)
-            if dest.lower() == 'aws':
-                self._setup_aws(dest)
-            if dest.lower() == 'google':
-                self._setup_google(project_location, dest)
-                project_id, user_email = self._get_google_project_user_details(project_location)
-                print("Using project_id:%s" % project_id)
-                print("Using user email:%s" % user_email)
-
         app_info = common.read_app_info()
+        if not app_info:
+            app_info = self._get_app_details()
+
+        service = parsed_args.service
+        dest = parsed_args.cloud
+
         service_info = common.read_service_info()
+
+        if not service_info:
+            if service:
+                self.log.debug("Service:%s" % service)
+                service_info = self._get_service_details(service)
+                app_info = self._get_app_service_details(app_info)
+
         cloud_info = common.read_cloud_info()
+        if not cloud_info:
+            if dest:
+                self.log.debug("Destination:%s" % dest)
+                if dest.lower() == 'aws':
+                    self._setup_aws(dest)
+                if dest.lower() == 'google':
+                    project_id = ''
+                    user_email = ''
+                    self._setup_google(project_location, dest)
+                    project_id, user_email = self._get_google_project_user_details(project_location)
+                    print("Using project_id:%s" % project_id)
+                    print("Using user email:%s" % user_email)
+                if dest.lower() == 'local':
+                    cloud_info['type'] = 'local'
+                    cloud_info['app_port'] = '5000'
+            else:
+                print("Cloud deployment target not specified. Exiting.")
+                sys.exit(0)
 
         self.dep_track_url = dp.Deployment().post(project_location, app_info, 
                                                   service_info, cloud_info)
@@ -238,7 +221,7 @@ class Deploy(Command):
         x = prettytable.PrettyTable()
         x.field_names = ["App Name", "Deploy ID", "Cloud"]
 
-        x.add_row([app_name, dep_id, dest])
+        x.add_row([app_name, dep_id, cloud_info['type']])
         self.app.stdout.write("%s\n" % x)
         self.log.debug(x)
 
