@@ -29,9 +29,13 @@ def read_app_info():
     app_info['app_type'] = app_type
     app_info['entry_point'] = entry_point
 
-    if application_obj['env_variables']:
+    if 'env_variables' in application_obj:
         env_var_obj = application_obj['env_variables']
         app_info['env_variables'] = env_var_obj
+
+    if 'app_variables' in application_obj:
+        app_var_obj = application_obj['app_variables']
+        app_info['app_variables'] = app_var_obj
 
     return app_info
 

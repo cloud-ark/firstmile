@@ -4,6 +4,10 @@ Created on Oct 26, 2016
 @author: devdatta
 '''
 import logging
+from common import service
+from common import app
+
+from manager.service_handler.mysql import local_handler as lh
 
 
 class LocalGenerator(object):
@@ -14,6 +18,14 @@ class LocalGenerator(object):
             self.app_type = task_def.app_data['app_type']
             self.app_dir = task_def.app_data['app_location']
             self.app_name = task_def.app_data['app_name']
+            self.app_variables = task_def.app_data['app_variables']
+
+        self.services = {}
+
+        if task_def.service_data:
+            self.service_obj = service.Service(task_def.service_data[0])
+            if self.service_obj.get_service_type() == 'mysql':
+                self.services['mysql'] = lh.MySQLServiceHandler(self.task_def)
 
     def _generate_for_service(self):
         pass
@@ -26,20 +38,34 @@ class LocalGenerator(object):
         PASSWORD = ''
         HOST = ''
         host = ''
-        
+
         if bool(service_ip_dict):
             serv = self.task_def.service_data[0]
-            service_name = serv['service_name']
+            service_name = serv['service']['type']
 
+            for k, v in service_ip_dict.items():
+                if k == service_name:
+                    host = v
+                    break
+
+            df_env_vars = ''
+            if self.app_variables:
+                service_handler = self.services[service_name]
+                service_instance_info = service_handler.get_instance_info()
+                service_instance_info['host'] = host
+                for key, val in self.app_variables.iteritems():
+                    service_var = key[:key.index("_var")]
+                    env_key = val
+                    env_val = service_instance_info[service_var]
+                    df_env_vars = df_env_vars + ("ENV {key} {value}\n").format(key=env_key,
+                                                                               value=env_val)
+            """
             DB = serv['service_details']['db_var']
             db_name = serv['service_details']['db_name']
             USER = serv['service_details']['user_var']
             PASSWORD = serv['service_details']['password_var']
             HOST = serv['service_details']['host_var']
-
-            for k, v in service_ip_dict.items():
-                if k == service_name:
-                    host = v
+            """
 
         entry_point = self.task_def.app_data['entry_point']
 
@@ -52,13 +78,13 @@ class LocalGenerator(object):
                   "RUN cd /src; pip install -r requirements.txt\n"
                   "ADD . /src\n"
                   "EXPOSE 5000\n"
-                  "ENV {DB} {db_name}\n"
-                  "ENV {USER} lmeuser\n"
-                  "ENV {PASSWORD} lmeuserpass\n"
-                  "ENV {HOST} {host}\n"
-                  "CMD [\"python\", \"/src/application.py\"]"
-                  "").format(DB=DB, db_name=db_name, USER=USER,
-                             PASSWORD=PASSWORD, HOST=HOST, host=host, run_cmd=entry_point)
+                  )
+            df = df + df_env_vars
+                  #"ENV {DB} {db_name}\n"
+                  #"ENV {USER} lmeuser\n"
+                  #"ENV {PASSWORD} lmeuserpass\n"
+                  #"ENV {HOST} {host}\n"
+            df = df + ("CMD [\"python\", \"/src/{entry_point}\"]").format(entry_point=entry_point)
         else:
             df = ("FROM ubuntu:14.04\n"
                   "RUN apt-get update -y\n"

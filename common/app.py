@@ -10,6 +10,14 @@ class App(object):
         self.app_name = app_data['app_name']
         self.app_location = app_data['app_location']
         
+        self.service_app_varlist = {}
+        self.mysql_app_vars = ["db_var", "host_var", "user_var", "password_var"]
+
+        self.service_app_varlist['mysql'] = self.mysql_app_vars
+
+    def get_app_varlist(self, service_name):
+        return self.service_app_varlist[service_name]
+
     def get_cont_name(self):                
         k = self.app_location.rfind("/")
         app_loc = self.app_location[k+1:]

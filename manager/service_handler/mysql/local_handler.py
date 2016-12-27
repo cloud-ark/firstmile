@@ -32,13 +32,18 @@ class MySQLServiceHandler(object):
         self.mysql_version = 'mysql:5.5'
 
         self.db_info = {}
-        self.db_info['user'] = 'root'
-        self.db_info['password'] = self.mysql_root_password
-        self.db_info['setup_file'] = 'setup.sh'
+        self.db_info['root_user'] = 'root'
+        self.db_info['root_password'] = self.mysql_root_password
+
+        self.db_info['user'] = self.mysql_user
+        self.db_info['password'] = self.mysql_password
+        self.db_info['db'] = self.mysql_db_name
 
         self.service_info = {}
         self.service_info['name'] = self.service_name
         self.service_info['version'] = self.service_obj.get_service_version()
+        if self.service_obj.get_setup_file_content():
+            self.db_info['setup_file'] = 'setup.sh'
 
         fp = open(self.service_obj.get_service_details_file_location(), "w")
         fp.write("MYSQL_DB_NAME::%s\n" % self.mysql_db_name)
@@ -99,3 +104,6 @@ class MySQLServiceHandler(object):
     
     def cleanup(self):
         pass
+
+    def get_instance_info(self):
+        return self.db_info

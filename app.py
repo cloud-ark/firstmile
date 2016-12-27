@@ -177,21 +177,26 @@ class Deployments(Resource):
         result = subprocess.check_output(untar_cmd, shell=True)
         logging.debug(result)
 
-    def _store_service_contents(self, service_name, setup_file_content):
+    def _store_service_contents(self, service_name, setup_file_content, version):
         service_path = ("{SERVICE_STORE_PATH}/{service_name}").format(SERVICE_STORE_PATH=SERVICE_STORE_PATH,
-                                                                     service_name=service_name)
+                                                                      service_name=service_name)
         if not os.path.exists(service_path):
             os.makedirs(service_path)
 
         ts = time.time()
-        service_version = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d-%H-%M-%S')
+
+        if version:
+            service_version = version
+        else:
+            service_version = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d-%H-%M-%S')
 
         versioned_service_path = ("{service_path}/{st}").format(service_path=service_path, st=service_version)
         os.makedirs(versioned_service_path)
 
-        setup_file = open(versioned_service_path + "/setup.sh", "w")
-        setup_file.write(setup_file_content.encode("ISO-8859-1"))
-        setup_file.close()
+        if setup_file_content:
+            setup_file = open(versioned_service_path + "/setup.sh", "w")
+            setup_file.write(setup_file_content.encode("ISO-8859-1"))
+            setup_file.close()
         return versioned_service_path, service_version
 
     def _store_app_contents(self, app_name, app_tar_name, content):
@@ -216,6 +221,16 @@ class Deployments(Resource):
         self._untar_the_app(app_tar_file, versioned_app_path)
         return versioned_app_path, app_version
 
+    def _update_service_data(self, service_data, service_name, version):
+        service_obj = service.Service(service_data[0])
+        setup_file_content = service_obj.get_setup_file_content()
+        service_location, service_version = self._store_service_contents(service_name,
+                                                                         setup_file_content,
+                                                                         version)
+        service_data[0]['service_location'] = service_location
+        service_data[0]['service_version'] = service_version
+        return service_data, service_version
+
     # Handle service, app, and app+service deployments
     def post(self):
         #args = parser.parse_args()
@@ -236,10 +251,12 @@ class Deployments(Resource):
             # Currently supporting single service
             service_obj = service.Service(service_data[0])
             task_name = service_name = service_obj.get_service_name()
-            setup_file_content = service_obj.get_setup_file_content()
-            service_location, service_version = self._store_service_contents(service_name, setup_file_content)
-            service_data[0]['service_location'] = service_location
-            service_data[0]['service_version'] = service_version
+
+            version = '' # get new version for service deployment
+            service_data, service_version = self._update_service_data(service_data,
+                                                                      service_name,
+                                                                      version)
+
             task_def = task_definition.TaskDefinition('', cloud_data, service_data)
 
             service_id = utils.get_id(SERVICE_STORE_PATH, "service_ids.txt", service_name, 
@@ -254,17 +271,17 @@ class Deployments(Resource):
             task_name = app_name = app_data['app_name']
             app_tar_name = app_data['app_tar_name']
             content = app_data['app_content']
-            cloud = cloud_data['cloud']
+            cloud = cloud_data['type']
 
             app_location, app_version = self._store_app_contents(app_name, app_tar_name, content)
-
-            # dispatch the handler thread
-            #task_dict = {}
-            #task_dict['app_name'] = app_name
-            #task_dict['app_location'] = app_location
-            #task_dict['cloud'] = cloud
             app_data['app_location'] = app_location
             app_data['app_version'] = app_version
+
+            service_name = service.Service(service_data[0]).get_service_name() + "-" + app_name
+            service_data, _ = self._update_service_data(service_data,
+                                                        service_name,
+                                                        app_version)
+
             task_def = task_definition.TaskDefinition(app_data, cloud_data, service_data)
 
             app_id = utils.get_id(APP_STORE_PATH, "app_ids.txt", app_name, app_version, cloud)
@@ -289,10 +306,8 @@ class Deployments(Resource):
             logging.debug("App id:%s" % app_id)
             response.headers['location'] = ('/deployments/{app_id}').format(app_id=app_id)
 
-
+        # dispatch the handler thread
         delegatethread = mgr.Manager(task_name, task_def)
-
-        #delegatethread.start()
         thread.start_new_thread(start_thread, (delegatethread, ))
         logging.debug("Location header:%s" % response.headers['location'])
         logging.debug("Response:%s" % response)

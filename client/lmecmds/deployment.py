@@ -74,8 +74,6 @@ class Deployment(object):
         self._make_tarfile(tarfile_name, source_dir)
         tarfile_content = self._read_tarfile(tarfile_name)
 
-        cloud = cloud_info['type']
-
         app_type = app_info['app_type']
         entry_point = app_info['entry_point']
 
