@@ -111,7 +111,7 @@ def read_service_details(id_file_path, id_file_name, details_file_name, artifact
                 if service_details:
                     artifact_info_dict = ''
                     for line in artifact_status_lines:
-                        if line['info']:
+                        if line['info'] and line['version'] == service_version:
                             artifact_info_dict = line['info']
                             for serv_detail_line in service_details.split("\n"):
                                 parts = serv_detail_line.split("::")
@@ -122,3 +122,15 @@ def read_service_details(id_file_path, id_file_name, details_file_name, artifact
                             line['info'] = artifact_info_dict
 
     return artifact_status_lines
+
+def copy_google_creds(source, dest):
+    # Copy google-creds to the app directory
+    if not os.path.exists(dest):
+        os.mkdir(dest)
+    cp_cmd = ("cp -r {google_creds_path} {app_deploy_dir}/.").format(google_creds_path=source,
+                                                                     app_deploy_dir=dest)
+
+    logging.debug("Copying google-creds directory..")
+    logging.debug(cp_cmd)
+
+    os.system(cp_cmd)

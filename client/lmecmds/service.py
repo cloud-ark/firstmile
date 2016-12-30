@@ -57,13 +57,14 @@ class ServiceDeploy(Command):
     
     def _read_service_setup_script(self, service_info):
         for serv in service_info:
-            setup_script_path = serv['service']['setup_script']
-            if not os.path.exists(setup_script_path):
-                logging.error("Setup script path %s does not exist." % setup_script_path)
-                sys.exit(0)
-            setup_script_fp = open(setup_script_path, "r")
-            setup_script_content = setup_script_fp.read()
-            serv['service']['setup_script_content'] = setup_script_content
+            if 'setup_script' in serv['service']:
+                setup_script_path = serv['service']['setup_script']
+                if not os.path.exists(setup_script_path):
+                    logging.error("Setup script path %s does not exist." % setup_script_path)
+                    #sys.exit(0)
+                setup_script_fp = open(setup_script_path, "r")
+                setup_script_content = setup_script_fp.read()
+                serv['service']['setup_script_content'] = setup_script_content
 
     def take_action(self, parsed_args):
         self.log.info('Deploying service')

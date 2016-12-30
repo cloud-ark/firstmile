@@ -9,6 +9,8 @@ import subprocess
 
 from common import app
 from common import docker_lib
+from common import service
+from common import utils
 from manager.service_handler.mysql import google_handler as gh
 
 TMP_LOG_FILE = "/tmp/lme-google-deploy-output.txt"
@@ -17,20 +19,27 @@ class GoogleDeployer(object):
     
     def __init__(self, task_def):
         self.task_def = task_def
-        self.app_dir = task_def.app_data['app_location']
-        self.app_name = task_def.app_data['app_name']
-        self.app_version = task_def.app_data['app_version']
-        self.access_token_cont_name = "google-access-token-cont-" + self.app_name + "-" + self.app_version
-        self.create_db_cont_name = "google-create-db-" + self.app_name + "-" + self.app_version
-        self.docker_handler = docker_lib.DockerLib()
-        self.app_obj = app.App(self.task_def.app_data)
+
+        if task_def.app_data:
+            self.app_dir = task_def.app_data['app_location']
+            self.app_name = task_def.app_data['app_name']
+            self.app_version = task_def.app_data['app_version']
+            self.access_token_cont_name = "google-access-token-cont-" + self.app_name + "-" + self.app_version
+            self.create_db_cont_name = "google-create-db-" + self.app_name + "-" + self.app_version
+            self.app_obj = app.App(self.task_def.app_data)
 
         self.services = {}
 
         if task_def.service_data:
-            self.service_details = task_def.service_data[0]['service_details']
-            if self.task_def.service_data[0]['service_type'] == 'mysql':
-                self.services['mysql'] = gh.MySQLServiceHandler(self.task_def, self.app_obj)
+            self.service_obj = service.Service(task_def.service_data[0])
+            if self.service_obj.get_service_type() == 'mysql':
+                self.services['mysql'] = gh.MySQLServiceHandler(self.task_def)
+
+            #self.service_details = task_def.service_data[0]['service_details']
+            #if self.task_def.service_data[0]['service_type'] == 'mysql':
+            #    self.services['mysql'] = gh.MySQLServiceHandler(self.task_def)
+
+        self.docker_handler = docker_lib.DockerLib()
 
     def _deploy_app_container(self, app_obj):
         app_cont_name = app_obj.get_cont_name()
@@ -63,39 +72,6 @@ class GoogleDeployer(object):
 
         return app_url
 
-    def _parse_access_token(self):
-        logging.debug("Parsing Google access token")
-
-        app_deploy_dir = ("{app_dir}/{app_name}").format(app_dir=self.app_dir,
-                                                         app_name=self.app_name)
-        # Run the container
-        cwd = os.getcwd()
-        os.chdir(app_deploy_dir)
-        docker_run_cmd = ("docker run -i -t -d {google_access_token_cont}").format(google_access_token_cont=self.access_token_cont_name)
-        logging.debug(docker_run_cmd)
-
-        cont_id = subprocess.check_output(docker_run_cmd, shell=True).rstrip().lstrip()
-        logging.debug("Container id:%s" % cont_id)
-
-        copy_file_cmd = ("docker cp {cont_id}:/src/access_token.txt {access_token_path}").format(cont_id=cont_id,
-                                                                                                 access_token_path=app_deploy_dir+ "/access_token.txt")
-        logging.debug("Copy command:%s" % copy_file_cmd)
-        os.system(copy_file_cmd)
-
-        access_token_fp = open(app_deploy_dir + "/access_token.txt/access_token.txt")
-        access_token = access_token_fp.read().rstrip().lstrip()
-        logging.debug("Obtained access token:%s" % access_token)
-        os.remove(app_deploy_dir + "/access_token.txt/access_token.txt")
-        os.removedirs(app_deploy_dir + "/access_token.txt")
-
-        # Stop and remove container generated for obtaining new access_token
-        self.docker_handler.stop_container(self.access_token_cont_name, "access token container no longer needed")
-        self.docker_handler.remove_container(self.access_token_cont_name, "access token container no longer needed")
-        self.docker_handler.remove_container_image(self.access_token_cont_name, "access token container no longer needed")
-
-        os.chdir(cwd)
-        return access_token
-
     def _cleanup(self, app_obj):
         # Remove any temporary container created for service provisioning
         for serv in self.task_def.service_data:
@@ -107,16 +83,17 @@ class GoogleDeployer(object):
 
     def deploy(self, deploy_type, deploy_name):
         if deploy_type == 'service':
-            logging.debug("Google deployer called for deploying Google Cloud SQL service for app %s" %
-                          self.task_def.app_data['app_name'])
-            access_token = self._parse_access_token()
+            logging.debug("Google deployer called for deploying Google Cloud SQL service")
 
             service_ip_list = []
             for serv in self.task_def.service_data:
-                serv_handler = self.services[serv['service_type']]
+                serv_handler = self.services[serv['service']['type']]
                 # Invoke public interface
-                service_ip = serv_handler.provision_and_setup(access_token)
+                service_ip = serv_handler.provision_and_setup()
                 service_ip_list.append(service_ip)
+
+                utils.update_status(self.service_obj.get_status_file_location(), "Deployment complete")
+                utils.update_ip(self.service_obj.get_status_file_location(), service_ip)
 
             # TODO(devkulkarni): Add support for returning multiple service IPs
             return service_ip_list[0]

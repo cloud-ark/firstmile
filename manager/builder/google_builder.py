@@ -9,29 +9,28 @@ import subprocess
 
 from docker import Client
 from common import app
+from common import service
+
+from manager.service_handler.mysql import google_handler as gh
 
 class GoogleBuilder(object):
     
     def __init__(self, task_def):
         self.task_def = task_def
-        self.app_dir = task_def.app_data['app_location']
-        self.app_name = task_def.app_data['app_name']
-        self.app_version = task_def.app_data['app_version']
-        self.docker_client = Client(base_url='unix://var/run/docker.sock', version='1.18')
-        self.access_token_cont_name = "google-access-token-cont-" + self.app_name + "-" + self.app_version
+        if task_def.app_data:
+            self.app_dir = task_def.app_data['app_location']
+            self.app_name = task_def.app_data['app_name']
+            self.app_version = task_def.app_data['app_version']
 
-    def _build_service_container(self):
-        logging.debug("Building service container")
-        app_deploy_dir = ("{app_dir}/{app_name}").format(app_dir=self.app_dir, 
-                                                         app_name=self.app_name)
-        cwd = os.getcwd()
-        os.chdir(app_deploy_dir)
-        cmd = ("docker build -t {google_access_token_cont} -f Dockerfile.access_token . ").format(google_access_token_cont=self.access_token_cont_name)
-        try:
-            os.system(cmd)
-        except Exception as e:
-            print(e)
-        os.chdir(cwd)
+        self.services = {}
+
+        if task_def.service_data:
+            self.service_obj = service.Service(task_def.service_data[0])
+            if self.service_obj.get_service_type() == 'mysql':
+                self.services['mysql'] = gh.MySQLServiceHandler(self.task_def)
+
+        self.docker_client = Client(base_url='unix://var/run/docker.sock', version='1.18')
+
 
     def _build_first_time_container(self, app_obj):
         df_first_time_loc = self.app_dir[:self.app_dir.rfind("/")]
@@ -85,12 +84,16 @@ class GoogleBuilder(object):
         os.chdir(cwd)
 
     def build(self, build_type, build_name):
-        logging.debug("Google builder called for app %s" %
-                      self.task_def.app_data['app_name'])
-        
         if build_type == 'service':
-            self._build_service_container()
+            logging.debug("Google builded called for service")
+
+            for serv in self.task_def.service_data:
+                serv_handler = self.services[serv['service']['type']]
+                # Invoke public interface
+                serv_handler.build_instance_artifacts()
         elif build_type == 'app':
+            logging.debug("Google builder called for app %s" %
+                          self.task_def.app_data['app_name'])
             app_obj = app.App(self.task_def.app_data)
             self._build_app_container(app_obj)
             self._build_first_time_container(app_obj)
