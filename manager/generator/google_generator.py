@@ -74,6 +74,15 @@ class GoogleGenerator(object):
                                             password_key=self.service_details['password_var'],
                                             password_val=password_val)
 
+        if 'env_variables' in self.task_def.app_data:
+            env_var_obj = self.task_def.app_data['env_variables']
+            env_vars = ''
+            app_yaml = app_yaml + ("env_variables:\n")
+            if env_var_obj:
+                for key, value in env_var_obj.iteritems():
+                        env_vars = env_vars + ("    {key}: {value}\n").format(key=key, value=value)
+                app_yaml = app_yaml + env_vars
+
         fp = open(app_deploy_dir + "/app.yaml", "w")
         fp.write(app_yaml)
         fp.close()
@@ -130,13 +139,13 @@ class GoogleGenerator(object):
         first_time = self._check_if_first_time_app_deploy()
         if first_time:
             df1 = df + ("RUN /google-cloud-sdk/bin/gcloud beta app create --region us-central \n")
-            df1 = df1.format(cmd_1=cmd_1, cmd_2=cmd_2, user_email=self.task_def.app_data['user_email'],
-                             project_id=self.task_def.app_data['project_id'])
+            df1 = df1.format(cmd_1=cmd_1, cmd_2=cmd_2, user_email=self.task_def.cloud_data['user_email'],
+                             project_id=self.task_def.cloud_data['project_id'])
 
         df = df + ("ENTRYPOINT [\"/google-cloud-sdk/bin/gcloud\", \"app\", \"deploy\", \"--quiet\"] \n")
 
-        df = df.format(cmd_1=cmd_1, cmd_2=cmd_2, user_email=self.task_def.app_data['user_email'],
-                       project_id=self.task_def.app_data['project_id'])
+        df = df.format(cmd_1=cmd_1, cmd_2=cmd_2, user_email=self.task_def.cloud_data['user_email'],
+                       project_id=self.task_def.cloud_data['project_id'])
 
         if first_time:
             df_first_time_loc = self.app_dir[:self.app_dir.rfind("/")]

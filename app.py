@@ -145,7 +145,7 @@ class App(Resource):
         return response
 
 class Deployment(Resource):
-    def get(self, dep_id):
+    def get_1(self, dep_id):
         logging.debug("Executing GET for dep id:%s" % dep_id)
         status_data = utils.read_statuses_given_id(APP_STORE_PATH,
                                                    "app_ids.txt",
@@ -159,7 +159,7 @@ class Deployment(Resource):
         response.status_code = 201
         return response
 
-    def get_1(self, dep_id):
+    def get(self, dep_id):
         logging.debug("Executing GET for dep id:%s" % dep_id)
 
         def _get_app_location(app_id):
