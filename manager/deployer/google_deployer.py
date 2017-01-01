@@ -75,7 +75,7 @@ class GoogleDeployer(object):
     def _cleanup(self, app_obj):
         # Remove any temporary container created for service provisioning
         for serv in self.task_def.service_data:
-            serv_handler = self.services[serv['service_type']]
+            serv_handler = self.services[serv['service']['type']]
             serv_handler.cleanup()
 
         # Remove app container

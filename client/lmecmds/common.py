@@ -27,6 +27,10 @@ def read_app_info():
     app_info['app_type'] = app_type
     app_info['entry_point'] = entry_point
 
+    app_name = cwd[cwd.rfind("/")+1:]
+
+    app_info['app_name'] = app_name
+
     if 'env_variables' in application_obj:
         env_var_obj = application_obj['env_variables']
         app_info['env_variables'] = env_var_obj

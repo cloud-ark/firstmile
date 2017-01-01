@@ -39,15 +39,25 @@ class MySQLServiceHandler(object):
             self.instance_prov_workdir = task_def.app_data['app_location']
             self.instance_name = task_def.app_data['app_name']
             self.instance_version = task_def.app_data['app_version']
-            self.access_token_cont_name = "google-access-token-cont-" + self.app_name + "-" + self.app_version
-            self.create_db_cont_name = "google-create-db-" + self.app_name + "-" + self.app_version
-        elif task_def.service_data:
+            self.access_token_cont_name = "google-access-token-cont-" + self.instance_name + "-" + self.instance_version
+            self.create_db_cont_name = "google-create-db-" + self.instance_name + "-" + self.instance_version
+        if task_def.service_data:
             self.service_obj = service.Service(task_def.service_data[0])
             self.instance_prov_workdir = self.service_obj.get_service_prov_work_location()
             self.instance_name = self.service_obj.get_service_name()
             self.instance_version = self.service_obj.get_service_version()
             self.access_token_cont_name = "google-access-token-cont-" + self.instance_name + "-" + self.instance_version
             self.create_db_cont_name = "google-create-db-" + self.instance_name + "-" + self.instance_version
+
+        self.mysql_db_name = DEFAULT_DB_NAME
+        self.mysql_user = DEFAULT_DB_USER
+        self.mysql_password = DEFAULT_DB_PASSWORD
+
+        self.db_info = {}
+
+        self.db_info['user'] = self.mysql_user
+        self.db_info['password'] = self.mysql_password
+        self.db_info['db'] = self.mysql_db_name
 
         self.docker_handler = docker_lib.DockerLib()
 
@@ -337,3 +347,6 @@ class MySQLServiceHandler(object):
             self.docker_handler.stop_container(self.create_db_cont_name, "container created to create db no longer needed.")
             self.docker_handler.remove_container(self.create_db_cont_name, "container created to create db no longer needed.")
             self.docker_handler.remove_container_image(self.create_db_cont_name, "container created to create db no longer needed.")
+
+    def get_instance_info(self):
+        return self.db_info

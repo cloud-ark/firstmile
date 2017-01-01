@@ -6,6 +6,7 @@ Created on Oct 26, 2016
 import logging
 from common import service
 from common import app
+from common import utils
 
 from manager.service_handler.mysql import local_handler as lh
 
@@ -33,26 +34,17 @@ class LocalGenerator(object):
 
     def _generate_for_python_app(self, service_ip_dict):
 
+        df_env_vars = ''
         if bool(service_ip_dict):
-            serv = self.task_def.service_data[0]
-            service_name = serv['service']['type']
+            print_prefix = "ENV "
+            env_key_suffix = ""
+            df_env_vars = utils.get_env_vars_string(self.task_def,
+                                                    service_ip_dict,
+                                                    self.app_variables,
+                                                    self.services,
+                                                    print_prefix,
+                                                    env_key_suffix)
 
-            for k, v in service_ip_dict.items():
-                if k == service_name:
-                    host = v
-                    break
-
-            df_env_vars = ''
-            if self.app_variables:
-                service_handler = self.services[service_name]
-                service_instance_info = service_handler.get_instance_info()
-                service_instance_info['host'] = host
-                for key, val in self.app_variables.iteritems():
-                    service_var = key[:key.index("_var")]
-                    env_key = val
-                    env_val = service_instance_info[service_var]
-                    df_env_vars = df_env_vars + ("ENV {key} {value}\n").format(key=env_key,
-                                                                               value=env_val)
         entry_point = self.task_def.app_data['entry_point']
 
         df = ''

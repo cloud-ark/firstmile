@@ -42,6 +42,32 @@ def update_ip(file_path, ip):
     app_status_file.write("URL:: " + ip)
     app_status_file.close()
 
+def get_env_vars_string(task_def, service_ip_dict, app_variables,
+                        services, prefix, suffix):
+    serv = task_def.service_data[0]
+    service_name = serv['service']['type']
+
+    for k, v in service_ip_dict.items():
+        if k == service_name:
+            host = v
+            break
+
+    df_env_vars = ''
+    if app_variables:
+        service_handler = services[service_name]
+        service_instance_info = service_handler.get_instance_info()
+        service_instance_info['host'] = host
+        for key, val in app_variables.iteritems():
+            service_var = key[:key.index("_var")]
+            env_key = val
+            env_val = service_instance_info[service_var]
+            generated_val = ("{prefix} {key}{suffix} {value}\n").format(prefix=prefix,
+                                                                        suffix=suffix,
+                                                                        key=env_key,
+                                                                        value=env_val)
+            df_env_vars = df_env_vars + generated_val
+    return df_env_vars
+
 def get_artifact_name_version(id_file_path, id_file_name,
                       status_file_name, artifact_id):
     f = open(id_file_path + "/" + id_file_name)

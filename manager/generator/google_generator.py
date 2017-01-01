@@ -33,6 +33,8 @@ class GoogleGenerator(object):
             self.app_dir = task_def.app_data['app_location']
             self.app_name = task_def.app_data['app_name']
             self.entry_point = app.App(task_def.app_data).get_entrypoint_file_name()
+            if 'app_variables' in task_def.app_data:
+                self.app_variables = task_def.app_data['app_variables']
 
         self.services = {}
         if task_def.service_data:
@@ -56,23 +58,29 @@ class GoogleGenerator(object):
                     "\n").format(app_entry_point=self.entry_point)
 
         if service_ip_dict:
-            # Read the values for username and password from lme.conf
-            # Read the key names and value for db_name to use in env_vars from service_info object
-            username_val = 'lmeroot'
-            password_val = 'lme123'
-            app_yaml = app_yaml + ("env_variables:\n"
-                                   "    {username_key}: '{username_val}' \n"
-                                   "    {host_key}: '{service_ip}' \n"
-                                   "    {db_key}: '{db_name}' \n"
-                                   "    {password_key}: '{password_val}' \n"
-                                   ).format(username_key=self.service_details['user_var'],
-                                            username_val=username_val,
-                                            host_key=self.service_details['host_var'],
-                                            service_ip=service_ip_dict['mysql-service'],
-                                            db_key=self.service_details['db_var'],
-                                            db_name=self.service_details['db_name'],
-                                            password_key=self.service_details['password_var'],
-                                            password_val=password_val)
+            print_prefix = "    "
+            env_key_suffix = ":"
+            app_yaml_env_vars = utils.get_env_vars_string(self.task_def,
+                                                          service_ip_dict,
+                                                          self.app_variables,
+                                                          self.services,
+                                                          print_prefix,
+                                                          env_key_suffix)
+
+            app_yaml = app_yaml + ("env_variables:\n") + app_yaml_env_vars
+            #app_yaml = app_yaml + ("env_variables:\n"
+            #                       "    {username_key}: '{username_val}' \n"
+            #                       "    {host_key}: '{service_ip}' \n"
+            #                       "    {db_key}: '{db_name}' \n"
+            #                       "    {password_key}: '{password_val}' \n"
+            #                       ).format(username_key=self.service_details['user_var'],
+            #                                username_val=username_val,
+            #                                host_key=self.service_details['host_var'],
+            #                                service_ip=service_ip_dict['mysql-service'],
+            #                                db_key=self.service_details['db_var'],
+            #                                db_name=self.service_details['db_name'],
+            #                                password_key=self.service_details['password_var'],
+            #                                password_val=password_val)
 
         if 'env_variables' in self.task_def.app_data:
             env_var_obj = self.task_def.app_data['env_variables']
