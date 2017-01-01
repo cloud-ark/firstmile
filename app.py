@@ -89,9 +89,10 @@ class Service(Resource):
     def get(self, service_name):
         logging.debug("Executing GET for service:%s" % service_name)
 
-        status_lines = utils.read_statues(SERVICE_STORE_PATH, "service_ids.txt", "service-status.txt", service_name)
+        status_lines = utils.read_statues(SERVICE_STORE_PATH, "service_ids.txt", 
+                                          "service-status.txt", service_name, '')
         status_and_details_lines = utils.read_service_details(SERVICE_STORE_PATH, "service_ids.txt",
-                                                              "service-details.txt", service_name, status_lines)
+                                                              "service-details.txt", service_name, '', status_lines)
 
         resp_data = {}
 
@@ -101,11 +102,40 @@ class Service(Resource):
         response.status_code = 201
         return response
 
+class ServiceGetDeployID(Resource):
+    def get(self, dep_id):
+        logging.debug("Executing GET for deploy id:%s" % dep_id)
+        service_name, service_version = utils.get_artifact_name_version(SERVICE_STORE_PATH,
+                                                                "service_ids.txt",
+                                                                "service-status.txt",
+                                                                dep_id)
+
+        status_data = utils.read_statuses_given_id(SERVICE_STORE_PATH,
+                                                   "service_ids.txt",
+                                                   "service-status.txt",
+                                                   dep_id)
+
+        stat_and_details_lines = utils.read_service_details(SERVICE_STORE_PATH,
+                                                            "service_ids.txt",
+                                                            "service-details.txt",
+                                                            service_name, service_version,
+                                                            status_data)
+
+
+        resp_data = {}
+
+        resp_data['data'] = stat_and_details_lines
+
+        response = jsonify(**resp_data)
+        response.status_code = 201
+        return response
+
 class App(Resource):
     def get(self, app_name):
         logging.debug("Executing GET for app:%s" % app_name)
 
-        status_lines = utils.read_statues(APP_STORE_PATH, "app_ids.txt", "app-status.txt", app_name)
+        status_lines = utils.read_statues(APP_STORE_PATH, "app_ids.txt",
+                                          "app-status.txt", app_name, '')
         resp_data = {}
 
         resp_data['data'] = status_lines
@@ -116,6 +146,20 @@ class App(Resource):
 
 class Deployment(Resource):
     def get(self, dep_id):
+        logging.debug("Executing GET for dep id:%s" % dep_id)
+        status_data = utils.read_statuses_given_id(APP_STORE_PATH,
+                                                   "app_ids.txt",
+                                                   "app-status.txt",
+                                                   dep_id)
+        resp_data = {}
+
+        resp_data['app_data'] = status_data
+
+        response = jsonify(**resp_data)
+        response.status_code = 201
+        return response
+
+    def get_1(self, dep_id):
         logging.debug("Executing GET for dep id:%s" % dep_id)
 
         def _get_app_location(app_id):
@@ -317,6 +361,7 @@ class Deployments(Resource):
 api.add_resource(Cloud, '/clouds/<cloud_name>')
 api.add_resource(App, '/apps/<app_name>')
 api.add_resource(Service, '/services/<service_name>')
+api.add_resource(ServiceGetDeployID, '/servicesdepshow/<dep_id>')
 api.add_resource(Deployment, '/deployments/<dep_id>')
 api.add_resource(Deployments, '/deployments')
 

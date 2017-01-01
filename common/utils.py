@@ -42,7 +42,66 @@ def update_ip(file_path, ip):
     app_status_file.write("URL:: " + ip)
     app_status_file.close()
 
-def read_statues(id_file_path, id_file_name, status_file_name, artifact_name):
+def get_artifact_name_version(id_file_path, id_file_name,
+                      status_file_name, artifact_id):
+    f = open(id_file_path + "/" + id_file_name)
+    all_lines = f.readlines()
+    for line in all_lines:
+        line_contents = line.split(" ")
+        if line_contents[0] == artifact_id:
+            artifact = line_contents[1].rstrip().lstrip()
+            k = artifact.rfind("--")
+            artifact_version = artifact[k+2:].rstrip().lstrip()
+            artifact_name = artifact[:k]
+            return artifact_name, artifact_version
+
+def read_statuses_given_id(id_file_path, id_file_name,
+                           status_file_name, artifact_id):
+    app_lines = list()
+    f = open(id_file_path + "/" + id_file_name)
+    all_lines = f.readlines()
+    for line in all_lines:
+        line_contents = line.split(" ")
+
+        app_line = {}
+
+        if line_contents[0] == artifact_id:
+            artifact = line_contents[1].rstrip().lstrip()
+            k = artifact.rfind("--")
+            artifact_version = artifact[k+2:].rstrip().lstrip()
+            artifact_name = artifact[:k]
+
+            status_file_loc = id_file_path + "/" + artifact_name + "/"
+            status_file_loc = status_file_loc + artifact_version + "/" + status_file_name
+
+            if os.path.exists(status_file_loc):
+                app_line['dep_id'] = line_contents[0]
+                app_line['version'] = artifact_version
+                app_stat_file = open(status_file_loc)
+                stat_line = app_stat_file.read()
+
+                parts = stat_line.split(',')
+                cloud = ''
+                url = ''
+                for p in parts:
+                    if p.find("cloud::") >= 0:
+                        cld = p.split("::")
+                        if len(cld) > 2:
+                            cloud = cld[2]
+                        else:
+                            cloud = cld[1]
+                    if p.find("URL::") >= 0:
+                        u = p.split("::")
+                        url = u[1]
+                app_line['cloud'] = cloud
+                app_line['info'] = {'url': url}
+
+                app_lines.append(app_line)
+
+    return app_lines
+
+def read_statues(id_file_path, id_file_name, status_file_name, artifact_name,
+                 artifact_version):
     app_lines = list()
 
     f = open(id_file_path + "/" + id_file_name)
@@ -54,7 +113,11 @@ def read_statues(id_file_path, id_file_name, status_file_name, artifact_name):
         app_version = line_contents[1]
         k = app_version.find("--")
         found_app_name = app_version[:k]
-        app_version = app_version[k+2:].rstrip().lstrip()
+
+        if not artifact_version:
+            app_version = app_version[k+2:].rstrip().lstrip()
+        else:
+            app_version = artifact_version
 
         if found_app_name == artifact_name:
 
@@ -85,8 +148,8 @@ def read_statues(id_file_path, id_file_name, status_file_name, artifact_name):
                 app_lines.append(app_line)
     return app_lines
 
-def read_service_details(id_file_path, id_file_name, details_file_name, artifact_name,
-                 artifact_status_lines):
+def read_service_details(id_file_path, id_file_name, details_file_name,
+                         artifact_name, artifact_version, artifact_status_lines):
 
     f = open(id_file_path + "/" + id_file_name)
     all_lines = f.readlines()
@@ -99,7 +162,10 @@ def read_service_details(id_file_path, id_file_name, details_file_name, artifact
         service_version = line_contents[1]
         k = service_version.find("--")
         found_app_name = service_version[:k]
-        service_version = service_version[k+2:].rstrip().lstrip()
+        if not artifact_version:
+            service_version = service_version[k+2:].rstrip().lstrip()
+        else:
+            service_version = artifact_version
 
         if found_app_name == artifact_name:
             service_details_file = id_file_path + "/" + artifact_name + "/" + service_version + "/" + details_file_name

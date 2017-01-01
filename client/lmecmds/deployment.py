@@ -129,6 +129,14 @@ class Deployment(object):
         self.log.debug("Response:%s" % service_data)
         return service_data
 
+    def get_service_info_from_id(self, deploy_id):
+        service_url = "http://localhost:5002/servicesdepshow/" + deploy_id
+        req = urllib2.Request(service_url)
+        response = urllib2.urlopen(req)
+        service_data = response.fp.read()
+        self.log.debug("Response:%s" % service_data)
+        return service_data
+
     def get_cloud_info(self, cloud):
         app_url = "http://localhost:5002/clouds/" + cloud
         req = urllib2.Request(app_url)
