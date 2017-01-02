@@ -138,7 +138,6 @@ class App(Resource):
                                           "app-status.txt", app_name, '')
         resp_data = {}
 
-        import pdb; pdb.set_trace()
         resp_data['data'] = status_lines
 
         response = jsonify(**resp_data)
