@@ -96,6 +96,7 @@ def artifact_name_show(result, pretty_table):
     logging.debug(app_status_list)
 
     for line in app_status_list:
+        name = line['name'] if 'name' in line else ''
         dep_id = line['dep_id'] if 'dep_id' in line else ''
         version = line['version'] if 'version' in line else ''
         cloud = line['cloud'] if 'cloud' in line else ''
@@ -106,7 +107,7 @@ def artifact_name_show(result, pretty_table):
         if artifact_info_dict:
             for key, value in artifact_info_dict.iteritems():
                 artifact_info = artifact_info + key + ": " + value + "\n"
-        row = [dep_id, version, cloud, status, artifact_info]
+        row = [dep_id, name, version, cloud, status, artifact_info]
         pretty_table.add_row(row)
 
     return pretty_table

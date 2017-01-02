@@ -109,9 +109,11 @@ def read_statuses_given_id(id_file_path, id_file_name,
                 stat_line = app_stat_file.read()
 
                 parts = stat_line.split(',')
-                cloud = url = status = ''
+                cloud = url = status = name = ''
                 for p in parts:
-                    cloud, url, status = _parse_line(p)
+                    name, cloud, url, status = _parse_line(p)
+                    if name:
+                        app_line['name'] = name
                     if cloud:
                         app_line['cloud'] = cloud
                     if url:
@@ -124,9 +126,14 @@ def read_statuses_given_id(id_file_path, id_file_name,
     return app_lines
 
 def _parse_line(part):
-    cloud = url = status = ''
+    name = cloud = url = status = ''
     units = part.split("::")
-    if part.find("cloud::") >= 0:
+    if part.find("name::") >= 0:
+        if len(units) > 2:
+            name = units[2]
+        else:
+            name = units[1]
+    elif part.find("cloud::") >= 0:
         # TODO(devkulkarni): Below we are supporting two formats
         # of cloud representation
         # We just want to keep single format.
@@ -138,7 +145,7 @@ def _parse_line(part):
         url = units[1]
     elif part.find("status::") >= 0:
         status = units[1]
-    return cloud, url, status
+    return name, cloud, url, status
 
 def read_statues(id_file_path, id_file_name, status_file_name, artifact_name,
                  artifact_version):
@@ -170,11 +177,14 @@ def read_statues(id_file_path, id_file_name, status_file_name, artifact_name,
                 stat_line = app_stat_file.read()
 
                 parts = stat_line.split(',')
+                name = ''
                 cloud = ''
                 url = ''
                 status = ''
                 for p in parts:
-                    cloud, url, status = _parse_line(p)
+                    name, cloud, url, status = _parse_line(p)
+                    if name:
+                        app_line['name'] = name
                     if cloud:
                         app_line['cloud'] = cloud
                     if url:

@@ -29,7 +29,17 @@ class Show(Command):
     def _app_name_show(self, appname):
         result = dp.Deployment().get_app_info(appname)
         x = prettytable.PrettyTable()
-        x.field_names = ["Deploy ID", "App Version", "Cloud", "Status", "App Info"]
+        x.field_names = ["Deploy ID", "App Name", "App Version", "Cloud", "Status", "App Info"]
+
+        if result:
+            pretty_table = common.artifact_name_show(result, x)
+
+        self.app.stdout.write("%s\n" % pretty_table)
+
+    def _deployid_show(self, dep_id):
+        result = dp.Deployment().get(dep_id)
+        x = prettytable.PrettyTable()
+        x.field_names = ["Deploy ID", "App Name", "App Version", "Cloud", "Status", "App Info"]
 
         if result:
             pretty_table = common.artifact_name_show(result, x)
@@ -57,20 +67,9 @@ class Show(Command):
 
         self.app.stdout.write("%s\n" % x)
 
-    def take_action(self, parsed_args):
-        #self.log.info('Show application info')
-        #self.log.debug('Show application info')
-        #self.app.stdout.write('Show app info\n')
-        #self.app.stdout.write("Passed args:%s" % parsed_args)
-
-        if parsed_args.appname:
-            self._app_name_show(parsed_args.appname)
-
-        if parsed_args.cloud:
-            self._cloud_show(parsed_args.cloud)
-
-        if parsed_args.deployid:
-            result = dp.Deployment().get(parsed_args.deployid)
+    def _deploy_id_show_bak(self, deploy_id):
+        if deploy_id:
+            result = dp.Deployment().get(deploy_id)
 
             status_json = json.loads(result)
             status_val = status_json['app_data']
@@ -81,7 +80,7 @@ class Show(Command):
             x.field_names = ["App Name", "Deploy ID", "Status", "Cloud", "App URL"]
 
             app_name = ''
-            app_deploy_id = parsed_args.deployid
+            app_deploy_id = deploy_id
             app_deploy_time = ''
             app_status = ''
             app_url = ''
@@ -107,3 +106,18 @@ class Show(Command):
             row = [app_name, app_deploy_id, app_status, cloud, app_url]
             x.add_row(row)
             self.app.stdout.write("%s\n" % x)
+
+    def take_action(self, parsed_args):
+        #self.log.info('Show application info')
+        #self.log.debug('Show application info')
+        #self.app.stdout.write('Show app info\n')
+        #self.app.stdout.write("Passed args:%s" % parsed_args)
+
+        if parsed_args.appname:
+            self._app_name_show(parsed_args.appname)
+
+        if parsed_args.cloud:
+            self._cloud_show(parsed_args.cloud)
+
+        if parsed_args.deployid:
+            self._deployid_show(parsed_args.deployid)
