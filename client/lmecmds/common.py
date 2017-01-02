@@ -99,12 +99,13 @@ def artifact_name_show(result, pretty_table):
         dep_id = line['dep_id']
         version = line['version']
         cloud = line['cloud']
+        status = line['status']
         artifact_info_dict = line['info']
 
         artifact_info = ''
         for key, value in artifact_info_dict.iteritems():
             artifact_info = artifact_info + key + ": " + value + "\n"
-        row = [dep_id, version, cloud, artifact_info]
+        row = [dep_id, version, cloud, status, artifact_info]
         pretty_table.add_row(row)
 
     return pretty_table

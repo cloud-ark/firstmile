@@ -62,7 +62,8 @@ class LocalDeployer(object):
             # required.
             access_token = ''
             service_ip = serv_handler.provision_and_setup(access_token)
-            utils.update_status(self.service_obj.get_status_file_location(), "Deployment complete")
+            utils.update_status(self.service_obj.get_status_file_location(),
+                                "Service container deployment complete")
             utils.update_ip(self.service_obj.get_status_file_location(), service_ip)
 
             # TODO(devkulkarni): Add support for returning multiple service IPs

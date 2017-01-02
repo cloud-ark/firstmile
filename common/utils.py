@@ -6,7 +6,7 @@ Created on Dec 23, 2016
 import os
 import logging
 
-def get_id(path, file_name, name, version, cloud):
+def get_id(path, file_name, name, version, s_name, s_version, cloud):
     # Method 1:
     # app_id = ("{app_name}--{app_version}").format(app_name=app_name, app_version=app_version)
 
@@ -23,10 +23,12 @@ def get_id(path, file_name, name, version, cloud):
                 id_count = int(last_line_parts[0]) + 1
             f.close()
         except IOError:
-            logging.error("app_ids.txt does not exist yet. Creating..")
+            logging.error("%s does not exist yet. Creating.." % file_name)
 
     f = open(path + "/" + file_name, "a")
-    f.write(str(id_count) + " " + name + "--" + version + " " + cloud + "\n")
+    line = str(id_count) + " " + name + "--" + version + " " + cloud
+    line = line + " " + s_name + " " + s_version + "\n"
+    f.write(line)
     return id_count
 
 def update_status(file_path, status):
@@ -158,18 +160,25 @@ def read_statues(id_file_path, id_file_name, status_file_name, artifact_name,
                 parts = stat_line.split(',')
                 cloud = ''
                 url = ''
+                status = ''
                 for p in parts:
+                    units = p.split("::")
                     if p.find("cloud::") >= 0:
-                        cld = p.split("::")
-                        if len(cld) > 2:
-                            cloud = cld[2]
+                        # TODO(devkulkarni): Below we are supporting two formats
+                        # of cloud representation
+                        # We just want to keep single format.
+                        if len(units) > 2:
+                            cloud = units[2]
                         else:
-                            cloud = cld[1]
-                    if p.find("URL::") >= 0:
-                        u = p.split("::")
-                        url = u[1]
+                            cloud = units[1]
+                    elif p.find("URL::") >= 0:
+                        url = units[1]
+                    elif p.find("status::") >= 0:
+#                        import pdb; pdb.set_trace()
+                        status = units[1]
                 app_line['cloud'] = cloud
                 app_line['info'] = {'url': url}
+                app_line['status'] = status
 
                 app_lines.append(app_line)
     return app_lines

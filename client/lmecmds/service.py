@@ -23,7 +23,8 @@ class ServiceShow(Command):
     def _service_name_show(self, service_name):
         result = dp.Deployment().get_service_info(service_name)
         x = prettytable.PrettyTable()
-        x.field_names = ["Deploy ID", "Service Version", "Cloud", "Service Info"]
+        x.field_names = ["Deploy ID", "Service Version", "Cloud",
+                         "Status", "Service Info"]
 
         if result:
             pretty_table = common.artifact_name_show(result, x)
@@ -33,7 +34,8 @@ class ServiceShow(Command):
     def _deploy_id_show(self, deploy_id):
         result = dp.Deployment().get_service_info_from_id(deploy_id)
         x = prettytable.PrettyTable()
-        x.field_names = ["Deploy ID", "Service Version", "Cloud", "Service Info"]
+        x.field_names = ["Deploy ID", "Service Version", "Cloud",
+                         "Status", "Service Info"]
 
         if result:
             pretty_table = common.artifact_name_show(result, x)

@@ -138,6 +138,7 @@ class App(Resource):
                                           "app-status.txt", app_name, '')
         resp_data = {}
 
+        import pdb; pdb.set_trace()
         resp_data['data'] = status_lines
 
         response = jsonify(**resp_data)
@@ -304,7 +305,7 @@ class Deployments(Resource):
             task_def = task_definition.TaskDefinition('', cloud_data, service_data)
 
             service_id = utils.get_id(SERVICE_STORE_PATH, "service_ids.txt", service_name, 
-                                  service_version, cloud)
+                                  service_version, '', '', cloud)
             logging.debug("Service id:%s" % service_id)
             response.headers['location'] = ('/deployments/{service_id}').format(service_id=service_id)
         elif args['app'] and args['service'] and args['cloud']: #handle app and service deployment
@@ -322,13 +323,14 @@ class Deployments(Resource):
             app_data['app_version'] = app_version
 
             service_name = service.Service(service_data[0]).get_service_name() + "-" + app_name
-            service_data, _ = self._update_service_data(service_data,
-                                                        service_name,
-                                                        app_version)
+            service_data, service_version = self._update_service_data(service_data,
+                                                                      service_name,
+                                                                      app_version)
 
             task_def = task_definition.TaskDefinition(app_data, cloud_data, service_data)
 
-            app_id = utils.get_id(APP_STORE_PATH, "app_ids.txt", app_name, app_version, cloud)
+            app_id = utils.get_id(APP_STORE_PATH, "app_ids.txt", app_name, app_version,
+                                  service_name, service_version, cloud)
             logging.debug("App id:%s" % app_id)
             response.headers['location'] = ('/deployments/{app_id}').format(app_id=app_id)
         elif 'app' in args_dict and 'cloud' in args_dict:
@@ -346,7 +348,7 @@ class Deployments(Resource):
             app_data['app_version'] = app_version
             task_def = task_definition.TaskDefinition(app_data, cloud_data, '')
 
-            app_id = utils.get_id(APP_STORE_PATH, "app_ids.txt", app_name, app_version, cloud)
+            app_id = utils.get_id(APP_STORE_PATH, "app_ids.txt", app_name, app_version, '', '', cloud)
             logging.debug("App id:%s" % app_id)
             response.headers['location'] = ('/deployments/{app_id}').format(app_id=app_id)
 
