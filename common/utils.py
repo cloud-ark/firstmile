@@ -109,24 +109,36 @@ def read_statuses_given_id(id_file_path, id_file_name,
                 stat_line = app_stat_file.read()
 
                 parts = stat_line.split(',')
-                cloud = ''
-                url = ''
+                cloud = url = status = ''
                 for p in parts:
-                    if p.find("cloud::") >= 0:
-                        cld = p.split("::")
-                        if len(cld) > 2:
-                            cloud = cld[2]
-                        else:
-                            cloud = cld[1]
-                    if p.find("URL::") >= 0:
-                        u = p.split("::")
-                        url = u[1]
-                app_line['cloud'] = cloud
-                app_line['info'] = {'url': url}
+                    cloud, url, status = _parse_line(p)
+                    if cloud:
+                        app_line['cloud'] = cloud
+                    if url:
+                        app_line['info'] = {'url': url}
+                    if status:
+                        app_line['status'] = status
 
                 app_lines.append(app_line)
 
     return app_lines
+
+def _parse_line(part):
+    cloud = url = status = ''
+    units = part.split("::")
+    if part.find("cloud::") >= 0:
+        # TODO(devkulkarni): Below we are supporting two formats
+        # of cloud representation
+        # We just want to keep single format.
+        if len(units) > 2:
+            cloud = units[2]
+        else:
+            cloud = units[1]
+    elif part.find("URL::") >= 0:
+        url = units[1]
+    elif part.find("status::") >= 0:
+        status = units[1]
+    return cloud, url, status
 
 def read_statues(id_file_path, id_file_name, status_file_name, artifact_name,
                  artifact_version):
@@ -162,23 +174,13 @@ def read_statues(id_file_path, id_file_name, status_file_name, artifact_name,
                 url = ''
                 status = ''
                 for p in parts:
-                    units = p.split("::")
-                    if p.find("cloud::") >= 0:
-                        # TODO(devkulkarni): Below we are supporting two formats
-                        # of cloud representation
-                        # We just want to keep single format.
-                        if len(units) > 2:
-                            cloud = units[2]
-                        else:
-                            cloud = units[1]
-                    elif p.find("URL::") >= 0:
-                        url = units[1]
-                    elif p.find("status::") >= 0:
-#                        import pdb; pdb.set_trace()
-                        status = units[1]
-                app_line['cloud'] = cloud
-                app_line['info'] = {'url': url}
-                app_line['status'] = status
+                    cloud, url, status = _parse_line(p)
+                    if cloud:
+                        app_line['cloud'] = cloud
+                    if url:
+                        app_line['info'] = {'url': url}
+                    if status:
+                        app_line['status'] = status
 
                 app_lines.append(app_line)
     return app_lines
@@ -212,7 +214,7 @@ def read_service_details(id_file_path, id_file_name, details_file_name,
                 if service_details:
                     artifact_info_dict = ''
                     for line in artifact_status_lines:
-                        if line['info'] and line['version'] == service_version:
+                        if 'info' in line and line['version'] == service_version:
                             artifact_info_dict = line['info']
                             for serv_detail_line in service_details.split("\n"):
                                 parts = serv_detail_line.split("::")
