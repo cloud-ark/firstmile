@@ -42,8 +42,8 @@ Follow these steps to setup and run LME server and install LME CLI on your machi
      - This will install the LME cli.
      - You can check the features of the LME cli by using "lme --help"
 
-      (virtenv) devdatta@devdatta-ThinkPad-T430:~/Code/lme/client$ lme deploy --help
-      usage: lme deploy [-h] [--service SERVICE] [--cloud CLOUD]
+      (virtenv) devdatta@devdatta-ThinkPad-T430:~/Code/lme/client$ lme app deploy --help
+      usage: lme app deploy [-h] [--service SERVICE] [--cloud CLOUD]
 
       Build and deploy application
 
@@ -52,8 +52,8 @@ Follow these steps to setup and run LME server and install LME CLI on your machi
       --service SERVICE  Name of the required service (e.g.: MySQL)
       --cloud CLOUD      Destination to deploy application (local, AWS, Google)
 
-       (virtenv) devdatta@devdatta-ThinkPad-T430:~/Code/lme/client$ lme show --help
-       usage: lme show [-h] [--deploy-id DEPLOYID]
+       (virtenv) devdatta@devdatta-ThinkPad-T430:~/Code/lme/client$ lme app show --help
+       usage: lme app show [-h] [--deploy-id DEPLOYID]
 
        Show application status
 
@@ -62,9 +62,15 @@ Follow these steps to setup and run LME server and install LME CLI on your machi
        --deploy-id DEPLOYID  Deployment ID/URL
 
 Deploying applications:
------------------------
+------------------------
+LME supports deployments of applications and services (currently MySQL) to local, Google, and AWS clouds.
+The deployments are supported using command line flags. It is also possible to provide the required
+deployment related inputs in a yaml file. Below we outline steps to deploy an application using command
+line flags. For detailed discussion about various deployment options, please check
+deployment-details.txt file.
+
 1) Navigate to the application folder (say, greetings-python) and then run
-      lme deploy --service mysql --cloud local
+      lme app deploy --service mysql --cloud local
    This will show output of following nature.
 
 +------------------+-----------+--------+
@@ -74,7 +80,7 @@ Deploying applications:
 +------------------+-----------+--------+
 
 2) Use the deploy-id to check the deployment status
-      lme show --deploy-id 1
+      lme app show --deploy-id 1
 
 +------------------+-----------+---------------------+--------+--------------------------------------------+
 |     App Name     | Deploy ID |        Status       | Cloud  |                App URL                     |
@@ -84,7 +90,7 @@ Deploying applications:
 
 3) You don't have to specify the "service" flag if an application does not need MySQL database for its functioning.
    The hello-world application is of this nature. You can deploy it simply by executing
-   lme deploy --cloud <local|google|aws> command
+   lme app deploy --cloud <local|google|aws> command
 
 Deployment to Google App Engine:
 --------------------------------
@@ -93,7 +99,7 @@ Deployment to Google App Engine:
    create a Google App Engine project from the GAE Console.
    - Create a project and note down the Project ID.
 3) Deploy the application by navigating to the application folder and executing following command:
-   lme deploy --cloud google --service mysql
+   lme app deploy --cloud google --service mysql
 
 +------------------+-----------+--------+
 |     App Name     | Deploy ID | Cloud  |
@@ -103,7 +109,7 @@ Deployment to Google App Engine:
 
 4) Check deployment status
 
-lme show --deploy-id 2
+lme app show --deploy-id 2
 +------------------+-----------+---------------------+--------+---------------------------------------+
 |     App Name     | Deploy ID |        Status       | Cloud  |                App URL                |
 +------------------+-----------+---------------------+--------+---------------------------------------+
@@ -124,10 +130,10 @@ Deployment to Amazon Elastic Beanstalk:
 3) Note down SECRET_ACCESS_KEY and ACCESS_KEY_ID for this user. Provide these values when asked by LME.
 
 4) Deploy the application by navigating to the application folder:
-   lme deploy --cloud aws --service mysql
+   lme app deploy --cloud aws --service mysql
 
 5) Check deployment status
-   lme show --deploy-id <deploy-id>
+   lme app show --deploy-id <deploy-id>
 
 Note:
 - Your application and all its resources will be deployed in the us-west-2 region of Amazon ElasticBeanstalk
@@ -135,12 +141,12 @@ Note:
 
 All available commands:
 ------------------------
-1) lme deploy --cloud <cloud>
-2) lme deploy --cloud <cloud> --service mysql
-3) lme show --deploy-id <deploy-id>
-4) lme show --app-name <app-name>
+1) lme app deploy --cloud <cloud>
+2) lme app deploy --cloud <cloud> --service mysql
+3) lme app show --deploy-id <deploy-id>
+4) lme app show --app-name <app-name>
    E.g.:
-   lme show --app-name express-checkout
+   lme app show --app-name express-checkout
 +-----------+---------------------+--------+-----------------------------------------------------------------------------+
 | Deploy ID |     App Version     | Cloud  |                                   App URL                                   |
 +-----------+---------------------+--------+-----------------------------------------------------------------------------+
@@ -149,9 +155,9 @@ All available commands:
 |    155    | 2016-12-19-15-14-52 | local  |                            http://172.17.1.10:5000                          |
 +-----------+---------------------+--------+-----------------------------------------------------------------------------+
 
-5) lme show --cloud <cloud>
+5) lme app show --cloud <cloud>
    E.g.:
-   lme show --cloud google
+   lme app show --cloud google
 
 +-----------+------------------+---------------------+----------------------------------------------+
 | Deploy ID |     App Name     |     App Version     |                   App URL                    |

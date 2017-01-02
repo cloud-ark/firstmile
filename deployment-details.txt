@@ -1,0 +1,172 @@
+LME supports multi-cloud deployment and orchestration for web applications and
+their dependent services. 
+
+The deployment actions can be triggered using command line flags or by specifying
+a yaml file containing information required for deployment.
+
+Structure of yaml file:
+-----------------------
+The yaml file consists of three sections: application, services, cloud.
+The cloud section is compulsory whereas application and services section
+can be included depending on whether you want to deploy a service instance
+or an application. Below is an example of yaml file containing all three sections.
+
+application:
+  type: python
+  entry_point: application.py
+  env_variables:
+    MY_VAR1: VALUE1
+    MY_VAR2: VALUE2
+  app_variables:
+    db_var: DB
+    host_var: HOST
+    user_var: USER
+    password_var: PASSWORD
+services:
+  - service:
+      type: mysql
+cloud:
+  type: google
+  project_id: greetings-python
+  user_email: cc1h499@gmail.com
+
+a) application:
+The application section is used to define details of the application that we want to deploy.
+It contains following sub-sections: type, entry_point, env_variables, and app_variables.
+The type and entry_point sections are compulsory. type represents type of the application
+(whether the application is python or Java). entry_point represents the main file
+of the application. For python applications this will be the file in which the main()
+function is defined. The env_variables section defines key-value pairs. 
+These will be set as environment variables at application runtime.
+The app_variables section is used to represent specific variables that may be used
+by an application to represent database connection. There are four app_variables
+supported: db_var, host_var, user_var, and password_var. These should be used
+to capture the names of the environment variables in your application
+code corresponding to the specific functions represented by that variable.
+For instance, in your application if you are reading database name from an environment
+variable named DB, then you should capture this using the db_var app_variable.
+Similarly, if you are reading database host name from environment variable named HOST
+then you should capture this using host_var app_variable. At runtime, LME will set
+appropriate values for this variables ensuring that your application gets injected
+with appropriate values for these environment variables.
+Note that env_variables and app_variables section serve different purpose
+even though both are related to setting of environment variables at application runtime.
+The env_variables defines both keys and values for the environment variables,
+whereas app_variables captures only the names of predefined environment variables
+used by the application. The values are set by LME by capturing the output from
+appropriate cloud.
+
+b) services:
+The services section supports a list of services. Currently only one service is
+supported though - mysql.
+
+c) cloud:
+The cloud section is used to capture specific details about the cloud on which service/application
+is going to be deployed. The type sub-section is compulsory for the cloud section.
+Other sub-sections depend the type of the cloud.
+If the target cloud is Google then you will have to provide two things -- project_id corresponding
+to the project and email address of the user 
+in whose context you are deploying the application.
+
+Here are some examples of yaml file for different deployments.
+
+1) Deploying MySQL service instance locally
+--
+services:
+  - service:
+      type: mysql
+cloud:
+  type: local
+--
+
+2) Deploying Cloud SQL service instance on Google cloud
+--
+services:
+  - service:
+      type: mysql
+cloud:
+  type: google
+  project_id: greetings-python
+  user_email: cc1h499@gmail.com
+--
+
+3) Deploying Dynamo DB instance on AWS cloud
+--
+services:
+  - service:
+      type: mysql
+cloud:
+  type: aws
+  SECRET_ACCESS_KEY: secret-access-key
+  ACCESS_KEY_ID: access-key-id
+--
+
+4) Deploying application on Google cloud with env_variables to 
+   connect to an existing Cloud SQL instance:
+--
+application:
+  type: python
+  entry_point: application.py
+  env_variables:
+    DB: testdb
+    HOST: 107.178.214.1
+    USER: testuser
+    PASSWORD: testpass123!@#
+cloud:
+  type: google
+  project_id: greetings-python
+  user_email: cc1h499@gmail.com
+--
+
+5) Deploying application on Google cloud and a Cloud SQL instance,
+   and using app_variables to connect the application to the Cloud SQL
+   instance at runtime.
+--
+application:
+  type: python
+  entry_point: application.py
+  app_variables:
+    db_var: DB
+    host_var: HOST
+    user_var: USER
+    password_var: PASSWORD
+services:
+  - service:
+      type: mysql
+cloud:
+  type: google
+  project_id: greetings-python
+  user_email: cc1h499@gmail.com
+--
+
+
+Available commands:
+--------------------
+1) lme service deploy
+2) lme service show --service-name <service-name>
+3) lme app deploy
+4) lme app show --app-name <app-name>
+5) lme app show --deploy-id <deploy-id>
+6) lme app show --cloud <cloud>
+
+
+$ lme --help
+usage: lme [--version] [-v | -q] [--log-file LOG_FILE] [-h] [--debug]
+
+lme cli
+
+optional arguments:
+  --version            show program's version number and exit
+  -v, --verbose        Increase verbosity of output. Can be repeated.
+  -q, --quiet          Suppress output except warnings and errors.
+  --log-file LOG_FILE  Specify a file to log output. Disabled by default.
+  -h, --help           Show help message and exit.
+  --debug              Show tracebacks on errors.
+
+Commands:
+  app deploy     Build and deploy application
+  app show       Show application status
+  complete       print bash completion command
+  help           print detailed help for another command
+  service deploy  Deploy a service
+  service show   Show a service
