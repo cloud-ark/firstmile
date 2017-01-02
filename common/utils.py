@@ -179,7 +179,6 @@ def _parse_line(part):
     parts_dict['mysql_password'] = mysql_password
     parts_dict['mysql_db_name'] = mysql_db_name
     return parts_dict
-    #return name, cloud, url, status, mysql_instance
 
 def read_statues(id_file_path, id_file_name, status_file_name, artifact_name,
                  artifact_version):
@@ -201,12 +200,9 @@ def read_statues(id_file_path, id_file_name, status_file_name, artifact_name,
             app_version = artifact_version
 
         if found_app_name == artifact_name:
-
             app_stat_file = id_file_path + "/" + artifact_name + "/" + app_version + "/" + status_file_name
-
             if os.path.exists(app_stat_file):
                 app_line = prepare_line(app_line, line_contents, app_version, app_stat_file)
-
                 app_lines.append(app_line)
     return app_lines
 
