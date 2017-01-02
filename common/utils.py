@@ -83,6 +83,35 @@ def get_artifact_name_version(id_file_path, id_file_name,
             artifact_name = artifact[:k]
             return artifact_name, artifact_version
 
+def prepare_line(app_line, line_contents, app_version, file_path):
+    app_line['dep_id'] = line_contents[0]
+    app_line['version'] = app_version
+    app_stat_file = open(file_path)
+    stat_line = app_stat_file.read()
+
+    parts = stat_line.split(',')
+    info = {}
+    for p in parts:
+        parts_dict = _parse_line(p)
+        if parts_dict['name']:
+            app_line['name'] = parts_dict['name']
+        if parts_dict['cloud']:
+            app_line['cloud'] = parts_dict['cloud']
+        if parts_dict['status']:
+            app_line['status'] = parts_dict['status']
+        if parts_dict['url']:
+            info['APP URL'] = parts_dict['url']
+        if parts_dict['mysql_instance']:
+            info['MySQL instance'] = parts_dict['mysql_instance']
+        if parts_dict['mysql_user']:
+            info['MySQL user'] = parts_dict['mysql_user']
+        if parts_dict['mysql_password']:
+            info['MySQL password'] = parts_dict['mysql_password']
+        if parts_dict['mysql_db_name']:
+            info['MySQL DB Name'] = parts_dict['mysql_db_name']
+    app_line['info'] = info
+    return app_line
+
 def read_statuses_given_id(id_file_path, id_file_name,
                            status_file_name, artifact_id):
     app_lines = list()
@@ -103,31 +132,19 @@ def read_statuses_given_id(id_file_path, id_file_name,
             status_file_loc = status_file_loc + artifact_version + "/" + status_file_name
 
             if os.path.exists(status_file_loc):
-                app_line['dep_id'] = line_contents[0]
-                app_line['version'] = artifact_version
-                app_stat_file = open(status_file_loc)
-                stat_line = app_stat_file.read()
-
-                parts = stat_line.split(',')
-                cloud = url = status = name = ''
-                for p in parts:
-                    name, cloud, url, status = _parse_line(p)
-                    if name:
-                        app_line['name'] = name
-                    if cloud:
-                        app_line['cloud'] = cloud
-                    if url:
-                        app_line['info'] = {'url': url}
-                    if status:
-                        app_line['status'] = status
-
+                app_line = prepare_line(app_line, line_contents,
+                                        artifact_version,
+                                        status_file_loc)
                 app_lines.append(app_line)
 
     return app_lines
 
 def _parse_line(part):
     name = cloud = url = status = ''
+    mysql_instance = mysql_user = mysql_password = ''
+    mysql_db_name = ''
     units = part.split("::")
+    parts_dict = {}
     if part.find("name::") >= 0:
         if len(units) > 2:
             name = units[2]
@@ -145,7 +162,24 @@ def _parse_line(part):
         url = units[1]
     elif part.find("status::") >= 0:
         status = units[1]
-    return name, cloud, url, status
+    elif part.find("MYSQL_INSTANCE::") >= 0:
+        mysql_instance = units[1]
+    elif part.find("MYSQL_DB_USER::") >= 0:
+        mysql_user = units[1]
+    elif part.find("MYSQL_DB_USER_PASSWORD::") >= 0:
+        mysql_password = units[1]
+    elif part.find("MYSQL_DB_NAME::") >= 0:
+        mysql_db_name = units[1]
+    parts_dict['name'] = name
+    parts_dict['cloud'] = cloud
+    parts_dict['url'] = url
+    parts_dict['status'] = status
+    parts_dict['mysql_instance'] = mysql_instance
+    parts_dict['mysql_user'] = mysql_user
+    parts_dict['mysql_password'] = mysql_password
+    parts_dict['mysql_db_name'] = mysql_db_name
+    return parts_dict
+    #return name, cloud, url, status, mysql_instance
 
 def read_statues(id_file_path, id_file_name, status_file_name, artifact_name,
                  artifact_version):
@@ -171,26 +205,7 @@ def read_statues(id_file_path, id_file_name, status_file_name, artifact_name,
             app_stat_file = id_file_path + "/" + artifact_name + "/" + app_version + "/" + status_file_name
 
             if os.path.exists(app_stat_file):
-                app_line['dep_id'] = line_contents[0]
-                app_line['version'] = app_version
-                app_stat_file = open(app_stat_file)
-                stat_line = app_stat_file.read()
-
-                parts = stat_line.split(',')
-                name = ''
-                cloud = ''
-                url = ''
-                status = ''
-                for p in parts:
-                    name, cloud, url, status = _parse_line(p)
-                    if name:
-                        app_line['name'] = name
-                    if cloud:
-                        app_line['cloud'] = cloud
-                    if url:
-                        app_line['info'] = {'url': url}
-                    if status:
-                        app_line['status'] = status
+                app_line = prepare_line(app_line, line_contents, app_version, app_stat_file)
 
                 app_lines.append(app_line)
     return app_lines

@@ -35,12 +35,14 @@ class MySQLServiceHandler(object):
         self.database_version = ''
         self.database_tier = ''
         self.instance_ip_address = ''
+        self.app_status_file = ''
         if task_def.app_data:
             self.instance_prov_workdir = task_def.app_data['app_location']
             self.instance_name = task_def.app_data['app_name']
             self.instance_version = task_def.app_data['app_version']
             self.access_token_cont_name = "google-access-token-cont-" + self.instance_name + "-" + self.instance_version
             self.create_db_cont_name = "google-create-db-" + self.instance_name + "-" + self.instance_version
+            self.app_status_file = APP_STORE_PATH + "/" + self.instance_name + "/" + self.instance_version + "/app-status.txt"
         if task_def.service_data:
             self.service_obj = service.Service(task_def.service_data[0])
             self.instance_prov_workdir = self.service_obj.get_service_prov_work_location()
@@ -313,7 +315,7 @@ class MySQLServiceHandler(object):
             print(e)
         os.chdir(cwd)
 
-    def _save_instance_information(self):
+    def _save_instance_information(self, instance_ip):
         fp = open(self.service_obj.get_service_details_file_location(), "w")
         fp.write("MYSQL_DB_NAME::%s\n" % DEFAULT_DB_NAME)
         fp.write("MYSQL_DB_USER::%s\n" % DEFAULT_DB_USER)
@@ -321,6 +323,13 @@ class MySQLServiceHandler(object):
         fp.write("MYSQL_CONNECTION_STRING::%s\n" % self.connection_name)
         fp.write("MYSQL_VERSION::%s\n" % self.database_version)
         fp.write("CLOUD_SQL_TIER::%s\n" % self.database_tier)
+        fp.close()
+
+        fp = open(self.app_status_file, "a")
+        fp.write("MYSQL_INSTANCE::%s, " % instance_ip)
+        fp.write("MYSQL_DB_USER::%s, " % DEFAULT_DB_USER)
+        fp.write("MYSQL_DB_USER_PASSWORD::%s, " % DEFAULT_DB_PASSWORD)
+        fp.write("MYSQL_DB_NAME::%s, " % DEFAULT_DB_NAME)
         fp.close()
 
     # Public interface
@@ -332,7 +341,7 @@ class MySQLServiceHandler(object):
         self._create_user(access_token, project_id, db_server)
         service_ip = self._get_ip_address_of_db(access_token, project_id, db_server)
         self._create_database(service_ip)
-        self._save_instance_information()
+        self._save_instance_information(service_ip)
         return service_ip
 
     def generate_instance_artifacts(self):
