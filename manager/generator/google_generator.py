@@ -178,7 +178,10 @@ class GoogleGenerator(object):
     def generate(self, build_type, service_ip_dict, service_info):
         if build_type == 'service':
             logging.debug("Google generator called for service")
-
+            
+            if self.task_def.app_data:
+                app_obj = app.App(self.task_def.app_data)
+                app_obj.update_app_status("GENERATING Google ARTIFACTS for Cloud SQL instance")
             for serv in self.task_def.service_data:
                 serv_handler = self.services[serv['service']['type']]
                 # Invoke public interface

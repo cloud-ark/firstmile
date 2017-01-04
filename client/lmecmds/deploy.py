@@ -194,6 +194,7 @@ class Deploy(Command):
                 self.log.debug("Destination:%s" % dest)
                 if dest.lower() == 'aws':
                     self._setup_aws(dest)
+                    cloud_info['type'] = 'aws'
                 if dest.lower() == 'google':
                     project_id = ''
                     user_email = ''
@@ -201,6 +202,9 @@ class Deploy(Command):
                     project_id, user_email = self._get_google_project_user_details(project_location)
                     print("Using project_id:%s" % project_id)
                     print("Using user email:%s" % user_email)
+                    cloud_info['type'] = 'google'
+                    cloud_info['project_id'] = project_id
+                    cloud_info['user_email'] = user_email
                 if dest.lower() == 'local':
                     cloud_info['type'] = 'local'
                     cloud_info['app_port'] = '5000'

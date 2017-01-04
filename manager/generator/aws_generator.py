@@ -98,7 +98,7 @@ class AWSGenerator(object):
             fp = open(app_dir + "/Dockerfile.aws", "w")
             df = ("FROM ubuntu:14.04\n"
                   "RUN apt-get update && apt-get install -y \ \n"
-                  "    python-setuptools python-pip\n"
+                  "    python-setuptools python-pip git\n"
                   "ADD requirements.txt /src/requirements.txt \n"
                   "RUN cd /src; pip install -r requirements.txt \n"
                   "ADD . /src \n"
@@ -145,7 +145,7 @@ class AWSGenerator(object):
         # Generate Dockerfile
         df = ("FROM ubuntu:14.04\n"
               "RUN apt-get update && apt-get install -y \ \n"
-              "    python-setuptools python-pip\n"
+              "    python-setuptools python-pip git\n"
               "RUN pip install awsebcli==3.7.7\n"
               "RUN pip install awscli==1.10.63\n"
               "COPY . /src \n"

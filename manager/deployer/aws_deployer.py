@@ -12,6 +12,7 @@ import time
 
 from docker import Client
 from common import app
+from common import constants
 
 TMP_LOG_FILE = "/tmp/lme-aws-deploy-output.txt"
 
@@ -109,8 +110,8 @@ class AWSDeployer(object):
                 #time.sleep(20)
                 #child = pexpect.spawn(docker_attach_cmd)
 
-                username_val = 'lmeroot'
-                password_val = 'lme123'
+                username_val = constants.DEFAULT_DB_USER
+                password_val = constants.DEFAULT_DB_PASSWORD
                 child = pexpect.spawn(docker_run_cmd)
                 child.logfile = sys.stdout
                 child.expect("Enter an RDS DB username*", timeout=120)
