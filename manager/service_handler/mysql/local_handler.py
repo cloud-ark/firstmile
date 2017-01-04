@@ -14,6 +14,7 @@ from docker import Client
 from common import docker_lib
 from common import service
 from common import utils
+from common import constants
 
 from manager.service_handler.mysql import helper
 
@@ -25,10 +26,10 @@ class MySQLServiceHandler(object):
 
         self.service_obj = service.Service(self.task_def.service_data[0])
         self.service_name = self.service_obj.get_service_name()
-        self.mysql_db_name = 'testdb'
-        self.mysql_user = 'testuser'
-        self.mysql_password = 'testuserpass'
-        self.mysql_root_password = 'rootuserpass'
+        self.mysql_db_name = constants.DEFAULT_DB_NAME
+        self.mysql_user = constants.DEFAULT_DB_USER
+        self.mysql_password = constants.DEFAULT_DB_PASSWORD
+        self.mysql_root_password = constants.DEFAULT_DB_PASSWORD
         self.mysql_version = 'mysql:5.5'
 
         self.db_info = {}
@@ -52,6 +53,12 @@ class MySQLServiceHandler(object):
         fp.write("MYSQL_ROOT_USER_PASSWORD::%s\n" % self.mysql_root_password)
         fp.write("MYSQL_VERSION::%s\n" % self.mysql_version)
         fp.close()
+
+        self.app_status_file = ''
+        if self.task_def.app_data:
+            self.app_name = self.task_def.app_data['app_name']
+            self.app_status_file = constants.APP_STORE_PATH + "/" + self.app_name + "/" 
+            self.app_status_file = self.app_status_file + self.service_obj.get_service_version() + "/app-status.txt"
 
     def _get_cont_name(self):
         if self.task_def.app_data:        
@@ -95,11 +102,19 @@ class MySQLServiceHandler(object):
         work_dir = self.service_obj.get_service_prov_work_location()
         helper.setup_database(work_dir, self.db_info, self.service_info)
 
+    def _save_instance_information(self, instance_ip):
+        fp = open(self.app_status_file, "a")
+        fp.write("MYSQL_INSTANCE::%s, " % instance_ip)
+        fp.write("MYSQL_DB_USER::%s, " % constants.DEFAULT_DB_USER)
+        fp.write("MYSQL_DB_USER_PASSWORD::%s, " % constants.DEFAULT_DB_PASSWORD)
+        fp.write("MYSQL_DB_NAME::%s, " % constants.DEFAULT_DB_NAME)
+        fp.close()
+
     # Public interface
     def provision_and_setup(self):
         service_ip = self._deploy_service_container()
-
         self._setup_service_container()
+        self._save_instance_information(service_ip)
         return service_ip
     
     def cleanup(self):

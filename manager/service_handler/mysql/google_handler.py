@@ -14,13 +14,6 @@ from common import service
 from common import utils
 from common import constants
 
-from os.path import expanduser
-
-
-home_dir = expanduser("~")
-
-APP_STORE_PATH = ("{home_dir}/.lme/data/deployments").format(home_dir=home_dir)
-GOOGLE_CREDS_PATH = APP_STORE_PATH + "/google-creds"
 
 class MySQLServiceHandler(object):
 
@@ -40,7 +33,7 @@ class MySQLServiceHandler(object):
             self.instance_version = task_def.app_data['app_version']
             self.access_token_cont_name = "google-access-token-cont-" + self.instance_name + "-" + self.instance_version
             self.create_db_cont_name = "google-create-db-" + self.instance_name + "-" + self.instance_version
-            self.app_status_file = APP_STORE_PATH + "/" + self.instance_name + "/" + self.instance_version + "/app-status.txt"
+            self.app_status_file = constants.APP_STORE_PATH + "/" + self.instance_name + "/" + self.instance_version + "/app-status.txt"
         if task_def.service_data:
             self.service_obj = service.Service(task_def.service_data[0])
             self.instance_prov_workdir = self.service_obj.get_service_prov_work_location()
@@ -281,7 +274,7 @@ class MySQLServiceHandler(object):
 
         deploy_dir = ("{instance_dir}/{instance_name}").format(instance_dir=self.instance_prov_workdir,
                                                                instance_name=self.instance_name)
-        utils.copy_google_creds(GOOGLE_CREDS_PATH, deploy_dir)
+        utils.copy_google_creds(constants.GOOGLE_CREDS_PATH, deploy_dir)
 
         cmd_1 = ("RUN sed -i 's/{pat}access_token{pat}.*/{pat}access_token{pat}/' credentials \n").format(pat="\\\"")
         df = ("FROM ubuntu:14.04 \n"
