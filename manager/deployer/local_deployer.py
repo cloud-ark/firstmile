@@ -56,12 +56,7 @@ class LocalDeployer(object):
 
             serv_handler = self.services[deploy_name]
             # Invoke public interface
-            # TODO(devkulkarni): Change the provision_and_setup interface to
-            # not take access_token as input. This is coming from Google deployer
-            # where we are taking access_token as input. But there also it is not
-            # required.
-            access_token = ''
-            service_ip = serv_handler.provision_and_setup(access_token)
+            service_ip = serv_handler.provision_and_setup()
             utils.update_status(self.service_obj.get_status_file_location(),
                                 "Service container deployment complete")
             utils.update_ip(self.service_obj.get_status_file_location(), service_ip)

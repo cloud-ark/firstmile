@@ -96,7 +96,7 @@ class MySQLServiceHandler(object):
         helper.setup_database(work_dir, self.db_info, self.service_info)
 
     # Public interface
-    def provision_and_setup(self, access_token):
+    def provision_and_setup(self):
         service_ip = self._deploy_service_container()
 
         self._setup_service_container()

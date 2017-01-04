@@ -35,10 +35,6 @@ class GoogleDeployer(object):
             if self.service_obj.get_service_type() == 'mysql':
                 self.services['mysql'] = gh.MySQLServiceHandler(self.task_def)
 
-            #self.service_details = task_def.service_data[0]['service_details']
-            #if self.task_def.service_data[0]['service_type'] == 'mysql':
-            #    self.services['mysql'] = gh.MySQLServiceHandler(self.task_def)
-
         self.docker_handler = docker_lib.DockerLib()
 
     def _deploy_app_container(self, app_obj):

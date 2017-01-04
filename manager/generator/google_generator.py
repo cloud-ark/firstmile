@@ -40,7 +40,6 @@ class GoogleGenerator(object):
         if task_def.service_data:
             self.service_obj = service.Service(task_def.service_data[0])
             self.service_details = ''
-            #self.service_details = task_def.service_data[0]['service_details']
 
             if self.service_obj.get_service_type() == 'mysql':
                 self.services['mysql'] = gh.MySQLServiceHandler(self.task_def)
@@ -68,19 +67,6 @@ class GoogleGenerator(object):
                                                           env_key_suffix)
 
             app_yaml = app_yaml + ("env_variables:\n") + app_yaml_env_vars
-            #app_yaml = app_yaml + ("env_variables:\n"
-            #                       "    {username_key}: '{username_val}' \n"
-            #                       "    {host_key}: '{service_ip}' \n"
-            #                       "    {db_key}: '{db_name}' \n"
-            #                       "    {password_key}: '{password_val}' \n"
-            #                       ).format(username_key=self.service_details['user_var'],
-            #                                username_val=username_val,
-            #                                host_key=self.service_details['host_var'],
-            #                                service_ip=service_ip_dict['mysql-service'],
-            #                                db_key=self.service_details['db_var'],
-            #                                db_name=self.service_details['db_name'],
-            #                                password_key=self.service_details['password_var'],
-            #                                password_val=password_val)
 
         if 'env_variables' in self.task_def.app_data:
             env_var_obj = self.task_def.app_data['env_variables']
