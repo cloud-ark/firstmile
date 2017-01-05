@@ -5,7 +5,6 @@ Created on Dec 13, 2016
 '''
 import logging
 import os
-import subprocess
 
 from common import app
 from common import docker_lib

@@ -4,16 +4,10 @@ Created on Dec 24, 2016
 @author: devdatta
 '''
 import logging
-import os
-import stat
-import subprocess
-import time
 
 from docker import Client
 
-from common import docker_lib
 from common import service
-from common import utils
 from common import constants
 
 from manager.service_handler.mysql import helper

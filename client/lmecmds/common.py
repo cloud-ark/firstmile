@@ -15,7 +15,6 @@ def read_app_info():
     lmefile = cwd + "/lme.yaml"
     app_info = {}
     if not os.path.exists(lmefile):
-        print("lme.yaml not present. Asking required app information from user.")
         return app_info
 
     fp = open(lmefile, "r")

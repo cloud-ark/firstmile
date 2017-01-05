@@ -3,3 +3,4 @@ flask-restful
 pexpect
 docker-py
 Pillow
+testtools

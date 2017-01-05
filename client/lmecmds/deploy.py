@@ -115,14 +115,10 @@ class Deploy(Command):
             os.system(docker_run_cmd)
 
             cont_id_cmd = ("docker ps -a | grep {app_name}_creds | cut -d ' ' -f 1 | head -1").format(app_name=app_name)
-            #print("Copy command:%s" % cont_id_cmd)
             cont_id = subprocess.check_output(cont_id_cmd, shell=True).rstrip().lstrip()
-
-            #print("Container ID:%s" % cont_id)
 
             copy_file_cmd = ("docker cp {cont_id}:/root/.config/gcloud {google_creds_path}").format(cont_id=cont_id,
                                                                                                      google_creds_path=google_creds_path)
-            #print("Copy command:%s" % copy_file_cmd)
             os.system(copy_file_cmd)
 
             os.chdir(cwd)
@@ -167,7 +163,6 @@ class Deploy(Command):
         return app_info
 
     def take_action(self, parsed_args):
-        self.log.info('Deploying application')
         self.log.debug('Deploying application. Passed args:%s' % parsed_args)
 
         project_location = os.getcwd()
