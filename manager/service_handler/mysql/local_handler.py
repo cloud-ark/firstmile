@@ -97,12 +97,13 @@ class MySQLServiceHandler(object):
         helper.setup_database(work_dir, self.db_info, self.service_info)
 
     def _save_instance_information(self, instance_ip):
-        fp = open(self.app_status_file, "a")
-        fp.write("MYSQL_INSTANCE::%s, " % instance_ip)
-        fp.write("MYSQL_DB_USER::%s, " % constants.DEFAULT_DB_USER)
-        fp.write("MYSQL_DB_USER_PASSWORD::%s, " % constants.DEFAULT_DB_PASSWORD)
-        fp.write("MYSQL_DB_NAME::%s, " % constants.DEFAULT_DB_NAME)
-        fp.close()
+        if self.app_status_file:
+            fp = open(self.app_status_file, "a")
+            fp.write("MYSQL_INSTANCE::%s, " % instance_ip)
+            fp.write("MYSQL_DB_USER::%s, " % constants.DEFAULT_DB_USER)
+            fp.write("MYSQL_DB_USER_PASSWORD::%s, " % constants.DEFAULT_DB_PASSWORD)
+            fp.write("MYSQL_DB_NAME::%s, " % constants.DEFAULT_DB_NAME)
+            fp.close()
 
     # Public interface
     def provision_and_setup(self):

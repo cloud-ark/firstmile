@@ -44,6 +44,11 @@ def update_ip(file_path, ip):
     app_status_file.write("URL:: " + ip)
     app_status_file.close()
 
+def save_service_instance_ip(file_path, ip):
+    app_status_file = open(file_path, "a")
+    app_status_file.write("HOST:: " + ip)
+    app_status_file.close()
+
 def get_env_vars_string(task_def, service_ip_dict, app_variables,
                         services, prefix, suffix):
     serv = task_def.service_data[0]
@@ -101,6 +106,8 @@ def prepare_line(app_line, line_contents, app_version, file_path):
             app_line['status'] = parts_dict['status']
         if parts_dict['url']:
             info['APP URL'] = parts_dict['url']
+        if parts_dict['instance_ip']:
+            info['HOST IP'] = parts_dict['instance_ip']
         if parts_dict['mysql_instance']:
             info['MySQL instance'] = parts_dict['mysql_instance']
         if parts_dict['mysql_user']:
@@ -142,7 +149,7 @@ def read_statuses_given_id(id_file_path, id_file_name,
 def _parse_line(part):
     name = cloud = url = status = ''
     mysql_instance = mysql_user = mysql_password = ''
-    mysql_db_name = ''
+    mysql_db_name = instance_ip = ''
     units = part.split("::")
     parts_dict = {}
     if part.find("name::") >= 0:
@@ -160,6 +167,8 @@ def _parse_line(part):
             cloud = units[1]
     elif part.find("URL::") >= 0:
         url = units[1]
+    elif part.find("HOST::") >= 0:
+        instance_ip = units[1]
     elif part.find("status::") >= 0:
         status = units[1]
     elif part.find("MYSQL_INSTANCE::") >= 0:
@@ -173,6 +182,7 @@ def _parse_line(part):
     parts_dict['name'] = name
     parts_dict['cloud'] = cloud
     parts_dict['url'] = url
+    parts_dict['instance_ip'] = instance_ip
     parts_dict['status'] = status
     parts_dict['mysql_instance'] = mysql_instance
     parts_dict['mysql_user'] = mysql_user

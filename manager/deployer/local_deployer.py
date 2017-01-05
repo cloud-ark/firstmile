@@ -52,14 +52,14 @@ class LocalDeployer(object):
     def deploy(self, deploy_type, deploy_name):
         if deploy_type == 'service':
             logging.debug("Local deployer called for service %s" % deploy_name)
-            utils.update_status(self.service_obj.get_status_file_location(), "Deploying service container")
+            utils.update_status(self.service_obj.get_status_file_location(), "DEPLOYING_SERVICE_INSTANCE")
 
             serv_handler = self.services[deploy_name]
             # Invoke public interface
             service_ip = serv_handler.provision_and_setup()
             utils.update_status(self.service_obj.get_status_file_location(),
-                                "Service container deployment complete")
-            utils.update_ip(self.service_obj.get_status_file_location(), service_ip)
+                                "SERVICE_DEPLOYMENT_COMPLETE")
+            utils.save_service_instance_ip(self.service_obj.get_status_file_location(), service_ip)
 
             # TODO(devkulkarni): Add support for returning multiple service IPs
             return service_ip
@@ -67,8 +67,8 @@ class LocalDeployer(object):
             logging.debug("Local deployer called for app %s" %
                           self.task_def.app_data['app_name'])
             app_obj = app.App(self.task_def.app_data)
-            app_obj.update_app_status("DEPLOYING")
+            app_obj.update_app_status("DEPLOYING_APP")
             ip_addr = self._deploy_app_container(app_obj)
-            app_obj.update_app_status("DEPLOYMENT_COMPLETE")
+            app_obj.update_app_status("APP_DEPLOYMENT_COMPLETE")
             app_obj.update_app_ip(ip_addr)
         return ip_addr

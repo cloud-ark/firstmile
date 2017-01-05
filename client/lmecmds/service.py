@@ -72,6 +72,11 @@ class ServiceDeploy(Command):
 
     def get_parser(self, prog_name):
         parser = super(ServiceDeploy, self).get_parser(prog_name)
+
+        parser.add_argument('--cloud',
+                            dest='cloud',
+                            help="Destination cloud to deploy to")
+
         return parser
     
     def _read_service_setup_script(self, service_info):
@@ -89,11 +94,26 @@ class ServiceDeploy(Command):
         self.log.info('Deploying service')
         
         service_info = common.read_service_info()
-        
+        if not service_info:
+            service_details = {}
+            service_list = []
+            service_details['type'] = 'mysql'
+            service_info = {}
+            service_info['service'] = service_details
+            service_list.append(service_info)
+            service_info = service_list
+
         self._read_service_setup_script(service_info)
-        
+
         cloud_info = common.read_cloud_info()
         
+        if not cloud_info:
+            cloud_info = {}
+            dest = parsed_args.cloud
+            if dest:
+                if dest == 'local':
+                    cloud_info['type'] = 'local'
+
         self.dep_track_url = dp.Deployment().create_service_instance(service_info, cloud_info)
         self.log.debug("Service deployment tracking url:%s" % self.dep_track_url)
 
