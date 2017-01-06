@@ -2,19 +2,12 @@ import logging
 import prettytable
 import os
 import subprocess
-import yaml
 import sys
 
 import common
 import deployment as dp
 
-from os.path import expanduser
-
 from cliff.command import Command
-
-home_dir = expanduser("~")
-
-APP_STORE_PATH = ("{home_dir}/.lme/data/deployments").format(home_dir=home_dir)
 
 
 class Deploy(Command):
@@ -34,26 +27,8 @@ class Deploy(Command):
                             help="Destination to deploy application (local, AWS, Google)")        
         return parser
 
-    def _setup_aws(self, dest):
-        aws_creds_path = APP_STORE_PATH + "/aws-creds"
-        if not os.path.exists(aws_creds_path):
-            os.makedirs(aws_creds_path)
-            access_key_id = raw_input("Enter AWS Access Key:")
-            secret_access_key = raw_input("Enter AWS Secret Access Key:")
-            fp = open(aws_creds_path + "/credentials", "w")
-            fp.write("[default]\n")
-            fp.write("aws_access_key_id = %s\n" % access_key_id)
-            fp.write("aws_secret_access_key = %s\n" % secret_access_key)
-            fp.close()
-
-            fp = open(aws_creds_path + "/config", "w")
-            fp.write("[default]\n")
-            fp.write("output = json\n")
-            fp.write("region = us-west-2\n")
-            fp.close()
-
     def _get_google_project_user_details(self, project_location):
-        google_app_details_path = APP_STORE_PATH + "/google-creds/app_details.txt"
+        google_app_details_path = common.APP_STORE_PATH + "/google-creds/app_details.txt"
         app_name = project_location[project_location.rfind("/")+1:]
         project_id = ''
         user_email = ''
@@ -87,7 +62,7 @@ class Deploy(Command):
         return project_id, user_email
 
     def _setup_google(self, project_location, dest):
-        google_creds_path = APP_STORE_PATH + "/google-creds"
+        google_creds_path = common.APP_STORE_PATH + "/google-creds"
         if not os.path.exists(google_creds_path):
             os.makedirs(google_creds_path)
 
@@ -188,7 +163,7 @@ class Deploy(Command):
             if dest:
                 self.log.debug("Destination:%s" % dest)
                 if dest.lower() == 'aws':
-                    self._setup_aws(dest)
+                    common.setup_aws(dest)
                     cloud_info['type'] = 'aws'
                 if dest.lower() == 'google':
                     project_id = ''

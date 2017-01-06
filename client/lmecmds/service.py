@@ -113,6 +113,9 @@ class ServiceDeploy(Command):
             if dest:
                 if dest == 'local':
                     cloud_info['type'] = 'local'
+                if dest.lower() == 'aws':
+                    common.setup_aws(dest)
+                    cloud_info['type'] = 'aws'
 
         self.dep_track_url = dp.Deployment().create_service_instance(service_info, cloud_info)
         self.log.debug("Service deployment tracking url:%s" % self.dep_track_url)

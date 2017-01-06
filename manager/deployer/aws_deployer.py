@@ -12,7 +12,12 @@ import time
 
 from docker import Client
 from common import app
+from common import service
+from common import utils
+from common import docker_lib
 from common import constants
+
+from manager.service_handler.mysql import aws_handler as awsh
 
 TMP_LOG_FILE = "/tmp/lme-aws-deploy-output.txt"
 
@@ -20,6 +25,16 @@ class AWSDeployer(object):
 
     def __init__(self, task_def):
         self.task_def = task_def
+
+        self.services = {}
+
+        if task_def.service_data:
+            self.service_obj = service.Service(task_def.service_data[0])
+            if self.service_obj.get_service_type() == 'mysql':
+                self.services['mysql'] = awsh.MySQLServiceHandler(self.task_def)
+
+        self.docker_handler = docker_lib.DockerLib()
+
         self.docker_client = Client(base_url='unix://var/run/docker.sock', version='1.18')
 
     def _parse_container_id(self, app_cont_name):
@@ -134,11 +149,29 @@ class AWSDeployer(object):
         return cname
         
     def deploy(self, deploy_type, deploy_name):
-        logging.debug("AWS deployer called for app %s" %
-                      self.task_def.app_data['app_name'])
-        app_obj = app.App(self.task_def.app_data)
-        app_obj.update_app_status("DEPLOYING")
-        app_ip_addr = self._deploy_app_container(app_obj)
-        ip_addr = app_ip_addr
-        app_obj.update_app_status("DEPLOYMENT_COMPLETE")
-        app_obj.update_app_ip(ip_addr)
+        if deploy_type == 'service':
+            logging.debug("AWS deployer called for deploying RDS instance")
+
+            service_ip_list = []
+            for serv in self.task_def.service_data:
+                serv_handler = self.services[serv['service']['type']]
+                # Invoke public interface
+                utils.update_status(self.service_obj.get_status_file_location(),
+                                    "DEPLOYING_SERVICE_INSTANCE")
+                service_ip = serv_handler.provision_and_setup()
+                service_ip_list.append(service_ip)
+                utils.update_status(self.service_obj.get_status_file_location(),
+                                    "SERVICE_DEPLOYMENT_COMPLETE")
+                utils.save_service_instance_ip(self.service_obj.get_status_file_location(),
+                                               service_ip)
+
+            # TODO(devkulkarni): Add support for returning multiple service IPs
+            return service_ip_list[0]
+        else:
+            logging.debug("AWS deployer called for app %s" %
+                          self.task_def.app_data['app_name'])
+            app_obj = app.App(self.task_def.app_data)
+            app_obj.update_app_status("DEPLOYING")
+            app_ip_addr = self._deploy_app_container(app_obj)
+            app_obj.update_app_status("DEPLOYMENT_COMPLETE")
+            app_obj.update_app_ip(app_ip_addr)

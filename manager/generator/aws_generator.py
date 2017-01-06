@@ -8,6 +8,10 @@ import os
 import stat as s
 
 from common import app
+from common import service
+from common import utils
+
+from manager.service_handler.mysql import aws_handler as awsh
 
 from os.path import expanduser
 
@@ -21,10 +25,20 @@ class AWSGenerator(object):
 
     def __init__(self, task_def):
         self.task_def = task_def
-        self.app_type = task_def.app_data['app_type']
-        self.app_dir = task_def.app_data['app_location']
-        self.app_name = task_def.app_data['app_name']
-        self.entry_point = app.App(task_def.app_data).get_entrypoint_file_name()
+
+        if self.task_def.app_data:
+            self.app_type = task_def.app_data['app_type']
+            self.app_dir = task_def.app_data['app_location']
+            self.app_name = task_def.app_data['app_name']
+            self.entry_point = app.App(task_def.app_data).get_entrypoint_file_name()
+
+        self.services = {}
+        if task_def.service_data:
+            self.service_obj = service.Service(task_def.service_data[0])
+            self.service_details = ''
+
+            if self.service_obj.get_service_type() == 'mysql':
+                self.services['mysql'] = awsh.MySQLServiceHandler(self.task_def)
         
     def _generate_elasticbeanstalk_dir(self, service_info, env_name):
         # Generate .elasticbeanstalk/config.yml
@@ -145,7 +159,7 @@ class AWSGenerator(object):
         # Generate Dockerfile
         df = ("FROM ubuntu:14.04\n"
               "RUN apt-get update && apt-get install -y \ \n"
-              "    python-setuptools python-pip git\n"
+              "    python-setuptools python-pip git groff\n"
               "RUN pip install awsebcli==3.7.7\n"
               "RUN pip install awscli==1.10.63\n"
               "COPY . /src \n"
@@ -166,15 +180,38 @@ class AWSGenerator(object):
         self._generate_ebextensions_dir(service_info)
         self._generate_platform_dockerfile(service_info)
         
-    def generate(self, service_ip_dict, service_info):
-        logging.debug("AWS generator called for app %s" %
-                      self.task_def.app_data['app_name'])
+    def generate(self, generate_type, service_ip_dict, service_info):
+        if generate_type == 'service':
+            logging.debug("AWS generator called for service")
+            self.service_obj = service.Service(self.task_def.service_data[0])
+            deploy_dir = self.service_obj.get_service_prov_work_location()
+            # Copy aws-creds to the service deploy directory
+            cp_cmd = ("cp -r {aws_creds_path} {deploy_dir}/.").format(aws_creds_path=AWS_CREDS_PATH,
+                                                                      deploy_dir=deploy_dir)
         
-        app_obj = app.App(self.task_def.app_data)
-        app_obj.update_app_status("GENERATING AWS ARTIFACTS")
+            logging.debug("Copying aws-creds directory..")
+            logging.debug(cp_cmd)
+            os.system(cp_cmd)
 
-        if self.app_type == 'python':
-            self._generate_for_python_app(app_obj, service_ip_dict, service_info)
+            if self.task_def.app_data:
+                app_obj = app.App(self.task_def.app_data)
+                app_obj.update_app_status("GENERATING AWS ARTIFACTS for RDS instance")
+            for serv in self.task_def.service_data:
+                serv_handler = self.services[serv['service']['type']]
+                utils.update_status(self.service_obj.get_status_file_location(),
+                                    "GENERATING_ARTIFACTS_FOR_PROVISIONING_SERVICE_INSTANCE")
+
+                # Invoke public interface
+                serv_handler.generate_instance_artifacts()
         else:
-            print("Application of type %s not supported." % self.app_type)        
+            logging.debug("AWS generator called for app %s" %
+                          self.task_def.app_data['app_name'])
+
+            app_obj = app.App(self.task_def.app_data)
+            app_obj.update_app_status("GENERATING AWS ARTIFACTS")
+
+            if self.app_type == 'python':
+                self._generate_for_python_app(app_obj, service_ip_dict, service_info)
+            else:
+                print("Application of type %s not supported." % self.app_type)
         return 0

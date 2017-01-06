@@ -87,8 +87,10 @@ class GoogleDeployer(object):
                 service_ip = serv_handler.provision_and_setup()
                 service_ip_list.append(service_ip)
 
-                utils.update_status(self.service_obj.get_status_file_location(), "Deployment complete")
-                utils.update_ip(self.service_obj.get_status_file_location(), service_ip)
+                utils.update_status(self.service_obj.get_status_file_location(),
+                                    "SERVICE_DEPLOYMENT_COMPLETE")
+                utils.save_service_instance_ip(self.service_obj.get_status_file_location(),
+                                               service_ip)
 
             # TODO(devkulkarni): Add support for returning multiple service IPs
             return service_ip_list[0]

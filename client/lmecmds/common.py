@@ -10,6 +10,30 @@ import os
 import sys
 import yaml
 
+from os.path import expanduser
+
+home_dir = expanduser("~")
+
+APP_STORE_PATH = ("{home_dir}/.lme/data/deployments").format(home_dir=home_dir)
+
+def setup_aws(dest):
+    aws_creds_path = APP_STORE_PATH + "/aws-creds"
+    if not os.path.exists(aws_creds_path):
+        os.makedirs(aws_creds_path)
+        access_key_id = raw_input("Enter AWS Access Key:")
+        secret_access_key = raw_input("Enter AWS Secret Access Key:")
+        fp = open(aws_creds_path + "/credentials", "w")
+        fp.write("[default]\n")
+        fp.write("aws_access_key_id = %s\n" % access_key_id)
+        fp.write("aws_secret_access_key = %s\n" % secret_access_key)
+        fp.close()
+
+        fp = open(aws_creds_path + "/config", "w")
+        fp.write("[default]\n")
+        fp.write("output = json\n")
+        fp.write("region = us-west-2\n")
+        fp.close()
+
 def read_app_info():
     cwd = os.getcwd()
     lmefile = cwd + "/lme.yaml"

@@ -85,7 +85,7 @@ class GoogleBuilder(object):
 
     def build(self, build_type, build_name):
         if build_type == 'service':
-            logging.debug("Google builded called for service")
+            logging.debug("Google builder called for service")
 
             for serv in self.task_def.service_data:
                 serv_handler = self.services[serv['service']['type']]

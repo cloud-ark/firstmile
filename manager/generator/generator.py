@@ -18,7 +18,7 @@ class Generator(object):
         if self.cloud == 'local':
             lg.LocalGenerator(self.task_def).generate(generate_type, service_ip_addresses_dict)
         elif self.cloud == 'aws':
-            ag.AWSGenerator(self.task_def).generate(service_ip_addresses_dict, services)
+            ag.AWSGenerator(self.task_def).generate(generate_type, service_ip_addresses_dict, services)
         elif self.cloud == 'google':
             gg.GoogleGenerator(self.task_def).generate(generate_type, service_ip_addresses_dict, services)
         else:
