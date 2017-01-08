@@ -12,12 +12,14 @@ import re
 from io import BytesIO
 from docker import Client
 from common import app
+from common import docker_lib
 
 class LocalBuilder(object):
     
     def __init__(self, task_def):
         self.task_def = task_def
         self.docker_client = Client(base_url='unix://var/run/docker.sock', version='1.18')
+        self.docker_handler = docker_lib.DockerLib()
         
     def _build_service_container(self):
         pass
@@ -60,11 +62,12 @@ class LocalBuilder(object):
         # Following is not working, so continuing to use 'docker build'
         # self._do_docker_build(cont_name)
 
-        build_cmd = ("docker build -t {name} . ").format(name=cont_name)
-        logging.debug("Docker build command:%s" % build_cmd)
+        self.docker_handler.build_container_image(cont_name, "Dockerfile")
 
-        result = subprocess.check_output(build_cmd, shell=True)
-        logging.debug(result)
+        #build_cmd = ("docker build -t {name} . ").format(name=cont_name)
+        #logging.debug("Docker build command:%s" % build_cmd)
+        #result = subprocess.check_output(build_cmd, shell=True)
+        #logging.debug(result)
 
         os.chdir(cwd)
 

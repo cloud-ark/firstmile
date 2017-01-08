@@ -37,7 +37,7 @@ class LocalGenerator(object):
         df_env_vars = ''
         if bool(service_ip_dict):
             print_prefix = "ENV "
-            env_key_suffix = ""
+            env_key_suffix = " "
             df_env_vars = utils.get_env_vars_string(self.task_def,
                                                     service_ip_dict,
                                                     self.app_variables,

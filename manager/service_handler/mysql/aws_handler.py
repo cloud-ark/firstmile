@@ -30,21 +30,36 @@ class MySQLServiceHandler(object):
         self.database_tier = ''
         self.instance_ip_address = ''
         self.deploy_dir = ''
+        self.app_status_file = ''
         
+        # Set values using service_data first
         if task_def.service_data:
             self.service_obj = service.Service(task_def.service_data[0])
             self.instance_prov_workdir = self.service_obj.get_service_prov_work_location()
             self.instance_name = self.service_obj.get_service_name()
             self.instance_version = self.service_obj.get_service_version()
-            #self.deploy_dir = ("{instance_dir}/{instance_name}").format(instance_dir=self.instance_prov_workdir,
-            #                                                            instance_name=self.instance_name)
-            self.deploy_dir = self.instance_prov_workdir
-            
+
+        # If app_data is present overwrite the previously set values
+        if task_def.app_data:
+            self.instance_prov_workdir = task_def.app_data['app_location'] + "/" + task_def.app_data['app_name']
+            self.instance_name = task_def.app_data['app_name']
+            self.instance_version = task_def.app_data['app_version']
+            self.app_status_file = constants.APP_STORE_PATH + "/" + self.instance_name + "/" + self.instance_version + "/app-status.txt"
+
+        self.deploy_dir = self.instance_prov_workdir
+
         self.docker_handler = docker_lib.DockerLib()
+
+        # db_info contains the map of app_variables and their values
+        self.db_info = {}
+
+        # These are app_variables: user, password, db
+        self.db_info['user'] = constants.DEFAULT_DB_USER
+        self.db_info['password'] = constants.DEFAULT_DB_PASSWORD
+        self.db_info['db'] = constants.DEFAULT_DB_NAME
             
     def _generate_rds_instance_create_df(self):
         logging.debug("Generating Dockerfile for RDS instance creation")
-        instance_name = self.instance_name
         db_name = constants.DEFAULT_DB_NAME
         db_id = self.instance_name + "-" + self.instance_version
         user = constants.DEFAULT_DB_USER
@@ -59,12 +74,8 @@ class MySQLServiceHandler(object):
                                                                                                   db_id=db_id,
                                                                                                   user=user,
                                                                                                   password=password)
-        df = ("FROM ubuntu:14.04\n"
-              "RUN apt-get update && apt-get install -y \ \n"
-              "      python-setuptools python-pip git groff \n"
-              "RUN pip install awsebcli==3.7.7 \n"
-              "RUN pip install awscli==1.10.63 \n"
-              "COPY . /src \n"
+        df = self.docker_handler.get_dockerfile_snippet("aws")
+        df = df + ("COPY . /src \n"
               "WORKDIR /src \n"
               "RUN cp -r aws-creds $HOME/.aws \n"
               "RUN sec_group={sec_group} \ \n"
@@ -84,12 +95,8 @@ class MySQLServiceHandler(object):
         
         entry_pt = ("ENTRYPOINT [\"aws\", \"rds\", \"describe-db-instances\", "
                     " \"--db-instance-identifier\", \"{db_id}\"]").format(db_id=db_id)
-        df = ("FROM ubuntu:14.04\n"
-              "RUN apt-get update && apt-get install -y \ \n"
-              "      python-setuptools python-pip git groff \n"
-              "RUN pip install awsebcli==3.7.7 \n"
-              "RUN pip install awscli==1.10.63 \n"
-              "COPY . /src \n"
+        df = self.docker_handler.get_dockerfile_snippet("aws")
+        df = df + ("COPY . /src \n"
               "WORKDIR /src \n"
               "RUN cp -r aws-creds $HOME/.aws \n"
               "{entry_pt}").format(entry_pt=entry_pt)
@@ -121,19 +128,26 @@ class MySQLServiceHandler(object):
 
         time_out = False
         count = 0
+        instance_available = False
         while not time_out:
             try:
                 output = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                                      stderr=subprocess.PIPE, shell=True).communicate()[0]
-                print("---")
-                print(output)
-                print("---")
+                                          stderr=subprocess.PIPE, shell=True).communicate()[0]
+                logging.debug("Output:%s" % output)
                 lines = output.split("\n")
+                print(output)
                 for line in lines:
-                    if line.find("Address") >= 0:
+                    if line.find("DBInstanceStatus") >= 0:
                         parts = line.split(":")
-                        instance_dns = parts[1].rstrip().lstrip().replace("\"", "")
-                        return instance_dns
+                        status = parts[1].rstrip().lstrip().replace("\"", "").replace(",", "")
+                        if status == 'available':
+                            import pdb; pdb.set_trace()
+                            instance_available = True
+                    if instance_available:
+                        if line.find("Address") >= 0:
+                            parts = line.split(":")
+                            instance_dns = parts[1].rstrip().lstrip().replace("\"", "")
+                            return instance_dns
             except Exception as e:
                 print(e)
             count = count + 1
@@ -155,8 +169,50 @@ class MySQLServiceHandler(object):
         fp.write("MYSQL_DB_USER_PASSWORD::%s\n" % constants.DEFAULT_DB_PASSWORD)
         fp.close()
 
+        if self.app_status_file:
+            fp = open(self.app_status_file, "a")
+            fp.write("MYSQL_INSTANCE::%s, " % instance_ip)
+            fp.write("MYSQL_DB_USER::%s, " % constants.DEFAULT_DB_USER)
+            fp.write("MYSQL_DB_USER_PASSWORD::%s, " % constants.DEFAULT_DB_PASSWORD)
+            fp.write("MYSQL_DB_NAME::%s, " % constants.DEFAULT_DB_NAME)
+            fp.close()
+
+    def get_eb_extensions_contents(self):
+        # TODO(devkulkarni): Below setup_cfg is for DynamoDB.
+        # We want one for RDS
+        setup_cfg = ("Resources:\n"
+                     "  StartupSignupsTable:\n"
+                     "    Type: AWS::DynamoDB::Table\n"
+                     "    Properties:\n"
+                     "      KeySchema:\n"
+                     "        HashKeyElement:\n"
+                     "          AttributeName: \"lme-db\" \n"
+                     "          AttributeType: \"S\" \n"
+                     "      ProvisionedThroughput:\n"
+                     "        ReadCapacityUnits: 1\n"
+                     "        WriteCapacityUnits: 1\n"
+                     )
+
+        setup_cfg = ("Resources:\n"
+                     "  RDSInstance:\n"
+                     "    Type: AWS::RDS::DBInstance\n"
+                     "    Properties:\n"
+                     "      DBInstanceIdentifer: {db_id}\n"
+                     "      DBName: {db_name}\n"
+                     "      Engine: MySQL\n"
+                     "      DBInstanceClass: db.m1.medium\n"
+                     "      MasterUsername: {user}\n"
+                     "      MasterUserPassword: {password}\n"
+                     "      AllocatedStorage: 10\n"
+                     )
+
+        return setup_cfg
+
     def generate_instance_artifacts(self):
         self._generate_docker_files()
+
+    def get_instance_info(self):
+        return self.db_info
 
     def build_instance_artifacts(self):
         self._build_containers()

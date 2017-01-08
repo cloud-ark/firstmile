@@ -58,7 +58,7 @@ class GoogleGenerator(object):
 
         if service_ip_dict:
             print_prefix = "    "
-            env_key_suffix = ":"
+            env_key_suffix = ": "
             app_yaml_env_vars = utils.get_env_vars_string(self.task_def,
                                                           service_ip_dict,
                                                           self.app_variables,

@@ -9,6 +9,21 @@ import logging
 
 class DockerLib(object):
 
+    def __init__(self):
+        self.docker_file_snippets = {}
+        self.docker_file_snippets['aws'] = self._aws_df_snippet()
+
+    def _aws_df_snippet(self):
+        df = ("FROM ubuntu:14.04\n"
+              "RUN apt-get update && apt-get install -y \ \n"
+              "      python-setuptools python-pip git groff \n"
+              "RUN pip install awsebcli==3.7.7 \n"
+              "RUN pip install awscli==1.10.63 \n")
+        return df
+
+    def get_dockerfile_snippet(self, key):
+        return self.docker_file_snippets[key]
+
     def stop_container(self, cont_name, reason_phrase):
         logging.debug("Stopping container %s. Reason: %s" % (cont_name, reason_phrase))
         stop_cmd = ("docker ps -a | grep {cont_name} | cut -d ' ' -f 1 | xargs docker stop").format(cont_name=cont_name)

@@ -68,7 +68,7 @@ def get_env_vars_string(task_def, service_ip_dict, app_variables,
             service_var = key[:key.index("_var")]
             env_key = val
             env_val = service_instance_info[service_var]
-            generated_val = ("{prefix} {key}{suffix} {value}\n").format(prefix=prefix,
+            generated_val = ("{prefix} {key}{suffix}{value}\n").format(prefix=prefix,
                                                                         suffix=suffix,
                                                                         key=env_key,
                                                                         value=env_val)
