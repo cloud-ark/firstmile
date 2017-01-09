@@ -7,6 +7,7 @@ Created on Dec 23, 2016
 import json
 import logging
 import os
+import subprocess
 import sys
 import yaml
 
@@ -15,6 +16,77 @@ from os.path import expanduser
 home_dir = expanduser("~")
 
 APP_STORE_PATH = ("{home_dir}/.lme/data/deployments").format(home_dir=home_dir)
+
+def get_google_project_user_details(project_location):
+    google_app_details_path = APP_STORE_PATH + "/google-creds/app_details.txt"
+    app_name = project_location[project_location.rfind("/")+1:]
+    project_id = ''
+    user_email = ''
+    if os.path.exists(google_app_details_path):
+        fp = open(google_app_details_path, "r")
+        lines = fp.readlines()
+        for line in lines:
+            parts = line.split(":")
+            potential_project_id = parts[1].rstrip().lstrip()
+            if line.find("User Email") >=0:
+                user_email = parts[1].rstrip().lstrip()
+            if potential_project_id.find(app_name) >= 0:
+                project_id = potential_project_id
+        if not user_email:
+            user_email = raw_input("Enter Gmail address associated with your Google App Engine account>")
+            fp = open(google_app_details_path, "a")
+            fp.write("User Email:%s\n" % user_email)
+            fp.close()
+        if not project_id:
+            project_id = raw_input("Enter project id>")
+            fp = open(google_app_details_path, "a")
+            fp.write("Project ID:%s\n" % project_id)
+            fp.close()
+    else:
+        project_id = raw_input("Enter project id>")
+        user_email = raw_input("Enter Gmail address associated with your Google App Engine account>")
+        fp = open(google_app_details_path, "w")
+        fp.write("User Email:%s\n" % user_email)
+        fp.write("Project ID:%s\n" % project_id)
+        fp.close()
+    return project_id, user_email
+
+def setup_google(dest):
+    google_creds_path = APP_STORE_PATH + "/google-creds"
+    if not os.path.exists(google_creds_path):
+        os.makedirs(google_creds_path)
+
+        df = ("FROM ubuntu:14.04 \n"
+              "RUN apt-get update && apt-get install -y wget python \n"
+              "RUN sudo wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-126.0.0-linux-x86_64.tar.gz && \ \n"
+              "    sudo gunzip google-cloud-sdk-126.0.0-linux-x86_64.tar.gz && \ \n"
+              "    sudo tar -xvf google-cloud-sdk-126.0.0-linux-x86_64.tar \n"
+              "RUN /google-cloud-sdk/bin/gcloud components install beta \n"
+              "ENTRYPOINT [\"/google-cloud-sdk/bin/gcloud\", \"beta\", \"auth\", \"login\", \"--no-launch-browser\"] \n")
+
+        docker_file = open(google_creds_path + "/Dockerfile", "w")
+        docker_file.write(df)
+        docker_file.close()
+
+        app_name = cwd = os.getcwd()
+        os.chdir(google_creds_path)
+        k = app_name.rfind("/")
+        app_name = app_name[k+1:]
+
+        docker_build_cmd = ("docker build -t {app_name}_creds .").format(app_name=app_name)
+        os.system(docker_build_cmd)
+
+        docker_run_cmd = ("docker run -i -t {app_name}_creds").format(app_name=app_name)
+        os.system(docker_run_cmd)
+
+        cont_id_cmd = ("docker ps -a | grep {app_name}_creds | cut -d ' ' -f 1 | head -1").format(app_name=app_name)
+        cont_id = subprocess.check_output(cont_id_cmd, shell=True).rstrip().lstrip()
+
+        copy_file_cmd = ("docker cp {cont_id}:/root/.config/gcloud {google_creds_path}").format(cont_id=cont_id,
+                                                                                                 google_creds_path=google_creds_path)
+        os.system(copy_file_cmd)
+
+        os.chdir(cwd)
 
 def setup_aws(dest):
     aws_creds_path = APP_STORE_PATH + "/aws-creds"
@@ -69,7 +141,7 @@ def read_service_info():
     lmefile = cwd + "/lme.yaml"
     service_info = {}
     if not os.path.exists(lmefile):
-        print("lme.yaml not present. Asking required service information from user.")
+        # print("lme.yaml not present. Asking required service information from user.")
         return service_info
 
     fp = open(lmefile, "r")

@@ -56,7 +56,7 @@ class ServiceShow(Command):
         return parser
 
     def take_action(self, parsed_args):
-        self.log.info('Service show')
+        #self.log.info('Service show')
 
         if parsed_args.service_name:
             self._service_name_show(parsed_args.service_name)
@@ -72,6 +72,10 @@ class ServiceDeploy(Command):
 
     def get_parser(self, prog_name):
         parser = super(ServiceDeploy, self).get_parser(prog_name)
+
+        parser.add_argument('--service-name',
+                                 dest='service_name',
+                                 help="Name of the service")
 
         parser.add_argument('--cloud',
                             dest='cloud',
@@ -91,7 +95,7 @@ class ServiceDeploy(Command):
                 serv['service']['setup_script_content'] = setup_script_content
 
     def take_action(self, parsed_args):
-        self.log.info('Deploying service')
+        #self.log.info('Deploying service')
         
         service_info = common.read_service_info()
         if not service_info:
@@ -116,6 +120,17 @@ class ServiceDeploy(Command):
                 if dest.lower() == 'aws':
                     common.setup_aws(dest)
                     cloud_info['type'] = 'aws'
+                if dest.lower() == 'google':
+                    common.setup_google(dest)
+                    project_location = os.getcwd()
+                    project_id = ''
+                    user_email = ''
+                    project_id, user_email = common.get_google_project_user_details(project_location)
+                    print("Using project_id:%s" % project_id)
+                    print("Using user email:%s" % user_email)
+                    cloud_info['type'] = 'google'
+                    cloud_info['project_id'] = project_id
+                    cloud_info['user_email'] = user_email
 
         self.dep_track_url = dp.Deployment().create_service_instance(service_info, cloud_info)
         self.log.debug("Service deployment tracking url:%s" % self.dep_track_url)

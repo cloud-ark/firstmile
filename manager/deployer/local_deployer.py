@@ -9,6 +9,7 @@ from docker import Client
 from common import app
 from common import service
 from common import utils
+from common import constants
 from manager.service_handler.mysql import local_handler as lh
 
 class LocalDeployer(object):
@@ -53,12 +54,13 @@ class LocalDeployer(object):
         if deploy_type == 'service':
             logging.debug("Local deployer called for service %s" % deploy_name)
             utils.update_status(self.service_obj.get_status_file_location(), "DEPLOYING_SERVICE_INSTANCE")
-
             serv_handler = self.services[deploy_name]
+            utils.update_status(self.service_obj.get_status_file_location(),
+                                constants.DEPLOYING_SERVICE_INSTANCE)
             # Invoke public interface
             service_ip = serv_handler.provision_and_setup()
             utils.update_status(self.service_obj.get_status_file_location(),
-                                "SERVICE_DEPLOYMENT_COMPLETE")
+                                constants.SERVICE_INSTANCE_DEPLOYMENT_COMPLETE)
             utils.save_service_instance_ip(self.service_obj.get_status_file_location(), service_ip)
 
             # TODO(devkulkarni): Add support for returning multiple service IPs
@@ -67,8 +69,8 @@ class LocalDeployer(object):
             logging.debug("Local deployer called for app %s" %
                           self.task_def.app_data['app_name'])
             app_obj = app.App(self.task_def.app_data)
-            app_obj.update_app_status("DEPLOYING_APP")
+            app_obj.update_app_status(constants.DEPLOYING_APP)
             ip_addr = self._deploy_app_container(app_obj)
-            app_obj.update_app_status("APP_DEPLOYMENT_COMPLETE")
+            app_obj.update_app_status(constants.APP_DEPLOYMENT_COMPLETE)
             app_obj.update_app_ip(ip_addr)
         return ip_addr

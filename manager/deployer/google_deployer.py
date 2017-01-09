@@ -10,6 +10,7 @@ from common import app
 from common import docker_lib
 from common import service
 from common import utils
+from common import constants
 from manager.service_handler.mysql import google_handler as gh
 
 TMP_LOG_FILE = "/tmp/lme-google-deploy-output.txt"
@@ -83,12 +84,15 @@ class GoogleDeployer(object):
             service_ip_list = []
             for serv in self.task_def.service_data:
                 serv_handler = self.services[serv['service']['type']]
+
+                utils.update_status(self.service_obj.get_status_file_location(),
+                                    constants.DEPLOYING_SERVICE_INSTANCE)
                 # Invoke public interface
                 service_ip = serv_handler.provision_and_setup()
                 service_ip_list.append(service_ip)
 
                 utils.update_status(self.service_obj.get_status_file_location(),
-                                    "SERVICE_DEPLOYMENT_COMPLETE")
+                                    constants.SERVICE_INSTANCE_DEPLOYMENT_COMPLETE)
                 utils.save_service_instance_ip(self.service_obj.get_status_file_location(),
                                                service_ip)
 
@@ -98,9 +102,9 @@ class GoogleDeployer(object):
             logging.debug("Google deployer called for app %s" %
                           self.task_def.app_data['app_name'])
             app_obj = app.App(self.task_def.app_data)
-            app_obj.update_app_status("DEPLOYING")
+            app_obj.update_app_status(constants.DEPLOYING_APP)
             app_ip_addr = self._deploy_app_container(app_obj)
-            app_obj.update_app_status("DEPLOYMENT_COMPLETE")
+            app_obj.update_app_status(constants.APP_DEPLOYMENT_COMPLETE)
             app_obj.update_app_ip(app_ip_addr)
             logging.debug("Google deployment complete.")
             logging.debug("Removing temporary containers created to assist in the deployment.")

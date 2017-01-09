@@ -147,15 +147,15 @@ class AWSDeployer(object):
                 serv_handler = self.services[serv['service']['type']]
                 # Invoke public interface
                 utils.update_status(self.service_obj.get_status_file_location(),
-                                    "DEPLOYING_SERVICE_INSTANCE")
+                                    constants.DEPLOYING_SERVICE_INSTANCE)
                 if self.app_obj:
-                    self.app_obj.update_app_status("DEPLOYING_SERVICE_INSTANCE")
+                    self.app_obj.update_app_status(constants.DEPLOYING_SERVICE_INSTANCE)
                 service_ip = serv_handler.provision_and_setup()
                 service_ip_list.append(service_ip)
                 utils.update_status(self.service_obj.get_status_file_location(),
-                                    "SERVICE_DEPLOYMENT_COMPLETE")
+                                    constants.SERVICE_INSTANCE_DEPLOYMENT_COMPLETE)
                 if self.app_obj:
-                    self.app_obj.update_app_status("SERVICE_DEPLOYMENT_COMPLETE")
+                    self.app_obj.update_app_status(constants.SERVICE_INSTANCE_DEPLOYMENT_COMPLETE)
                 utils.save_service_instance_ip(self.service_obj.get_status_file_location(),
                                                service_ip)
 
@@ -165,7 +165,7 @@ class AWSDeployer(object):
             logging.debug("AWS deployer called for app %s" %
                           self.task_def.app_data['app_name'])
             app_obj = app.App(self.task_def.app_data)
-            app_obj.update_app_status("DEPLOYING")
+            app_obj.update_app_status(constants.DEPLOYING_APP)
             app_ip_addr = self._deploy_app_container(app_obj)
-            app_obj.update_app_status("DEPLOYMENT_COMPLETE")
+            app_obj.update_app_status(constants.APP_DEPLOYMENT_COMPLETE)
             app_obj.update_app_ip(app_ip_addr)

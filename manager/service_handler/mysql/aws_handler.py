@@ -141,7 +141,6 @@ class MySQLServiceHandler(object):
                         parts = line.split(":")
                         status = parts[1].rstrip().lstrip().replace("\"", "").replace(",", "")
                         if status == 'available':
-                            import pdb; pdb.set_trace()
                             instance_available = True
                     if instance_available:
                         if line.find("Address") >= 0:
