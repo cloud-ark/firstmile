@@ -33,10 +33,9 @@ def start_thread(delegatethread):
     delegatethread.run()
 
 class Cloud(Resource):
-    def get(self, cloud_name):
-        logging.debug("Executing GET for cloud:%s" % cloud_name)
-        app_lines = list()
 
+    def _get(self, cloud_name):
+        app_lines = list()
         f = open(APP_STORE_PATH + "/app_ids.txt")
         all_lines = f.readlines()
         for line in all_lines:
@@ -77,6 +76,15 @@ class Cloud(Resource):
 
                     app_lines.append(app_line)
 
+        return app_lines
+
+    def get(self, cloud_name):
+        logging.debug("Executing GET for cloud:%s" % cloud_name)
+        app_lines = list()
+
+        if os.path.exists(APP_STORE_PATH + "/app_ids.txt"):
+            app_lines = self._get(cloud_name)
+
         resp_data = {}
 
         resp_data['app_data'] = app_lines
@@ -105,27 +113,28 @@ class Service(Resource):
 class ServiceGetDeployID(Resource):
     def get(self, dep_id):
         logging.debug("Executing GET for deploy id:%s" % dep_id)
+
+        resp_data = {}
+        stat_and_details_lines = list()
+
         service_name, service_version = utils.get_artifact_name_version(SERVICE_STORE_PATH,
                                                                 "service_ids.txt",
                                                                 "service-status.txt",
                                                                 dep_id)
 
-        status_data = utils.read_statuses_given_id(SERVICE_STORE_PATH,
-                                                   "service_ids.txt",
-                                                   "service-status.txt",
-                                                   dep_id)
+        if service_name and service_version:
+            status_data = utils.read_statuses_given_id(SERVICE_STORE_PATH,
+                                                       "service_ids.txt",
+                                                       "service-status.txt",
+                                                       dep_id)
 
-        stat_and_details_lines = utils.read_service_details(SERVICE_STORE_PATH,
-                                                            "service_ids.txt",
-                                                            "service-details.txt",
-                                                            service_name, service_version,
-                                                            status_data)
-
-
-        resp_data = {}
+            stat_and_details_lines = utils.read_service_details(SERVICE_STORE_PATH,
+                                                                "service_ids.txt",
+                                                                "service-details.txt",
+                                                                service_name, service_version,
+                                                                status_data)
 
         resp_data['data'] = stat_and_details_lines
-
         response = jsonify(**resp_data)
         response.status_code = 201
         return response

@@ -77,16 +77,19 @@ def get_env_vars_string(task_def, service_ip_dict, app_variables,
 
 def get_artifact_name_version(id_file_path, id_file_name,
                       status_file_name, artifact_id):
-    f = open(id_file_path + "/" + id_file_name)
-    all_lines = f.readlines()
-    for line in all_lines:
-        line_contents = line.split(" ")
-        if line_contents[0] == artifact_id:
-            artifact = line_contents[1].rstrip().lstrip()
-            k = artifact.rfind("--")
-            artifact_version = artifact[k+2:].rstrip().lstrip()
-            artifact_name = artifact[:k]
-            return artifact_name, artifact_version
+    artifact_name = artifact_version = ''
+    if os.path.exists(id_file_path + "/" + id_file_name):
+        f = open(id_file_path + "/" + id_file_name)
+        all_lines = f.readlines()
+        for line in all_lines:
+            line_contents = line.split(" ")
+            if line_contents[0] == artifact_id:
+                artifact = line_contents[1].rstrip().lstrip()
+                k = artifact.rfind("--")
+                artifact_version = artifact[k+2:].rstrip().lstrip()
+                artifact_name = artifact[:k]
+
+    return artifact_name, artifact_version
 
 def prepare_line(app_line, line_contents, app_version, file_path):
     app_line['dep_id'] = line_contents[0]
@@ -122,28 +125,28 @@ def prepare_line(app_line, line_contents, app_version, file_path):
 def read_statuses_given_id(id_file_path, id_file_name,
                            status_file_name, artifact_id):
     app_lines = list()
-    f = open(id_file_path + "/" + id_file_name)
-    all_lines = f.readlines()
-    for line in all_lines:
-        line_contents = line.split(" ")
+    if os.path.exists(id_file_path + "/" + id_file_name):
+        f = open(id_file_path + "/" + id_file_name)
+        all_lines = f.readlines()
+        for line in all_lines:
+            line_contents = line.split(" ")
 
-        app_line = {}
+            app_line = {}
 
-        if line_contents[0] == artifact_id:
-            artifact = line_contents[1].rstrip().lstrip()
-            k = artifact.rfind("--")
-            artifact_version = artifact[k+2:].rstrip().lstrip()
-            artifact_name = artifact[:k]
+            if line_contents[0] == artifact_id:
+                artifact = line_contents[1].rstrip().lstrip()
+                k = artifact.rfind("--")
+                artifact_version = artifact[k+2:].rstrip().lstrip()
+                artifact_name = artifact[:k]
 
-            status_file_loc = id_file_path + "/" + artifact_name + "/"
-            status_file_loc = status_file_loc + artifact_version + "/" + status_file_name
+                status_file_loc = id_file_path + "/" + artifact_name + "/"
+                status_file_loc = status_file_loc + artifact_version + "/" + status_file_name
 
-            if os.path.exists(status_file_loc):
-                app_line = prepare_line(app_line, line_contents,
-                                        artifact_version,
-                                        status_file_loc)
-                app_lines.append(app_line)
-
+                if os.path.exists(status_file_loc):
+                    app_line = prepare_line(app_line, line_contents,
+                                            artifact_version,
+                                            status_file_loc)
+                    app_lines.append(app_line)
     return app_lines
 
 def _parse_line(part):
@@ -194,67 +197,68 @@ def read_statues(id_file_path, id_file_name, status_file_name, artifact_name,
                  artifact_version):
     app_lines = list()
 
-    f = open(id_file_path + "/" + id_file_name)
-    all_lines = f.readlines()
-    for line in all_lines:
-        line_contents = line.split(" ")
-        app_line = {}
+    if os.path.exists(id_file_path + "/" + id_file_name):
+        f = open(id_file_path + "/" + id_file_name)
+        all_lines = f.readlines()
+        for line in all_lines:
+            line_contents = line.split(" ")
+            app_line = {}
 
-        app_version = line_contents[1]
-        k = app_version.find("--")
-        found_app_name = app_version[:k]
+            app_version = line_contents[1]
+            k = app_version.find("--")
+            found_app_name = app_version[:k]
 
-        if not artifact_version:
-            app_version = app_version[k+2:].rstrip().lstrip()
-        else:
-            app_version = artifact_version
+            if not artifact_version:
+                app_version = app_version[k+2:].rstrip().lstrip()
+            else:
+                app_version = artifact_version
 
-        if found_app_name == artifact_name:
-            app_stat_file = id_file_path + "/" + artifact_name + "/" + app_version + "/" + status_file_name
-            if os.path.exists(app_stat_file):
-                app_line = prepare_line(app_line, line_contents, app_version, app_stat_file)
-                app_lines.append(app_line)
+            if found_app_name == artifact_name:
+                app_stat_file = id_file_path + "/" + artifact_name + "/" + app_version + "/" + status_file_name
+                if os.path.exists(app_stat_file):
+                    app_line = prepare_line(app_line, line_contents, app_version, app_stat_file)
+                    app_lines.append(app_line)
     return app_lines
 
 def read_service_details(id_file_path, id_file_name, details_file_name,
                          artifact_name, artifact_version, artifact_status_lines):
 
-    f = open(id_file_path + "/" + id_file_name)
-    all_lines = f.readlines()
+    if os.path.exists(id_file_path + "/" + id_file_name):
+        f = open(id_file_path + "/" + id_file_name)
+        all_lines = f.readlines()
 
-    service_details = ''
-    for line in all_lines:
-        line_contents = line.split(" ")
-        app_line = {}
+        service_details = ''
+        for line in all_lines:
+            line_contents = line.split(" ")
+            app_line = {}
 
-        service_version = line_contents[1]
-        k = service_version.find("--")
-        found_app_name = service_version[:k]
-        if not artifact_version:
-            service_version = service_version[k+2:].rstrip().lstrip()
-        else:
-            service_version = artifact_version
+            service_version = line_contents[1]
+            k = service_version.find("--")
+            found_app_name = service_version[:k]
+            if not artifact_version:
+                service_version = service_version[k+2:].rstrip().lstrip()
+            else:
+                service_version = artifact_version
 
-        if found_app_name == artifact_name:
-            service_details_file = id_file_path + "/" + artifact_name + "/" + service_version + "/" + details_file_name
+            if found_app_name == artifact_name:
+                service_details_file = id_file_path + "/" + artifact_name + "/" + service_version + "/" + details_file_name
 
-            if os.path.exists(service_details_file):
-                fp = open(service_details_file)
-                service_details = fp.read()
+                if os.path.exists(service_details_file):
+                    fp = open(service_details_file)
+                    service_details = fp.read()
 
-                if service_details:
-                    artifact_info_dict = ''
-                    for line in artifact_status_lines:
-                        if 'info' in line and line['version'] == service_version:
-                            artifact_info_dict = line['info']
-                            for serv_detail_line in service_details.split("\n"):
-                                parts = serv_detail_line.split("::")
-                                if len(parts) == 2:
-                                    key = parts[0].rstrip().lstrip()
-                                    value = parts[1].rstrip().lstrip()
-                                    artifact_info_dict[key] = value
-                            line['info'] = artifact_info_dict
-
+                    if service_details:
+                        artifact_info_dict = ''
+                        for line in artifact_status_lines:
+                            if 'info' in line and line['version'] == service_version:
+                                artifact_info_dict = line['info']
+                                for serv_detail_line in service_details.split("\n"):
+                                    parts = serv_detail_line.split("::")
+                                    if len(parts) == 2:
+                                        key = parts[0].rstrip().lstrip()
+                                        value = parts[1].rstrip().lstrip()
+                                        artifact_info_dict[key] = value
+                                line['info'] = artifact_info_dict
     return artifact_status_lines
 
 def copy_google_creds(source, dest):
