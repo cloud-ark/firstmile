@@ -56,6 +56,15 @@ whereas app_variables captures only the names of predefined environment variable
 used by the application. The values are set by LME by capturing the output from
 appropriate cloud.
 
+Q) When should one use env_variables section vs. app_variables section?
+A) When an application needs MySQL instance, you have two options to deploy such an
+   application. One option is to first provision a service instance and then deploy the application
+   by providing service information as part of app deployment. Second option is to directly
+   deploy application letting the platform deploy the service instance.
+   env_variables section is useful if you have provisioned service instance and the service
+   connection parameters are available to you. On the other hand, the app_variables section
+   should be used if you want the platform to handle application deployments.
+
 b) services:
 The services section supports a list of services. Currently only one service is
 supported though - mysql.
@@ -63,7 +72,7 @@ supported though - mysql.
 c) cloud:
 The cloud section is used to capture specific details about the cloud on which service/application
 is going to be deployed. The type sub-section is compulsory for the cloud section.
-Other sub-sections depend the type of the cloud.
+Other sub-sections depend on the type of the cloud.
 If the target cloud is Google then you will have to provide two things -- project_id corresponding
 to the project and email address of the user 
 in whose context you are deploying the application.
@@ -90,7 +99,7 @@ cloud:
   user_email: cc1h499@gmail.com
 --
 
-3) Deploying Dynamo DB instance on AWS cloud
+3) Deploying RDS instance on AWS cloud
 --
 services:
   - service:
@@ -118,7 +127,7 @@ cloud:
   user_email: cc1h499@gmail.com
 --
 
-5) Deploying application on Google cloud and a Cloud SQL instance,
+5) Deploying application on Google cloud along with a Cloud SQL instance,
    and using app_variables to connect the application to the Cloud SQL
    instance at runtime.
 --
@@ -142,7 +151,7 @@ cloud:
 
 Available commands:
 --------------------
-1) lme service deploy
+1) lme service provision --service-name <service-name>
 2) lme service show --service-name <service-name>
 3) lme app deploy
 4) lme app show --app-name <app-name>
@@ -168,5 +177,5 @@ Commands:
   app show       Show application status
   complete       print bash completion command
   help           print detailed help for another command
-  service deploy  Deploy a service
+  service provision  Deploy a service
   service show   Show a service

@@ -114,11 +114,11 @@ def prepare_line(app_line, line_contents, app_version, file_path):
         if parts_dict['mysql_instance']:
             info['MySQL instance'] = parts_dict['mysql_instance']
         if parts_dict['mysql_user']:
-            info['MySQL user'] = parts_dict['mysql_user']
+            info['USER'] = parts_dict['mysql_user']
         if parts_dict['mysql_password']:
-            info['MySQL password'] = parts_dict['mysql_password']
+            info['PASSWORD'] = parts_dict['mysql_password']
         if parts_dict['mysql_db_name']:
-            info['MySQL DB Name'] = parts_dict['mysql_db_name']
+            info['DB_NAME'] = parts_dict['mysql_db_name']
     app_line['info'] = info
     return app_line
 
@@ -174,13 +174,15 @@ def _parse_line(part):
         instance_ip = units[1]
     elif part.find("status::") >= 0:
         status = units[1]
-    elif part.find("MYSQL_INSTANCE::") >= 0:
+    elif part.find("INSTANCE::") >= 0:
         mysql_instance = units[1]
-    elif part.find("MYSQL_DB_USER::") >= 0:
+    elif part.find("SQL_CONTAINER::") >= 0:
+        mysql_instance = units[1]
+    elif part.find("USER::") >= 0:
         mysql_user = units[1]
-    elif part.find("MYSQL_DB_USER_PASSWORD::") >= 0:
+    elif part.find("PASSWORD::") >= 0:
         mysql_password = units[1]
-    elif part.find("MYSQL_DB_NAME::") >= 0:
+    elif part.find("DB_NAME::") >= 0:
         mysql_db_name = units[1]
     parts_dict['name'] = name
     parts_dict['cloud'] = cloud

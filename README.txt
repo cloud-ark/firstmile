@@ -1,6 +1,6 @@
 LME - Local Multi-cloud Engine
 -------------------------------
-LME supports building and deploying Python web applications to target clouds (Google and Amazon)
+LME supports building and deploying Python web applications to target clouds (Local Docker, Google, and Amazon)
 without requiring you to make any changes to application code.
 Applications are deployed to Google App Engine and Amazon Elastic Beanstalk.
 You can also deploy application locally (on your machine) for local testing.
@@ -21,20 +21,24 @@ greetings-python and express-checkout applications depend on a MySQL database fo
 
 To test lme you can clone lme-examples and use these sample applications.
 
-Setting up LME:
+Installing LME:
 ---------------
-Follow these steps to setup and run LME server and install LME CLI on your machine.
+1) Using install.sh script
+   - git https://devdattakulkarni@bitbucket.org/devdattakulkarni/lme.git
+   - cd lme
+   - ./install.sh
 
-1) Install virtualenv (pip install virtualenv)
-2) Create virtualenv (virtualenv test-lme)
-3) Start virtualenv (source test-lme/bin/activate)
-4) Install lme
+2) Manual setup
+a) Install virtualenv (pip install virtualenv)
+b) Create virtualenv (virtualenv test-lme)
+c) Start virtualenv (source test-lme/bin/activate)
+d) Install lme
    - git clone https://devdattakulkarni@bitbucket.org/devdattakulkarni/lme.git
    - cd lme
    - pip install -r requirements.txt
-5) Start the LME server:
-   - python app.py
-6) Install the LME CLI
+e) Start the LME server:
+   - python cld.py
+f) Install the LME CLI
    - Open a new terminal window and navigate to the directory where you cloned
      the lme repository. Go inside the "client" folder inside this directory
      and install the client.
@@ -97,7 +101,7 @@ Deployment to Google App Engine:
 1) Sign up for a Google cloud account by visiting https://console.cloud.google.com
 2) In order to deploy an application on Google App Engine, you will need to first
    create a Google App Engine project from the GAE Console.
-   - Create a project and note down the Project ID.
+   - Create a project and note down the Project ID (Note that it is important to use Project ID and not the Project name).
 3) Deploy the application by navigating to the application folder and executing following command:
    lme app deploy --cloud google --service mysql
 

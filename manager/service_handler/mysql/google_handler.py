@@ -322,9 +322,9 @@ class MySQLServiceHandler(object):
         if self.app_status_file:
             fp = open(self.app_status_file, "a")
             fp.write("%s::%s, " % (constants.CLOUD_SQL_INSTANCE, instance_ip))
-            fp.write("%s::%s\n" % (constants.DB_NAME, constants.DEFAULT_DB_NAME))
-            fp.write("%s::%s\n" % (constants.DB_USER, constants.DEFAULT_DB_USER))
-            fp.write("%s::%s\n" % (constants.DB_USER_PASSWORD, constants.DEFAULT_DB_PASSWORD))
+            fp.write("%s::%s, " % (constants.DB_NAME, constants.DEFAULT_DB_NAME))
+            fp.write("%s::%s, " % (constants.DB_USER, constants.DEFAULT_DB_USER))
+            fp.write("%s::%s, " % (constants.DB_USER_PASSWORD, constants.DEFAULT_DB_PASSWORD))
             fp.close()
 
     # Public interface
