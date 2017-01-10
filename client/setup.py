@@ -54,7 +54,7 @@ setup(
         'lme.cmds': [
             'app deploy = lmecmds.deploy:Deploy',
             'app show = lmecmds.show:Show',
-            'service deploy = lmecmds.service:ServiceDeploy',
+            'service provision = lmecmds.service:ServiceDeploy',
             'service show = lmecmds.service:ServiceShow',
         ],
     },

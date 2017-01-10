@@ -30,7 +30,10 @@ APP_STORE_PATH = ("{home_dir}/.lme/data/deployments").format(home_dir=home_dir)
 SERVICE_STORE_PATH = APP_STORE_PATH + "/services"
 
 def start_thread(delegatethread):
-    delegatethread.run()
+    try:
+        delegatethread.run()
+    except Exception as e:
+        logging.error(e)
 
 class Cloud(Resource):
 

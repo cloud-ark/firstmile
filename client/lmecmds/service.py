@@ -14,7 +14,6 @@ from cliff.command import Command
 import common
 import deployment as dp
 
-
 class ServiceShow(Command):
     "Show a service"
 
@@ -66,7 +65,7 @@ class ServiceShow(Command):
 
 
 class ServiceDeploy(Command):
-    "Deploy a service"
+    "Provision a service instance"
 
     log = logging.getLogger(__name__)
 
@@ -115,7 +114,7 @@ class ServiceDeploy(Command):
             cloud_info = {}
             dest = parsed_args.cloud
             if dest:
-                if dest == 'local':
+                if dest.lower() == 'local':
                     cloud_info['type'] = 'local'
                 if dest.lower() == 'aws':
                     common.setup_aws(dest)

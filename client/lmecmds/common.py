@@ -17,6 +17,10 @@ home_dir = expanduser("~")
 
 APP_STORE_PATH = ("{home_dir}/.lme/data/deployments").format(home_dir=home_dir)
 
+CLOUD_DOCKER_PRIVATE = "docker-private"
+CLOUD_GOOGLE = "google"
+CLOUD_AWS = "aws"
+
 def get_google_project_user_details(project_location):
     google_app_details_path = APP_STORE_PATH + "/google-creds/app_details.txt"
     app_name = project_location[project_location.rfind("/")+1:]
