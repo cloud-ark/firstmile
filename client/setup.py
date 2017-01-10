@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-PROJECT = 'lme'
+PROJECT = 'cld'
 
 # Change docs/sphinx/conf.py too!
 VERSION = '0.1'
@@ -16,7 +16,7 @@ setup(
     name=PROJECT,
     version=VERSION,
 
-    description='LME CLI',
+    description='CLD CLI',
     long_description=long_description,
 
     author='Devdatta Kulkarni',
@@ -49,13 +49,13 @@ setup(
 
     entry_points={
         'console_scripts': [
-            'lme = lmecmds.main:main'
+            'cld = cldcmds.main:main'
         ],
-        'lme.cmds': [
-            'app deploy = lmecmds.deploy:Deploy',
-            'app show = lmecmds.show:Show',
-            'service provision = lmecmds.service:ServiceDeploy',
-            'service show = lmecmds.service:ServiceShow',
+        'cld.cmds': [
+            'app deploy = cldcmds.deploy:Deploy',
+            'app show = cldcmds.show:Show',
+            'service provision = cldcmds.service:ServiceDeploy',
+            'service show = cldcmds.service:ServiceShow',
         ],
     },
 

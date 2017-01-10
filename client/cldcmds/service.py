@@ -114,12 +114,12 @@ class ServiceDeploy(Command):
             cloud_info = {}
             dest = parsed_args.cloud
             if dest:
-                if dest.lower() == 'local':
-                    cloud_info['type'] = 'local'
-                if dest.lower() == 'aws':
+                if dest.lower() == common.LOCAL_DOCKER:
+                    cloud_info['type'] = common.LOCAL_DOCKER
+                if dest.lower() == common.AWS:
                     common.setup_aws(dest)
-                    cloud_info['type'] = 'aws'
-                if dest.lower() == 'google':
+                    cloud_info['type'] = common.AWS
+                if dest.lower() == common.GOOGLE:
                     common.setup_google(dest)
                     project_location = os.getcwd()
                     project_id = ''
@@ -127,7 +127,7 @@ class ServiceDeploy(Command):
                     project_id, user_email = common.get_google_project_user_details(project_location)
                     print("Using project_id:%s" % project_id)
                     print("Using user email:%s" % user_email)
-                    cloud_info['type'] = 'google'
+                    cloud_info['type'] = common.GOOGLE
                     cloud_info['project_id'] = project_id
                     cloud_info['user_email'] = user_email
 

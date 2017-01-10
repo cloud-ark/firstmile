@@ -24,7 +24,7 @@ class Deploy(Command):
                             help="Name of the required service (e.g.: MySQL)")
         parser.add_argument('--cloud',
                             dest='cloud',
-                            help="Destination to deploy application (local, AWS, Google)")        
+                            help="Destination to deploy application (local-docker, aws, google)")        
         return parser
 
     def _get_app_details(self):
@@ -91,21 +91,21 @@ class Deploy(Command):
         if not cloud_info:
             if dest:
                 self.log.debug("Destination:%s" % dest)
-                if dest.lower() == 'aws':
+                if dest.lower() == common.AWS:
                     common.setup_aws(dest)
-                    cloud_info['type'] = 'aws'
-                if dest.lower() == 'google':
+                    cloud_info['type'] = common.AWS
+                if dest.lower() == common.GOOGLE:
                     project_id = ''
                     user_email = ''
                     common.setup_google(dest)
                     project_id, user_email = common.get_google_project_user_details(project_location)
                     print("Using project_id:%s" % project_id)
                     print("Using user email:%s" % user_email)
-                    cloud_info['type'] = 'google'
+                    cloud_info['type'] = common.GOOGLE
                     cloud_info['project_id'] = project_id
                     cloud_info['user_email'] = user_email
-                if dest.lower() == 'local':
-                    cloud_info['type'] = 'local'
+                if dest.lower() == common.LOCAL_DOCKER:
+                    cloud_info['type'] = common.LOCAL_DOCKER
                     cloud_info['app_port'] = '5000'
             else:
                 print("Cloud deployment target not specified. Exiting.")

@@ -4,18 +4,18 @@ from cliff.app import App
 from cliff.commandmanager import CommandManager
 
 
-class LMEApp(App):
+class CLDApp(App):
 
     def __init__(self):
-        super(LMEApp, self).__init__(
-            description='lme cli',
+        super(CLDApp, self).__init__(
+            description='Multi-cloud app orchestration and service provisioning CLI.',
             version='0.1',
-            command_manager=CommandManager('lme.cmds'),
+            command_manager=CommandManager('cld.cmds'),
             deferred_help=True,
             )
 
     def initialize_app(self, argv):
-        self.LOG.debug('initialize_app')
+        self.LOG.debug('initialize_app %s' % argv)
 
     def prepare_to_run_command(self, cmd):
         self.LOG.debug('prepare_to_run_command %s', cmd.__class__.__name__)
@@ -27,7 +27,7 @@ class LMEApp(App):
 
 
 def main(argv=sys.argv[1:]):
-    myapp = LMEApp()
+    myapp = CLDApp()
     return myapp.run(argv)
 
 

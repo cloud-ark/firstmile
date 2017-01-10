@@ -1,13 +1,13 @@
-LME - Local Multi-cloud Engine
--------------------------------
-LME supports building and deploying Python web applications to target clouds (Local Docker, Google, and Amazon)
+Multi-cloud app orchestration and service provisioning CLI (CLD)
+-----------------------------------------------------------------
+CLD supports building and deploying Python web applications to target clouds (Local Docker, Google, and Amazon)
 without requiring you to make any changes to application code.
 Applications are deployed to Google App Engine and Amazon Elastic Beanstalk.
 You can also deploy application locally (on your machine) for local testing.
 
 Pre-requisites:
 ---------------
-You will need Python (2.7 or above) and Docker installed on your machine to use LME.
+You will need Python (2.7 or above) and Docker installed on your machine to use CLD.
 
 Sample applications:
 --------------------
@@ -44,10 +44,10 @@ f) Install the LME CLI
      and install the client.
    - cd client; sudo python setup.py install
      - This will install the LME cli.
-     - You can check the features of the LME cli by using "lme --help"
+     - You can check the features of the LME cli by using "cld --help"
 
-      (virtenv) devdatta@devdatta-ThinkPad-T430:~/Code/lme/client$ lme app deploy --help
-      usage: lme app deploy [-h] [--service SERVICE] [--cloud CLOUD]
+      (virtenv) devdatta@devdatta-ThinkPad-T430:~/Code/lme/client$ cld app deploy --help
+      usage: cld app deploy [-h] [--service SERVICE] [--cloud CLOUD]
 
       Build and deploy application
 
@@ -56,8 +56,8 @@ f) Install the LME CLI
       --service SERVICE  Name of the required service (e.g.: MySQL)
       --cloud CLOUD      Destination to deploy application (local, AWS, Google)
 
-       (virtenv) devdatta@devdatta-ThinkPad-T430:~/Code/lme/client$ lme app show --help
-       usage: lme app show [-h] [--deploy-id DEPLOYID]
+       (virtenv) devdatta@devdatta-ThinkPad-T430:~/Code/lme/client$ cld app show --help
+       usage: cld app show [-h] [--deploy-id DEPLOYID]
 
        Show application status
 
@@ -74,7 +74,7 @@ line flags. For detailed discussion about various deployment options, please che
 deployment-details.txt file.
 
 1) Navigate to the application folder (say, greetings-python) and then run
-      lme app deploy --service mysql --cloud local
+      cld app deploy --service mysql --cloud local
    This will show output of following nature.
 
 +------------------+-----------+--------+
@@ -84,7 +84,7 @@ deployment-details.txt file.
 +------------------+-----------+--------+
 
 2) Use the deploy-id to check the deployment status
-      lme app show --deploy-id 1
+      cld app show --deploy-id 1
 
 +------------------+-----------+---------------------+--------+--------------------------------------------+
 |     App Name     | Deploy ID |        Status       | Cloud  |                App URL                     |
@@ -94,7 +94,7 @@ deployment-details.txt file.
 
 3) You don't have to specify the "service" flag if an application does not need MySQL database for its functioning.
    The hello-world application is of this nature. You can deploy it simply by executing
-   lme app deploy --cloud <local|google|aws> command
+   cld app deploy --cloud <local|google|aws> command
 
 Deployment to Google App Engine:
 --------------------------------
@@ -103,7 +103,7 @@ Deployment to Google App Engine:
    create a Google App Engine project from the GAE Console.
    - Create a project and note down the Project ID (Note that it is important to use Project ID and not the Project name).
 3) Deploy the application by navigating to the application folder and executing following command:
-   lme app deploy --cloud google --service mysql
+   cld app deploy --cloud google --service mysql
 
 +------------------+-----------+--------+
 |     App Name     | Deploy ID | Cloud  |
@@ -113,7 +113,7 @@ Deployment to Google App Engine:
 
 4) Check deployment status
 
-lme app show --deploy-id 2
+cld app show --deploy-id 2
 +------------------+-----------+---------------------+--------+---------------------------------------+
 |     App Name     | Deploy ID |        Status       | Cloud  |                App URL                |
 +------------------+-----------+---------------------+--------+---------------------------------------+
@@ -134,10 +134,10 @@ Deployment to Amazon Elastic Beanstalk:
 3) Note down SECRET_ACCESS_KEY and ACCESS_KEY_ID for this user. Provide these values when asked by LME.
 
 4) Deploy the application by navigating to the application folder:
-   lme app deploy --cloud aws --service mysql
+   cld app deploy --cloud aws --service mysql
 
 5) Check deployment status
-   lme app show --deploy-id <deploy-id>
+   cld app show --deploy-id <deploy-id>
 
 Note:
 - Your application and all its resources will be deployed in the us-west-2 region of Amazon ElasticBeanstalk
@@ -145,12 +145,12 @@ Note:
 
 All available commands:
 ------------------------
-1) lme app deploy --cloud <cloud>
-2) lme app deploy --cloud <cloud> --service mysql
-3) lme app show --deploy-id <deploy-id>
-4) lme app show --app-name <app-name>
+1) cld app deploy --cloud <cloud>
+2) cld app deploy --cloud <cloud> --service mysql
+3) cld app show --deploy-id <deploy-id>
+4) cld app show --app-name <app-name>
    E.g.:
-   lme app show --app-name express-checkout
+   cld app show --app-name express-checkout
 +-----------+---------------------+--------+-----------------------------------------------------------------------------+
 | Deploy ID |     App Version     | Cloud  |                                   App URL                                   |
 +-----------+---------------------+--------+-----------------------------------------------------------------------------+
@@ -159,9 +159,9 @@ All available commands:
 |    155    | 2016-12-19-15-14-52 | local  |                            http://172.17.1.10:5000                          |
 +-----------+---------------------+--------+-----------------------------------------------------------------------------+
 
-5) lme app show --cloud <cloud>
+5) cld app show --cloud <cloud>
    E.g.:
-   lme app show --cloud google
+   cld app show --cloud google
 
 +-----------+------------------+---------------------+----------------------------------------------+
 | Deploy ID |     App Name     |     App Version     |                   App URL                    |

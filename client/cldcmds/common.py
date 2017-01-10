@@ -17,9 +17,9 @@ home_dir = expanduser("~")
 
 APP_STORE_PATH = ("{home_dir}/.lme/data/deployments").format(home_dir=home_dir)
 
-CLOUD_DOCKER_PRIVATE = "docker-private"
-CLOUD_GOOGLE = "google"
-CLOUD_AWS = "aws"
+LOCAL_DOCKER = "local-docker"
+GOOGLE = "google"
+AWS = "aws"
 
 def get_google_project_user_details(project_location):
     google_app_details_path = APP_STORE_PATH + "/google-creds/app_details.txt"
@@ -167,12 +167,12 @@ def read_cloud_info():
     cloud_obj = lme_obj['cloud']
 
     cloud_info['type'] = cloud_obj['type']
-    if cloud_obj['type'] == 'local':
+    if cloud_obj['type'] == LOCAL_DOCKER:
         app_port = '5000'
         if cloud_obj['app_port']:
             app_port = cloud_obj['app_port']
             cloud_info['app_port'] = app_port
-    if cloud_obj['type'] == 'google':
+    if cloud_obj['type'] == GOOGLE:
         if not cloud_obj['project_id']:
             print("project_id required for cloud %s" % cloud_obj['type'])
             sys.exit(0)
