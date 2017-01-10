@@ -40,13 +40,7 @@ class MySQLServiceHandler(object):
         if self.service_obj.get_setup_file_content():
             self.db_info['setup_file'] = 'setup.sh'
 
-        fp = open(self.service_obj.get_service_details_file_location(), "w")
-        fp.write("MYSQL_DB_NAME::%s\n" % self.mysql_db_name)
-        fp.write("MYSQL_DB_USER::%s\n" % self.mysql_user)
-        fp.write("MYSQL_DB_USER_PASSWORD::%s\n" % self.mysql_password)
-        fp.write("MYSQL_ROOT_USER_PASSWORD::%s\n" % self.mysql_root_password)
-        fp.write("MYSQL_VERSION::%s\n" % self.mysql_version)
-        fp.close()
+
 
         self.app_status_file = ''
         if self.task_def.app_data:
@@ -97,12 +91,22 @@ class MySQLServiceHandler(object):
         helper.setup_database(work_dir, self.db_info, self.service_info)
 
     def _save_instance_information(self, instance_ip):
+
+        fp = open(self.service_obj.get_service_details_file_location(), "w")
+
+        fp.write("%s::%s\n" % (constants.DB_NAME, constants.DEFAULT_DB_NAME))
+        fp.write("%s::%s\n" % (constants.DB_USER, constants.DEFAULT_DB_USER))
+        fp.write("%s::%s\n" % (constants.DB_USER_PASSWORD, constants.DEFAULT_DB_PASSWORD))
+        fp.write("%s::%s\n" % (constants.DB_ROOT_PASSWORD, self.mysql_root_password))
+        fp.write("%s::%s\n" % (constants.MYSQL_VERSION, self.mysql_version))
+        fp.close()
+
         if self.app_status_file:
             fp = open(self.app_status_file, "a")
-            fp.write("MYSQL_INSTANCE::%s, " % instance_ip)
-            fp.write("MYSQL_DB_USER::%s, " % constants.DEFAULT_DB_USER)
-            fp.write("MYSQL_DB_USER_PASSWORD::%s, " % constants.DEFAULT_DB_PASSWORD)
-            fp.write("MYSQL_DB_NAME::%s, " % constants.DEFAULT_DB_NAME)
+            fp.write("%s::%s, " % (constants.SQL_CONTAINER, instance_ip))
+            fp.write("%s::%s\n" % (constants.DB_NAME, constants.DEFAULT_DB_NAME))
+            fp.write("%s::%s\n" % (constants.DB_USER, constants.DEFAULT_DB_USER))
+            fp.write("%s::%s\n" % (constants.DB_USER_PASSWORD, constants.DEFAULT_DB_PASSWORD))
             fp.close()
 
     # Public interface

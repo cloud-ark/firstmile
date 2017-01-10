@@ -309,20 +309,22 @@ class MySQLServiceHandler(object):
 
     def _save_instance_information(self, instance_ip):
         fp = open(self.service_obj.get_service_details_file_location(), "w")
-        fp.write("MYSQL_DB_NAME::%s\n" % constants.DEFAULT_DB_NAME)
-        fp.write("MYSQL_DB_USER::%s\n" % constants.DEFAULT_DB_USER)
-        fp.write("MYSQL_DB_USER_PASSWORD::%s\n" % constants.DEFAULT_DB_PASSWORD)
-        fp.write("MYSQL_CONNECTION_STRING::%s\n" % self.connection_name)
-        fp.write("MYSQL_VERSION::%s\n" % self.database_version)
-        fp.write("CLOUD_SQL_TIER::%s\n" % self.database_tier)
+
+        fp.write("%s::%s\n" % (constants.DB_NAME, constants.DEFAULT_DB_NAME))
+        fp.write("%s::%s\n" % (constants.DB_USER, constants.DEFAULT_DB_USER))
+        fp.write("%s::%s\n" % (constants.DB_USER_PASSWORD, constants.DEFAULT_DB_PASSWORD))
+
+        fp.write("%s::%s\n" % (constants.CLOUD_SQL_CONNECTION_STR, self.connection_name))
+        fp.write("%s::%s\n" % (constants.MYSQL_VERSION, self.database_version))
+        fp.write("%s::%s\n" % (constants.CLOUD_SQL_TIER, self.database_tier))
         fp.close()
 
         if self.app_status_file:
             fp = open(self.app_status_file, "a")
-            fp.write("MYSQL_INSTANCE::%s, " % instance_ip)
-            fp.write("MYSQL_DB_USER::%s, " % constants.DEFAULT_DB_USER)
-            fp.write("MYSQL_DB_USER_PASSWORD::%s, " % constants.DEFAULT_DB_PASSWORD)
-            fp.write("MYSQL_DB_NAME::%s, " % constants.DEFAULT_DB_NAME)
+            fp.write("%s::%s, " % (constants.CLOUD_SQL_INSTANCE, instance_ip))
+            fp.write("%s::%s\n" % (constants.DB_NAME, constants.DEFAULT_DB_NAME))
+            fp.write("%s::%s\n" % (constants.DB_USER, constants.DEFAULT_DB_USER))
+            fp.write("%s::%s\n" % (constants.DB_USER_PASSWORD, constants.DEFAULT_DB_PASSWORD))
             fp.close()
 
     # Public interface
