@@ -1,13 +1,11 @@
-Multi-cloud app orchestration and service provisioning CLI (CLD)
------------------------------------------------------------------
-CLD supports building and deploying Python web applications to target clouds (Local Docker, Google, and Amazon)
+Multi-cloud app orchestration and service provisioning CLI 
+-------------------------------------------------------------
+CloudFlow supports building and deploying Python web applications to target clouds (Local Docker, Google, and Amazon)
 without requiring you to make any changes to application code.
-Applications are deployed to Google App Engine and Amazon Elastic Beanstalk.
-You can also deploy application locally (on your machine) for local testing.
 
 Pre-requisites:
 ---------------
-You will need Python (2.7 or above) and Docker installed on your machine to use CLD.
+You will need Python (2.7 or above) and Docker installed on your machine to use CloudFlow.
 
 Sample applications:
 --------------------
@@ -36,9 +34,9 @@ d) Install lme
    - git clone https://devdattakulkarni@bitbucket.org/devdattakulkarni/lme.git
    - cd lme
    - pip install -r requirements.txt
-e) Start the LME server:
+e) Start the server:
    - python cld.py
-f) Install the LME CLI
+f) Install the CloudFlow cli
    - Open a new terminal window and navigate to the directory where you cloned
      the lme repository. Go inside the "client" folder inside this directory
      and install the client.
@@ -47,7 +45,7 @@ f) Install the LME CLI
      - You can check the features of the LME cli by using "cld --help"
 
       (virtenv) devdatta@devdatta-ThinkPad-T430:~/Code/lme/client$ cld app deploy --help
-      usage: cld app deploy [-h] [--service SERVICE] [--cloud CLOUD]
+      usage: cld app deploy [-h] [--service-name SERVICE] [--cloud CLOUD]
 
       Build and deploy application
 
@@ -67,14 +65,14 @@ f) Install the LME CLI
 
 Deploying applications:
 ------------------------
-LME supports deployments of applications and services (currently MySQL) to local, Google, and AWS clouds.
+CloudFlow supports deployments of applications and services (currently MySQL) to local Docker, Google, and AWS clouds.
 The deployments are supported using command line flags. It is also possible to provide the required
 deployment related inputs in a yaml file. Below we outline steps to deploy an application using command
 line flags. For detailed discussion about various deployment options, please check
 deployment-details.txt file.
 
 1) Navigate to the application folder (say, greetings-python) and then run
-      cld app deploy --service mysql --cloud local
+      cld app deploy --service-name mysql --cloud local
    This will show output of following nature.
 
 +------------------+-----------+--------+
@@ -94,7 +92,7 @@ deployment-details.txt file.
 
 3) You don't have to specify the "service" flag if an application does not need MySQL database for its functioning.
    The hello-world application is of this nature. You can deploy it simply by executing
-   cld app deploy --cloud <local|google|aws> command
+   cld app deploy --cloud <local-docker|google|aws> command
 
 Deployment to Google App Engine:
 --------------------------------
@@ -103,7 +101,7 @@ Deployment to Google App Engine:
    create a Google App Engine project from the GAE Console.
    - Create a project and note down the Project ID (Note that it is important to use Project ID and not the Project name).
 3) Deploy the application by navigating to the application folder and executing following command:
-   cld app deploy --cloud google --service mysql
+   cld app deploy --cloud google --service-name mysql
 
 +------------------+-----------+--------+
 |     App Name     | Deploy ID | Cloud  |
@@ -131,10 +129,10 @@ Deployment to Amazon Elastic Beanstalk:
    - Create a IAM User (choose any name)
    - Grant following permission to the user: "AWSElasticBeanstalkFullAccess - AWS Managed Policy" by
      clicking the "Add permissions" button on the user panel.
-3) Note down SECRET_ACCESS_KEY and ACCESS_KEY_ID for this user. Provide these values when asked by LME.
+3) Note down SECRET_ACCESS_KEY and ACCESS_KEY_ID for this user. Provide these values when asked by CLD.
 
 4) Deploy the application by navigating to the application folder:
-   cld app deploy --cloud aws --service mysql
+   cld app deploy --cloud aws --service-name mysql
 
 5) Check deployment status
    cld app show --deploy-id <deploy-id>

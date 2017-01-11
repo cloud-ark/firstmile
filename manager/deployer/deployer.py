@@ -5,6 +5,7 @@ Created on Oct 26, 2016
 '''
 import logging
 from common import task_definition as td
+from common import constants
 import local_deployer as ld
 import aws_deployer as ad
 import google_deployer as gd
@@ -17,11 +18,11 @@ class Deployer(object):
         
     def deploy(self, deploy_type, deploy_name):
         result = ''
-        if self.cloud == 'local':
+        if self.cloud == constants.LOCAL_DOCKER:
             result = ld.LocalDeployer(self.task_def).deploy(deploy_type, deploy_name)
-        elif self.cloud == 'aws':
+        elif self.cloud == constants.AWS:
             result = ad.AWSDeployer(self.task_def).deploy(deploy_type, deploy_name)
-        elif self.cloud == 'google':
+        elif self.cloud == constants.GOOGLE:
             result = gd.GoogleDeployer(self.task_def).deploy(deploy_type, deploy_name)
         else:
             print("(Deployer) Cloud %s not supported" % self.cloud)

@@ -11,7 +11,7 @@ DEFAULT_DB_NAME = 'testdb'
 
 home_dir = expanduser("~")
 
-APP_STORE_PATH = ("{home_dir}/.lme/data/deployments").format(home_dir=home_dir)
+APP_STORE_PATH = ("{home_dir}/.cld/data/deployments").format(home_dir=home_dir)
 
 GOOGLE_CREDS_PATH = APP_STORE_PATH + "/google-creds"
 
@@ -36,6 +36,6 @@ CLOUD_SQL_INSTANCE = "CLOUD_SQL_INSTANCE"
 
 SQL_CONTAINER = "SQL_CONTAINER"
 
-CLOUD_DOCKER_PRIVATE = "docker-private"
-CLOUD_GOOGLE = "google"
-CLOUD_AWS = "aws"
+LOCAL_DOCKER = "local-docker"
+GOOGLE = "google"
+AWS = "aws"

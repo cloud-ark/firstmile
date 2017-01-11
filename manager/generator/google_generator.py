@@ -9,15 +9,11 @@ import os
 from common import app
 from common import service
 from common import utils
-
-from os.path import expanduser
+from common import constants
 
 from manager.service_handler.mysql import google_handler as gh
 
-home_dir = expanduser("~")
-
-APP_STORE_PATH = ("{home_dir}/.lme/data/deployments").format(home_dir=home_dir)
-GOOGLE_CREDS_PATH = APP_STORE_PATH + "/google-creds"
+GOOGLE_CREDS_PATH = constants.APP_STORE_PATH + "/google-creds"
 
 
 class GoogleGenerator(object):

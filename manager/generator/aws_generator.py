@@ -15,12 +15,7 @@ from common import constants
 
 from manager.service_handler.mysql import aws_handler as awsh
 
-from os.path import expanduser
-
-home_dir = expanduser("~")
-
-APP_STORE_PATH = ("{home_dir}/.lme/data/deployments").format(home_dir=home_dir)
-AWS_CREDS_PATH = APP_STORE_PATH + "/aws-creds"
+AWS_CREDS_PATH = constants.APP_STORE_PATH + "/aws-creds"
 
 
 class AWSGenerator(object):

@@ -15,7 +15,7 @@ from os.path import expanduser
 
 home_dir = expanduser("~")
 
-APP_STORE_PATH = ("{home_dir}/.lme/data/deployments").format(home_dir=home_dir)
+APP_STORE_PATH = ("{home_dir}/.cld/data/deployments").format(home_dir=home_dir)
 
 LOCAL_DOCKER = "local-docker"
 GOOGLE = "google"
@@ -112,7 +112,7 @@ def setup_aws(dest):
 
 def read_app_info():
     cwd = os.getcwd()
-    lmefile = cwd + "/lme.yaml"
+    lmefile = cwd + "/cld.yaml"
     app_info = {}
     if not os.path.exists(lmefile):
         return app_info
@@ -142,10 +142,9 @@ def read_app_info():
 
 def read_service_info():
     cwd = os.getcwd()
-    lmefile = cwd + "/lme.yaml"
+    lmefile = cwd + "/cld.yaml"
     service_info = {}
     if not os.path.exists(lmefile):
-        # print("lme.yaml not present. Asking required service information from user.")
         return service_info
 
     fp = open(lmefile, "r")
@@ -157,7 +156,7 @@ def read_service_info():
 
 def read_cloud_info():
     cwd = os.getcwd()
-    lmefile = cwd + "/lme.yaml"
+    lmefile = cwd + "/cld.yaml"
     cloud_info = {}
     if not os.path.exists(lmefile):
         return cloud_info

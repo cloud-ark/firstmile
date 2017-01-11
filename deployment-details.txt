@@ -1,4 +1,4 @@
-LME supports multi-cloud deployment and orchestration for web applications and
+CloudFlow supports multi-cloud deployment and orchestration for web applications and
 their dependent services. 
 
 The deployment actions can be triggered using command line flags or by specifying

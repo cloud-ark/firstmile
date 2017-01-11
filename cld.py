@@ -26,7 +26,7 @@ parser.add_argument('app_name', location='form')
 
 home_dir = expanduser("~")
 
-APP_STORE_PATH = ("{home_dir}/.lme/data/deployments").format(home_dir=home_dir)
+APP_STORE_PATH = ("{home_dir}/.cld/data/deployments").format(home_dir=home_dir)
 SERVICE_STORE_PATH = APP_STORE_PATH + "/services"
 
 def start_thread(delegatethread):
