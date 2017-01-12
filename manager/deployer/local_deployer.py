@@ -20,6 +20,9 @@ class LocalDeployer(object):
         
         self.services = {}
 
+        if task_def.app_data:
+            self.app_port = task_def.app_data['app_port']
+
         if task_def.service_data:
             self.service_obj = service.Service(task_def.service_data[0])
             if self.service_obj.get_service_type() == 'mysql':
@@ -29,7 +32,7 @@ class LocalDeployer(object):
         app_cont_name = app_obj.get_cont_name()
         self.docker_client.import_image(image=app_cont_name)
         port_list = []
-        port_list.append(5000)
+        port_list.append(self.app_port)
         host_cfg = self.docker_client.create_host_config(publish_all_ports=True)
         app_cont = self.docker_client.create_container(app_cont_name, detach=True,
                                                        ports=port_list, name=app_cont_name,
@@ -45,7 +48,8 @@ class LocalDeployer(object):
         # port_list = app_port_list["5000/tcp"]
         # app_host_port = port_list[0]["HostPort"]
         
-        app_url = ("{app_ip_addr}:{app_port}").format(app_ip_addr=app_ip_addr, app_port=5000)
+        app_url = ("{app_ip_addr}:{app_port}").format(app_ip_addr=app_ip_addr,
+                                                      app_port=self.app_port)
         
         logging.debug("App URL: %s" % app_url)
         return app_url

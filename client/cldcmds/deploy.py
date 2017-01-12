@@ -28,13 +28,17 @@ class Deploy(Command):
         return parser
 
     def _get_app_details(self):
-        app_port = '5000'
+        default_app_port = '5000'
         app_type = 'python'
 
         default_entry_point = "application.py"
         entry_point = raw_input("Enter file name that has main function in it (e.g.: application.py)>")
         if not entry_point:
             entry_point = default_entry_point
+
+        app_port = raw_input("Enter port number on which application listens>")
+        if not app_port:
+            app_port = default_app_port
 
         app_info = {}
         app_info['entry_point'] = entry_point

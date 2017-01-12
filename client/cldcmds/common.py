@@ -20,6 +20,7 @@ APP_STORE_PATH = ("{home_dir}/.cld/data/deployments").format(home_dir=home_dir)
 LOCAL_DOCKER = "local-docker"
 GOOGLE = "google"
 AWS = "aws"
+DEFAULT_APP_PORT = "80"
 
 def get_google_project_user_details(project_location):
     google_app_details_path = APP_STORE_PATH + "/google-creds/app_details.txt"
@@ -167,7 +168,7 @@ def read_cloud_info():
 
     cloud_info['type'] = cloud_obj['type']
     if cloud_obj['type'] == LOCAL_DOCKER:
-        app_port = '5000'
+        app_port = DEFAULT_APP_PORT
         if cloud_obj['app_port']:
             app_port = cloud_obj['app_port']
             cloud_info['app_port'] = app_port

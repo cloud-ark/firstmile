@@ -7,6 +7,7 @@ import logging
 from common import service
 from common import app
 from common import utils
+from common import constants
 
 from manager.service_handler.mysql import local_handler as lh
 
@@ -19,6 +20,7 @@ class LocalGenerator(object):
             self.app_type = task_def.app_data['app_type']
             self.app_dir = task_def.app_data['app_location']
             self.app_name = task_def.app_data['app_name']
+            self.app_port = task_def.app_data['app_port']
             if 'app_variables' in task_def.app_data:
                 self.app_variables = task_def.app_data['app_variables']
 
@@ -55,8 +57,8 @@ class LocalGenerator(object):
                   "ADD requirements.txt /src/requirements.txt\n"
                   "RUN cd /src; pip install -r requirements.txt\n"
                   "ADD . /src\n"
-                  "EXPOSE 5000\n"
-                  )
+                  "EXPOSE {app_port}\n"
+                  ).format(app_port=self.app_port)
             df = df + df_env_vars
             df = df + ("CMD [\"python\", \"/src/{entry_point}\"]").format(entry_point=entry_point)
         else:
@@ -66,8 +68,8 @@ class LocalGenerator(object):
                   "ADD requirements.txt /src/requirements.txt\n"
                   "RUN cd /src; pip install -r requirements.txt\n"
                   "ADD . /src\n"
-                  "EXPOSE 5000\n"
-                  )
+                  "EXPOSE {app_port}\n"
+                  ).format(app_port=self.app_port)
 
             if 'env_variables' in self.task_def.app_data:
                 env_var_obj = self.task_def.app_data['env_variables']
