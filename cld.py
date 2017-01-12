@@ -15,6 +15,7 @@ from manager import manager as mgr
 from common import task_definition
 from common import utils
 from common import service
+from common import constants
 
 
 app = Flask(__name__)
@@ -381,7 +382,8 @@ api.add_resource(Deployments, '/deployments')
 if __name__ == '__main__':
     # Create the data directory if it does not exist
 
-    logging.basicConfig(filename="lme.log", level=logging.DEBUG, filemode='a')
+    logging.basicConfig(filename=constants.LOG_FILE_NAME,
+                        level=logging.DEBUG, filemode='a')
     logging.basicConfig(format='%(asctime)s %(message)s',
                         datefmt='%m/%d/%Y %I:%M:%S %p')
     if not os.path.exists(APP_STORE_PATH):

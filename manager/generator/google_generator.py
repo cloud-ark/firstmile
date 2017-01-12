@@ -109,11 +109,12 @@ class GoogleGenerator(object):
 
         logging.debug("Sed pattern:%s" % cmd_1)
 
-        df = ("FROM ubuntu:14.04 \n"
-              "RUN apt-get update && apt-get install -y wget python \n"
-              "RUN sudo wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-126.0.0-linux-x86_64.tar.gz && \ \n"
-              "    sudo gunzip google-cloud-sdk-126.0.0-linux-x86_64.tar.gz && \ \n"
-              "    sudo tar -xvf google-cloud-sdk-126.0.0-linux-x86_64.tar \n"
+        #df = ("FROM ubuntu:14.04 \n"
+        #      "RUN apt-get update && apt-get install -y wget python \n"
+        #      "RUN sudo wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-126.0.0-linux-x86_64.tar.gz && \ \n"
+        #      "    sudo gunzip google-cloud-sdk-126.0.0-linux-x86_64.tar.gz && \ \n"
+        #      "    sudo tar -xvf google-cloud-sdk-126.0.0-linux-x86_64.tar \n")
+        df = ("FROM lmecld/clis:gcloud \n"
               "RUN /google-cloud-sdk/bin/gcloud components install beta \n"
               "COPY . /src \n"
               "COPY google-creds/gcloud  /root/.config/gcloud \n"
@@ -122,8 +123,9 @@ class GoogleGenerator(object):
               "RUN token=`/google-cloud-sdk/bin/gcloud beta auth application-default print-access-token` \n"
               "{cmd_2}"
               "WORKDIR /src \n"
-              "RUN /google-cloud-sdk/bin/gcloud config set account {user_email} \n"
-              "RUN /google-cloud-sdk/bin/gcloud config set project {project_id} \n"
+              "RUN /google-cloud-sdk/bin/gcloud config set account {user_email} \ \n"
+              "    && /google-cloud-sdk/bin/gcloud config set project {project_id} \ \n"
+              "    && /google-cloud-sdk/bin/gcloud config set app/use_appengine_api false \n"
              )
 
         first_time = self._check_if_first_time_app_deploy()

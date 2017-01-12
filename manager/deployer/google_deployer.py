@@ -4,7 +4,9 @@ Created on Dec 13, 2016
 @author: devdatta
 '''
 import logging
+import logging.handlers as lh
 import os
+import time
 
 from common import app
 from common import docker_lib
@@ -19,6 +21,10 @@ class GoogleDeployer(object):
     
     def __init__(self, task_def):
         self.task_def = task_def
+        self.logger = logging.getLogger(name=self.__class__.__name__)
+        handler = lh.RotatingFileHandler(constants.LOG_FILE_NAME,
+                                        maxBytes=5000000, backupCount=0)
+        self.logger.addHandler(handler)
 
         if task_def.app_data:
             self.app_dir = task_def.app_data['app_location']
@@ -39,19 +45,22 @@ class GoogleDeployer(object):
 
     def _deploy_app_container(self, app_obj):
         app_cont_name = app_obj.get_cont_name()
-        logging.debug("Deploying app container:%s" % app_cont_name)
+        log_file_name = TMP_LOG_FILE + "-" + app_cont_name
+        self.logger.debug("Deploying app container:%s" % app_cont_name)
         docker_run_cmd = ("docker run {app_container} >& {tmp_log_file}").format(app_container=app_cont_name,
-                                                                                 tmp_log_file=TMP_LOG_FILE)
+                                                                                 tmp_log_file=log_file_name)
         logged_status = []
 
         deployment_done = False
 
         os.system(docker_run_cmd)
-        fp = open(TMP_LOG_FILE)
+        fp = open(log_file_name)
         app_url = ""
-        while not deployment_done:
+        done_reason = "TIMEOUT"
+        count = 0
+        while not deployment_done and count < 300:
             log_lines = fp.readlines()
-            logging.debug("Log lines:%s" % log_lines)
+            #self.logger.debug("Log lines:%s" % log_lines)
             for line in log_lines:
                 line = line.rstrip().lstrip()
                 if line.find("Deployed URL") >= 0:
@@ -60,13 +69,21 @@ class GoogleDeployer(object):
                     app_url = parts[1]
                     app_url = app_url[:-1].rstrip().lstrip()
                 if line not in logged_status:
-                        logged_status.append(line)
-                        app_obj.update_app_status(line)
+                    logged_status.append(line)
+                    app_obj.update_app_status(line)
                 if line.find("Deployed service [default] to") >= 0:
                     deployment_done = True
-                    os.remove(TMP_LOG_FILE)
+                    done_reason = constants.APP_DEPLOYMENT_COMPLETE
+                    os.remove(log_file_name)
+                if line.find("ERROR") >=0:
+                    deployment_done = True
+                    done_reason = constants.DEPLOYMENT_ERROR
+                    app_url = ""
+                    os.remove(log_file_name)
+            count = count + 1
+            time.sleep(1)
 
-        return app_url
+        return app_url, done_reason
 
     def _cleanup(self, app_obj):
         # Remove any temporary container created for service provisioning
@@ -75,11 +92,16 @@ class GoogleDeployer(object):
             serv_handler.cleanup()
 
         # Remove app container
-        self.docker_handler.remove_container(app_obj.get_cont_name(), "container created to deploy application no longer needed.")
+        self.docker_handler.stop_container(app_obj.get_cont_name(),
+                                           "container created to deploy application no longer needed.")
+        self.docker_handler.remove_container(app_obj.get_cont_name(),
+                                             "container created to deploy application no longer needed.")
+        self.docker_handler.remove_container_image(app_obj.get_cont_name(),
+                                                   "container created to deploy application no longer needed.")
 
     def deploy(self, deploy_type, deploy_name):
         if deploy_type == 'service':
-            logging.debug("Google deployer called for deploying Google Cloud SQL service")
+            self.logger.debug("Google deployer called for deploying Google Cloud SQL service")
 
             service_ip_list = []
             for serv in self.task_def.service_data:
@@ -99,15 +121,15 @@ class GoogleDeployer(object):
             # TODO(devkulkarni): Add support for returning multiple service IPs
             return service_ip_list[0]
         elif deploy_type == 'app':
-            logging.debug("Google deployer called for app %s" %
+            self.logger.debug("Google deployer called for app %s" %
                           self.task_def.app_data['app_name'])
             app_obj = app.App(self.task_def.app_data)
             app_obj.update_app_status(constants.DEPLOYING_APP)
-            app_ip_addr = self._deploy_app_container(app_obj)
-            app_obj.update_app_status(constants.APP_DEPLOYMENT_COMPLETE)
+            app_ip_addr, deployment_reason = self._deploy_app_container(app_obj)
+            app_obj.update_app_status(deployment_reason)
             app_obj.update_app_ip(app_ip_addr)
-            logging.debug("Google deployment complete.")
-            logging.debug("Removing temporary containers created to assist in the deployment.")
+            self.logger.debug("Google deployment complete.")
+            self.logger.debug("Removing temporary containers created to assist in the deployment.")
             self._cleanup(app_obj)
         else:
-            logging.debug("Unsupported deployment type specified.")
+            self.logger.debug("Unsupported deployment type specified.")

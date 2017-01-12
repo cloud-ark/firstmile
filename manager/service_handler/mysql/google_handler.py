@@ -215,8 +215,7 @@ class MySQLServiceHandler(object):
         os.chdir(deploy_dir)
 
         # Create Dockerfile to execute the script that creates the database
-        df = ("FROM ubuntu:14.04 \n"
-              "RUN apt-get update && apt-get install -y mysql-client-core-5.5\n"
+        df = ("FROM lmecld/clis:mysql-client-5.5 \n"
               "COPY create-db.sh . \n"
               "CMD ./create-db.sh"
               )
@@ -277,12 +276,13 @@ class MySQLServiceHandler(object):
         utils.copy_google_creds(constants.GOOGLE_CREDS_PATH, deploy_dir)
 
         cmd_1 = ("RUN sed -i 's/{pat}access_token{pat}.*/{pat}access_token{pat}/' credentials \n").format(pat="\\\"")
-        df = ("FROM ubuntu:14.04 \n"
-              "RUN apt-get update && apt-get install -y wget python \n"
-              "RUN sudo wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-126.0.0-linux-x86_64.tar.gz && \ \n"
-              "    sudo gunzip google-cloud-sdk-126.0.0-linux-x86_64.tar.gz && \ \n"
-              "    sudo tar -xvf google-cloud-sdk-126.0.0-linux-x86_64.tar \n"
-              "RUN /google-cloud-sdk/bin/gcloud components install beta \n"
+        #df = ("FROM ubuntu:14.04 \n"
+        #      "RUN apt-get update && apt-get install -y wget python \n"
+        #      "RUN sudo wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-126.0.0-linux-x86_64.tar.gz && \ \n"
+        #      "    sudo gunzip google-cloud-sdk-126.0.0-linux-x86_64.tar.gz && \ \n"
+        #      "    sudo tar -xvf google-cloud-sdk-126.0.0-linux-x86_64.tar \n"
+        #      "RUN /google-cloud-sdk/bin/gcloud components install beta \n"
+        df = ("FROM lmecld/clis:gcloud \n"
               "COPY . /src \n"
               "COPY google-creds/gcloud  /root/.config/gcloud \n"
               "WORKDIR /root/.config/gcloud \n"

@@ -35,6 +35,7 @@ class App(object):
         app_status_file = open(self.app_location + "/app-status.txt", "a")
         status = "status::" + status
         app_status_file.write(status + ", ")
+        app_status_file.flush()
         app_status_file.close()
 
     def update_app_ip(self, app_ip):
@@ -42,6 +43,7 @@ class App(object):
         if app_ip.find("http") < 0:
             app_ip = "http://" + app_ip
         app_status_file.write("URL:: " + app_ip)
+        app_status_file.flush()
         app_status_file.close()
         
     
