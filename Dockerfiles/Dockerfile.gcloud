@@ -1,0 +1,7 @@
+FROM ubuntu:14.04 
+RUN apt-get update && apt-get install -y wget python && \
+    sudo wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-126.0.0-linux-x86_64.tar.gz && \ 
+    sudo gunzip google-cloud-sdk-126.0.0-linux-x86_64.tar.gz && \ 
+    sudo tar -xvf google-cloud-sdk-126.0.0-linux-x86_64.tar && \ 
+    /google-cloud-sdk/bin/gcloud components install beta 
+

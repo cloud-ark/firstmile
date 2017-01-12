@@ -1,0 +1,5 @@
+FROM ubuntu:14.04
+RUN apt-get update && apt-get install -y \ 
+    python-setuptools python-pip git groff \
+    && pip install awsebcli==3.7.7 \
+    && pip install awscli==1.10.63
