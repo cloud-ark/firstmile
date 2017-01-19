@@ -113,6 +113,14 @@ class Deployment(object):
         self.log.debug("Response:%s" % app_data)
         return app_data
 
+    def get_all_apps(self):
+        app_url = "http://localhost:5002/apps"
+        req = urllib2.Request(app_url)
+        response = urllib2.urlopen(req)
+        app_data = response.fp.read()
+        self.log.debug("Response:%s" % app_data)
+        return app_data
+
     def get_app_info(self, appname):
         app_url = "http://localhost:5002/apps/" + appname
         req = urllib2.Request(app_url)

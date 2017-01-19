@@ -29,7 +29,7 @@ class Show(Command):
     def _app_name_show(self, appname):
         result = dp.Deployment().get_app_info(appname)
         x = prettytable.PrettyTable()
-        x.field_names = ["Deploy ID", "App Name", "App Version", "Cloud", "Status", "App Info"]
+        x.field_names = ["Deploy ID", "App Version", "Cloud", "Status", "App Info"]
 
         if result:
             pretty_table = common.artifact_name_show(result, x)
