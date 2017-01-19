@@ -137,7 +137,10 @@ class AWSDeployer(object):
 
         cname = self._process_logs(cont_id, app_cont_name, app_obj)
         return cname
-        
+
+    def deploy_for_delete(self, info):
+        logging.debug("AWS deployer for called to delete app:%s" % info['app_name'])
+
     def deploy(self, deploy_type, deploy_name):
         if deploy_type == 'service':
             logging.debug("AWS deployer called for deploying RDS instance")

@@ -5,6 +5,7 @@ Created on Dec 23, 2016
 '''
 import os
 import logging
+from openstackclient.tests.unit.identity.v2_0.fakes import service_name
 
 def get_id(path, file_name, name, version, s_name, s_version, cloud):
     # Method 1:
@@ -194,6 +195,39 @@ def _parse_line(part):
     parts_dict['mysql_password'] = mysql_password
     parts_dict['mysql_db_name'] = mysql_db_name
     return parts_dict
+
+def get_app_and_service_info(id_file_path, id_file_name, dep_id):
+
+    info = {}
+
+    f = open(id_file_path + "/" + id_file_name)
+    all_lines = f.readlines()
+    for line in all_lines:
+        # line structure
+        # 49 greetings-python--2017-01-19-08-54-18 local-docker mysql-greetings-python 2017-01-19-08-54-18
+        line_contents = line.split(" ")
+        if line_contents[0] == dep_id:
+            dep_id = line_contents[1].rstrip().lstrip()
+            k = dep_id.rfind("--")
+            app_version = dep_id[k+2:]
+
+            logging.debug("App version:%s" % app_version)
+
+            dep_id = dep_id[:k]
+            l = dep_id.rfind("/")
+            app_name = dep_id[l+1:]
+            logging.debug("App name:%s" % app_name)
+
+            service_name = line_contents[3]
+            service_version = line_contents[4]
+            cloud = line_contents[2]
+
+            info['app_name'] = app_name.rstrip().lstrip()
+            info['app_version'] = app_version.rstrip().lstrip()
+            info['service_name'] = service_name.rstrip().lstrip()
+            info['service_version'] = service_version.rstrip().lstrip()
+            info['cloud'] = cloud.rstrip().lstrip()
+    return info
 
 def read_statues(id_file_path, id_file_name, status_file_name, artifact_name,
                  artifact_version):

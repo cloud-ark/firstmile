@@ -172,6 +172,22 @@ class Apps(Resource):
         return response
 
 class Deployment(Resource):
+    def delete(self, dep_id):
+        logging.debug("Executing DELETE for dep id:%s" % dep_id)
+        info = utils.get_app_and_service_info(APP_STORE_PATH, "app_ids.txt", dep_id)
+
+        cloud_data = {}
+        cloud_data['type'] = info['cloud']
+        task_def = task_definition.TaskDefinition('', cloud_data, '')
+
+        # dispatch the handler thread
+        delegatethread = mgr.Manager(task_def=task_def, delete_action=True, delete_info=info)
+        thread.start_new_thread(start_thread, (delegatethread, ))
+        resp_data = {}
+        response = jsonify(**resp_data)
+        response.status_code = 201
+        return response
+
     def get(self, dep_id):
         logging.debug("Executing GET for dep id:%s" % dep_id)
         status_data = utils.read_statuses_given_id(APP_STORE_PATH,

@@ -14,7 +14,7 @@ class Generator(object):
     def __init__(self, task_def):
         self.task_def = task_def
         self.cloud = task_def.cloud_data['type']
-        
+
     def generate(self, generate_type, service_ip_addresses_dict, services):
         if self.cloud == constants.LOCAL_DOCKER:
             lg.LocalGenerator(self.task_def).generate(generate_type, service_ip_addresses_dict)
@@ -22,5 +22,15 @@ class Generator(object):
             ag.AWSGenerator(self.task_def).generate(generate_type, service_ip_addresses_dict, services)
         elif self.cloud == constants.GOOGLE:
             gg.GoogleGenerator(self.task_def).generate(generate_type, service_ip_addresses_dict, services)
+        else:
+            print("Cloud %s not supported" % self.cloud)
+
+    def generate_for_delete(self, info):
+        if self.cloud == constants.LOCAL_DOCKER:
+            lg.LocalGenerator(self.task_def).generate_for_delete(info)
+        elif self.cloud == constants.AWS:
+            ag.AWSGenerator(self.task_def).generate_for_delete(info)
+        elif self.cloud == constants.GOOGLE:
+            gg.GoogleGenerator(self.task_def).generate_for_delete(info)
         else:
             print("Cloud %s not supported" % self.cloud)

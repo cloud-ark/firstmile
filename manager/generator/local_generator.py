@@ -89,6 +89,9 @@ class LocalGenerator(object):
         docker_file.write(df)
         docker_file.close()
 
+    def generate_for_delete(self, info):
+        logging.debug("Local generator called for delete for app:%s" % info['app_name'])
+
     def generate(self, generate_type, service_ip_dict):
         if generate_type == 'service':
             self._generate_for_service()

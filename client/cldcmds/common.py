@@ -227,3 +227,26 @@ def artifact_name_show(result, pretty_table):
         pretty_table.add_row(row)
 
     return pretty_table
+
+def artifact_depid_show(result, pretty_table):
+    status_json = json.loads(result)
+    app_status_list = status_json['data']
+
+    logging.debug(app_status_list)
+
+    for line in app_status_list:
+        name = line['name'] if 'name' in line else ''
+        #dep_id = line['dep_id'] if 'dep_id' in line else ''
+        version = line['version'] if 'version' in line else ''
+        cloud = line['cloud'] if 'cloud' in line else ''
+        status = line['status'] if 'status' in line else ''
+        artifact_info_dict = line['info'] if 'info' in line else {}
+
+        artifact_info = ''
+        if artifact_info_dict:
+            for key, value in artifact_info_dict.iteritems():
+                artifact_info = artifact_info + key + ": " + value + "\n"
+        row = [name, version, cloud, status, artifact_info]
+        pretty_table.add_row(row)
+
+    return pretty_table

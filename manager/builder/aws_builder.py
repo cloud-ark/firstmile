@@ -46,6 +46,9 @@ class AWSBuilder(object):
 
         os.chdir(cwd)
 
+    def build_for_delete(self, info):
+        logging.debug("AWS builder called for delete of app:%s" % info['app_name'])
+
     def build(self, build_type, build_name):
         if build_type == 'service':
             logging.debug("AWS builder called for service")

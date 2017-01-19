@@ -11,6 +11,8 @@ import os
 import codecs
 import gzip
 import sys
+import httplib
+import requests
 
 class Deployment(object):
 
@@ -104,6 +106,11 @@ class Deployment(object):
         track_url = response.headers.get('location')
         self.log.debug("Deployment ID:%s" % track_url)
         return track_url
+
+    def delete(self, dep_id):
+        app_url = "http://localhost:5002/deployments/" + dep_id
+        content = requests.delete(app_url)
+        return content
 
     def get(self, dep_id):
         app_url = "http://localhost:5002/deployments/" + dep_id

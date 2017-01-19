@@ -4,3 +4,4 @@ pexpect
 docker-py
 Pillow
 testtools
+requests

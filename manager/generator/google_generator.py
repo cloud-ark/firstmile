@@ -159,6 +159,9 @@ class GoogleGenerator(object):
         self._generate_appengine_config(app_deploy_dir)
         self._generate_docker_file(app_deploy_dir)
 
+    def generate_for_delete(self, info):
+        logging.debug("Google generator called for delete for app:%s" % info['app_name'])
+
     def generate(self, build_type, service_ip_dict, service_info):
         if build_type == 'service':
             logging.debug("Google generator called for service")

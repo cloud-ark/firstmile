@@ -99,6 +99,9 @@ class GoogleDeployer(object):
         self.docker_handler.remove_container_image(app_obj.get_cont_name(),
                                                    "container created to deploy application no longer needed.")
 
+    def deploy_for_delete(self, info):
+        logging.debug("Google deployer for called to delete app:%s" % info['app_name'])
+
     def deploy(self, deploy_type, deploy_name):
         if deploy_type == 'service':
             self.logger.debug("Google deployer called for deploying Google Cloud SQL service")

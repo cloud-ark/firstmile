@@ -333,7 +333,10 @@ class AWSGenerator(object):
         # Note: We do no need to generate ebextensions as we are directly provisioning RDS instance
         # self._generate_ebextensions_dir(service_info)
         self._generate_platform_dockerfile(service_ip_dict, service_info)
-        
+
+    def generate_for_delete(self, info):
+        logging.debug("AWS generator called for delete for app:%s" % info['app_name'])
+
     def generate(self, generate_type, service_ip_dict, service_info):
         if generate_type == 'service':
             logging.debug("AWS generator called for service")

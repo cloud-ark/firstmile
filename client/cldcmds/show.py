@@ -39,10 +39,10 @@ class Show(Command):
     def _deployid_show(self, dep_id):
         result = dp.Deployment().get(dep_id)
         x = prettytable.PrettyTable()
-        x.field_names = ["Deploy ID", "App Name", "App Version", "Cloud", "Status", "App Info"]
+        x.field_names = ["App Name", "App Version", "Cloud", "Status", "App Info"]
 
         if result:
-            pretty_table = common.artifact_name_show(result, x)
+            pretty_table = common.artifact_depid_show(result, x)
 
         self.app.stdout.write("%s\n" % pretty_table)
 

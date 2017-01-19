@@ -55,6 +55,7 @@ setup(
             'app deploy = cldcmds.deploy:Deploy',
             'app show = cldcmds.show:Show',
             'app list = cldcmds.app_list:AppList',
+            'app delete = cldcmds.app_delete:AppDelete',
             'service provision = cldcmds.service:ServiceDeploy',
             'service show = cldcmds.service:ServiceShow',
         ],

@@ -54,6 +54,9 @@ class LocalDeployer(object):
         logging.debug("App URL: %s" % app_url)
         return app_url
 
+    def deploy_for_delete(self, info):
+        logging.debug("Local deployer for called to delete app:%s" % info['app_name'])
+
     def deploy(self, deploy_type, deploy_name):
         if deploy_type == 'service':
             logging.debug("Local deployer called for service %s" % deploy_name)
