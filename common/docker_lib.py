@@ -19,7 +19,7 @@ class DockerLib(object):
         #      "      python-setuptools python-pip git groff \n"
         #      "RUN pip install awsebcli==3.7.7 \n"
         #      "RUN pip install awscli==1.10.63 \n")
-        df = ("FROM lmecld/clis:awscli")
+        df = ("FROM lmecld/clis:awscli\n")
         return df
 
     def get_dockerfile_snippet(self, key):
