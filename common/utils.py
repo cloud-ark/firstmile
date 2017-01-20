@@ -3,8 +3,11 @@ Created on Dec 23, 2016
 
 @author: devdatta
 '''
-import os
 import logging
+import os
+import shutil
+
+from common import constants
 from openstackclient.tests.unit.identity.v2_0.fakes import service_name
 
 def get_id(path, file_name, name, version, s_name, s_version, cloud):
@@ -19,7 +22,15 @@ def get_id(path, file_name, name, version, s_name, s_version, cloud):
             f = open(path + "/" + file_name, "r")
             all_lines = f.readlines()
             if all_lines:
-                last_line = all_lines[-1]
+                found_non_deleted_line = False
+                last_index = len(all_lines)-1
+                while not found_non_deleted_line:
+                    last_line = all_lines[last_index]
+                    parts = last_line.split(" ")
+                    if parts[0] != 'deleted':
+                        found_non_deleted_line = True
+                    else:
+                        last_index = last_index - 1
                 last_line_parts = last_line.split(" ")
                 id_count = int(last_line_parts[0]) + 1
             f.close()
@@ -196,6 +207,36 @@ def _parse_line(part):
     parts_dict['mysql_db_name'] = mysql_db_name
     return parts_dict
 
+def remove_app(dep_id, app_name, app_version):
+    cwd = os.getcwd()
+    os.chdir(constants.APP_STORE_PATH)
+
+    id_file_path = constants.APP_STORE_PATH
+    id_file_name = "app_ids.txt"
+    f = open(id_file_path + "/" + id_file_name, "r")
+    all_lines = f.readlines()
+    for idx, line in enumerate(all_lines):
+        line_contents = line.split(" ")
+        if line_contents[0] == dep_id:
+            line_contents_new = []
+            line_contents_new.append("deleted")
+            line_contents_new.extend(line_contents)
+            new_line = " ".join(line_contents_new)
+            del all_lines[idx]
+            all_lines.insert(idx, new_line)
+    f.close()
+
+    f = open(id_file_path + "/" + id_file_name, "w")
+    f.writelines(all_lines)
+    f.flush()
+    f.close()
+
+    # Remove app artifacts
+    os.chdir(app_name)
+    shutil.rmtree(app_version, ignore_errors=True)
+
+    os.chdir(cwd)
+
 def get_app_and_service_info(id_file_path, id_file_name, dep_id):
 
     info = {}
@@ -207,21 +248,22 @@ def get_app_and_service_info(id_file_path, id_file_name, dep_id):
         # 49 greetings-python--2017-01-19-08-54-18 local-docker mysql-greetings-python 2017-01-19-08-54-18
         line_contents = line.split(" ")
         if line_contents[0] == dep_id:
-            dep_id = line_contents[1].rstrip().lstrip()
-            k = dep_id.rfind("--")
-            app_version = dep_id[k+2:]
+            name_version = line_contents[1].rstrip().lstrip()
+            k = name_version.rfind("--")
+            app_version = name_version[k+2:]
 
             logging.debug("App version:%s" % app_version)
 
-            dep_id = dep_id[:k]
-            l = dep_id.rfind("/")
-            app_name = dep_id[l+1:]
+            name = name_version[:k]
+            l = name.rfind("/")
+            app_name = name[l+1:]
             logging.debug("App name:%s" % app_name)
 
             service_name = line_contents[3]
             service_version = line_contents[4]
             cloud = line_contents[2]
 
+            info['dep_id'] = dep_id
             info['app_name'] = app_name.rstrip().lstrip()
             info['app_version'] = app_version.rstrip().lstrip()
             info['service_name'] = service_name.rstrip().lstrip()

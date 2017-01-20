@@ -46,39 +46,41 @@ class Cloud(Resource):
             line_contents = line.split(" ")
             app_line = {}
 
-            app_version = line_contents[1]
-            k = app_version.find("--")
-            app_name = app_version[:k]
-            app_version = app_version[k+2:].rstrip().lstrip()
-            found_cloud = line_contents[2].rstrip().lstrip()
+            if line_contents[0] != 'deleted':
+                app_version = line_contents[1]
+                k = app_version.find("--")
+                app_name = app_version[:k]
+                app_version = app_version[k+2:].rstrip().lstrip()
+                if len(line_contents) >= 3:
+                    found_cloud = line_contents[2].rstrip().lstrip()
 
-            if found_cloud == cloud_name:
-                app_stat_file = APP_STORE_PATH + "/" + app_name + "/" + app_version + "/app-status.txt"
+                    if found_cloud == cloud_name:
+                        app_stat_file = APP_STORE_PATH + "/" + app_name + "/" + app_version + "/app-status.txt"
 
-                if os.path.exists(app_stat_file):
-                    app_line['dep_id'] = line_contents[0]
-                    app_line['app_version'] = app_version
-                    app_line['app_name'] = app_name
-                    app_stat_file = open(app_stat_file)
-                    stat_line = app_stat_file.read()
+                        if os.path.exists(app_stat_file):
+                            app_line['dep_id'] = line_contents[0]
+                            app_line['app_version'] = app_version
+                            app_line['app_name'] = app_name
+                            app_stat_file = open(app_stat_file)
+                            stat_line = app_stat_file.read()
 
-                    parts = stat_line.split(',')
-                    cloud = ''
-                    url = ''
-                    for p in parts:
-                        if p.find("cloud::") >= 0:
-                            cld = p.split("::")
-                            if len(cld) > 2:
-                                cloud = cld[2]
-                            else:
-                                cloud = cld[1]
-                        if p.find("URL::") >= 0:
-                            u = p.split("::")
-                            url = u[1]
-                    app_line['cloud'] = cloud
-                    app_line['url'] = url
+                            parts = stat_line.split(',')
+                            cloud = ''
+                            url = ''
+                            for p in parts:
+                                if p.find("cloud::") >= 0:
+                                    cld = p.split("::")
+                                    if len(cld) > 2:
+                                        cloud = cld[2]
+                                    else:
+                                        cloud = cld[1]
+                                if p.find("URL::") >= 0:
+                                    u = p.split("::")
+                                    url = u[1]
+                            app_line['cloud'] = cloud
+                            app_line['url'] = url
 
-                    app_lines.append(app_line)
+                            app_lines.append(app_line)
 
         return app_lines
 

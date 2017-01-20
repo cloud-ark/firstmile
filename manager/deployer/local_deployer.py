@@ -10,6 +10,7 @@ from common import app
 from common import service
 from common import utils
 from common import constants
+from common import docker_lib
 from manager.service_handler.mysql import local_handler as lh
 
 class LocalDeployer(object):
@@ -27,6 +28,8 @@ class LocalDeployer(object):
             self.service_obj = service.Service(task_def.service_data[0])
             if self.service_obj.get_service_type() == 'mysql':
                 self.services['mysql'] = lh.MySQLServiceHandler(self.task_def)
+
+        self.docker_handler = docker_lib.DockerLib()
     
     def _deploy_app_container(self, app_obj):
         app_cont_name = app_obj.get_cont_name()
@@ -56,6 +59,26 @@ class LocalDeployer(object):
 
     def deploy_for_delete(self, info):
         logging.debug("Local deployer for called to delete app:%s" % info['app_name'])
+
+        app_name = info['app_name']
+        app_version = info['app_version']
+        app_cont_name = app_name + "-" + app_version
+        if app_name:
+            self.docker_handler.stop_container(app_cont_name, "Stopping app cont " + app_cont_name)
+            self.docker_handler.remove_container(app_cont_name, "Removing app cont " + app_cont_name)
+            self.docker_handler.remove_container_image(app_cont_name, "Removing app cont img" + app_cont_name)
+            utils.remove_app(info['dep_id'], app_name, app_version)
+
+        service_name = info['service_name']
+        service_version = info['service_version']
+        service_cont_name = service_name + "-" + service_version
+        if service_name:
+            self.docker_handler.stop_container(app_cont_name,
+                                               "Stopping service cont " + service_cont_name)
+            self.docker_handler.remove_container(app_cont_name,
+                                                 "Removing service cont " + service_cont_name)
+            self.docker_handler.remove_container_image(app_cont_name,
+                                                       "Removing service cont img " + service_cont_name)
 
     def deploy(self, deploy_type, deploy_name):
         if deploy_type == 'service':
