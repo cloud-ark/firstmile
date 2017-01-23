@@ -61,8 +61,10 @@ class GoogleBuilder(object):
 
             os.chdir(cwd)
 
+            user_email = self.task_def.cloud_data['user_email']
+            project_id = self.task_def.cloud_data['project_id']
             fp = open(df_first_time_loc + "/app-created.txt", "w")
-            fp.write("Google App Engine app created for app %s" % app_name)
+            fp.write("%s %s %s" % (app_name, user_email, project_id))
             fp.close()
 
     def _build_app_container(self, app_obj):

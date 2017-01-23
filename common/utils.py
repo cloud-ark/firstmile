@@ -8,7 +8,7 @@ import os
 import shutil
 
 from common import constants
-from openstackclient.tests.unit.identity.v2_0.fakes import service_name
+
 
 def get_id(path, file_name, name, version, s_name, s_version, cloud):
     # Method 1:

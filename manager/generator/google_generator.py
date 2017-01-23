@@ -94,12 +94,24 @@ class GoogleGenerator(object):
             fp.write(appengine_config)
             fp.close()
 
-    def _check_if_first_time_app_deploy(self):
+    def _check_if_first_time_app_deploy(self, app_name, user_email, project_id):
         df_first_time_loc = self.app_dir[:self.app_dir.rfind("/")]
         if not os.path.exists(df_first_time_loc + "/app-created.txt"):
             return True
         else:
-            return False
+            # check if an app_name has been created for user_email, project_id
+            # by checking existence of following line:
+            # app_name, user_email, project_id
+            f = open(df_first_time_loc + "/app-created.txt", "r")
+            all_lines = f.readlines()
+            first_time_app = True
+            for line in all_lines:
+                parts = line.split(" ")
+                if parts[0] == app_name and parts[1] == user_email and \
+                    parts[2] == project_id:
+                    first_time_app = False
+                    break
+            return first_time_app
     
     def _generate_docker_file(self, app_deploy_dir):
 
@@ -128,7 +140,11 @@ class GoogleGenerator(object):
               "    && /google-cloud-sdk/bin/gcloud config set app/use_appengine_api false \n"
              )
 
-        first_time = self._check_if_first_time_app_deploy()
+        user_email = self.task_def.cloud_data['user_email']
+        project_id = self.task_def.cloud_data['project_id']
+        first_time = self._check_if_first_time_app_deploy(self.app_name,
+                                                          user_email,
+                                                          project_id)
         if first_time:
             df1 = df + ("RUN /google-cloud-sdk/bin/gcloud beta app create --region us-central \n")
             df1 = df1.format(cmd_1=cmd_1, cmd_2=cmd_2, user_email=self.task_def.cloud_data['user_email'],
