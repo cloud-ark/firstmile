@@ -5,3 +5,4 @@ docker-py
 Pillow
 testtools
 requests
+gevent

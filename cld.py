@@ -422,4 +422,9 @@ if __name__ == '__main__':
     if not os.path.exists(APP_STORE_PATH):
         os.makedirs(APP_STORE_PATH)
     logging.info("Starting lme server")
-    app.run(debug=True, threaded=True, host='0.0.0.0', port=5002)
+
+    from gevent.wsgi import WSGIServer
+    http_server = WSGIServer(('', 5002), app)
+    http_server.serve_forever()
+
+    #app.run(debug=True, threaded=True, host='0.0.0.0', port=5002)
