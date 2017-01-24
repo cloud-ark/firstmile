@@ -87,6 +87,13 @@ def get_env_vars_string(task_def, service_ip_dict, app_variables,
             df_env_vars = df_env_vars + generated_val
     return df_env_vars
 
+def parse_artifact_name_and_version(line_contents):
+    artifact = line_contents[1].rstrip().lstrip()
+    k = artifact.rfind("--")
+    artifact_version = artifact[k+2:].rstrip().lstrip()
+    artifact_name = artifact[:k]
+    return artifact_name, artifact_version
+
 def get_artifact_name_version(id_file_path, id_file_name,
                       status_file_name, artifact_id):
     artifact_name = artifact_version = ''
@@ -96,10 +103,7 @@ def get_artifact_name_version(id_file_path, id_file_name,
         for line in all_lines:
             line_contents = line.split(" ")
             if line_contents[0] == artifact_id:
-                artifact = line_contents[1].rstrip().lstrip()
-                k = artifact.rfind("--")
-                artifact_version = artifact[k+2:].rstrip().lstrip()
-                artifact_name = artifact[:k]
+                artifact_name, artifact_version = parse_artifact_name_and_version(line_contents)
 
     return artifact_name, artifact_version
 

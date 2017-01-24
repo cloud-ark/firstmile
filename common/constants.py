@@ -43,3 +43,5 @@ SQL_CONTAINER = "SQL_CONTAINER"
 LOCAL_DOCKER = "local-docker"
 GOOGLE = "google"
 AWS = "aws"
+
+GOOGLE_APP_CREATE_CONT_SUF = "app-create-cont"

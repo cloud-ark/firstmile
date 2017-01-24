@@ -10,6 +10,8 @@ import subprocess
 from docker import Client
 from common import app
 from common import service
+from common import constants
+from common import docker_lib
 
 from manager.service_handler.mysql import google_handler as gh
 
@@ -30,6 +32,7 @@ class GoogleBuilder(object):
                 self.services['mysql'] = gh.MySQLServiceHandler(self.task_def)
 
         self.docker_client = Client(base_url='unix://var/run/docker.sock', version='1.18')
+        self.docker_handler = docker_lib.DockerLib()
 
 
     def _build_first_time_container(self, app_obj):
@@ -43,9 +46,10 @@ class GoogleBuilder(object):
         if not gae_app_created:
             app_obj.update_app_status("BUILDING FIRST TIME APP CONTAINER")
             cwd = os.getcwd()
-            app_dir = self.task_def.app_data['app_location']
-            app_name = self.task_def.app_data['app_name']
-            cont_name = app_name + "-app-create-cont"
+            app_dir = self.app_dir
+            app_name = self.app_name
+            app_version = self.app_version
+            cont_name = app_name + "-" + app_version + "-" + constants.GOOGLE_APP_CREATE_CONT_SUF
             logging.debug("Container name that will be used in building:%s" % cont_name)
 
             os.chdir(app_dir + "/" + app_name)
@@ -53,19 +57,27 @@ class GoogleBuilder(object):
             logging.debug("Docker build command:%s" % build_cmd)
 
             try:
-                result = subprocess.check_output(build_cmd, shell=True)
-                logging.debug(result)
+                out = subprocess.Popen(build_cmd, stdout=subprocess.PIPE,
+                                       stderr=subprocess.PIPE, shell=True).communicate()[0]
+
+                logging.debug(out)
+                user_email = self.task_def.cloud_data['user_email']
+                project_id = self.task_def.cloud_data['project_id']
+                fp = open(df_first_time_loc + "/app-created.txt", "w")
+                fp.write("%s %s %s" % (app_name, user_email, project_id))
+                fp.close()
+
+                # Remove first time container image
+                cont_name = self.app_name + "-" + self.app_version + "-" + constants.GOOGLE_APP_CREATE_CONT_SUF
+                self.docker_handler.stop_container(cont_name, "Stopping app create container")
+                self.docker_handler.remove_container(cont_name, "Removing app create container")
+                self.docker_handler.remove_container_image(cont_name, "Removing app create container image")
+
             except Exception as e:
                 logging.debug(e)
                 logging.debug("Probably gae app was already created.")
 
             os.chdir(cwd)
-
-            user_email = self.task_def.cloud_data['user_email']
-            project_id = self.task_def.cloud_data['project_id']
-            fp = open(df_first_time_loc + "/app-created.txt", "w")
-            fp.write("%s %s %s" % (app_name, user_email, project_id))
-            fp.close()
 
     def _build_app_container(self, app_obj):
         app_obj.update_app_status("BUILDING APP CONTAINER")

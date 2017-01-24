@@ -99,6 +99,11 @@ class GoogleDeployer(object):
         self.docker_handler.remove_container_image(app_obj.get_cont_name(),
                                                    "container created to deploy application no longer needed.")
 
+        # Remove any stray container
+        self.docker_handler.stop_container("google", "Stopping google deployment related container")
+        self.docker_handler.remove_container("google", "Removing google deployment related container")
+        self.docker_handler.remove_container_image("google", "Removing google deployment related container image")
+
     def deploy_for_delete(self, info):
         logging.debug("Google deployer for called to delete app:%s" % info['app_name'])
 

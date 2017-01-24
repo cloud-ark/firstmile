@@ -25,23 +25,43 @@ class DockerLib(object):
     def get_dockerfile_snippet(self, key):
         return self.docker_file_snippets[key]
 
+    def _get_cont_id(self, cont_name):
+        cont_id_cmd = ("docker ps -a | grep {cont_name} | cut -d ' ' -f 1").format(cont_name=cont_name)
+
+        out = subprocess.Popen(cont_id_cmd, stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE, shell=True).communicate()[0]
+        return out
+
     def stop_container(self, cont_name, reason_phrase):
         logging.debug("Stopping container %s. Reason: %s" % (cont_name, reason_phrase))
-        stop_cmd = ("docker ps -a | grep {cont_name} | cut -d ' ' -f 1 | xargs docker stop").format(cont_name=cont_name)
-        logging.debug("stop command:%s" % stop_cmd)
-        os.system(stop_cmd)
+        cont_id = self._get_cont_id(cont_name)
+        if cont_id:
+            stop_cmd = ("docker stop {cont_id}").format(cont_id=cont_id)
+            logging.debug("stop command:%s" % stop_cmd)
+            os.system(stop_cmd)
 
     def remove_container(self, cont_name, reason_phrase):
         logging.debug("Removing container %s. Reason: %s" % (cont_name, reason_phrase))
-        rm_cmd = ("docker ps -a | grep {cont_name} | cut -d ' ' -f 1 | xargs docker rm").format(cont_name=cont_name)
-        logging.debug("rm command:%s" % rm_cmd)
-        os.system(rm_cmd)
+        cont_id = self._get_cont_id(cont_name)
+        if cont_id:
+            rm_cmd = ("docker rm -f {cont_id}").format(cont_id=cont_id)
+            #rm_cmd = ("docker ps -a | grep {cont_name} | cut -d ' ' -f 1 | xargs docker rm -f").format(cont_name=cont_name)
+            logging.debug("rm command:%s" % rm_cmd)
+            os.system(rm_cmd)
 
     def remove_container_image(self, cont_name, reason_phrase):
         logging.debug("Removing container image %s. Reason: %s" % (cont_name, reason_phrase))
-        rmi_cmd = ("docker images -a | grep {cont_name}  | awk \'{{print $3}}\' | xargs docker rmi").format(cont_name=cont_name)
-        logging.debug("rmi command:%s" % rmi_cmd)
-        os.system(rmi_cmd)
+        #cont_id = self._get_cont_id(cont_name)
+        #if cont_id:
+        #rmi_cmd = ("docker rmi -f {cont_id}").format(cont_id=cont_id)
+        cont_id_cmd = ("docker images -a | grep {cont_name}  | awk \'{{print $3}}\'").format(cont_name=cont_name)
+
+        cont_id = subprocess.Popen(cont_id_cmd, stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE, shell=True).communicate()[0]
+        if cont_id:
+            rmi_cmd =  ("docker rmi -f {cont_id}").format(cont_id=cont_id)
+            logging.debug("rmi command:%s" % rmi_cmd)
+            os.system(rmi_cmd)
 
     def build_container_image(self, cont_name, docker_file_name):
         docker_build_cmd = ("docker build -t {cont_name} -f {docker_file_name} .").format(cont_name=cont_name,

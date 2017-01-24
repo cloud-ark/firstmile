@@ -10,6 +10,7 @@ import os
 import subprocess
 import sys
 import yaml
+import shutil
 
 from os.path import expanduser
 
@@ -56,16 +57,35 @@ def get_google_project_user_details(project_location):
         fp.close()
     return project_id, user_email
 
+def parse_artifact_name_and_version(line_contents):
+    artifact = line_contents[1].rstrip().lstrip()
+    k = artifact.rfind("--")
+    artifact_version = artifact[k+2:].rstrip().lstrip()
+    artifact_name = artifact[:k]
+    return artifact_name, artifact_version
+
+def reset_google():
+    print("Removing google-creds directory from %s" % APP_STORE_PATH)
+    google_creds_path = APP_STORE_PATH + "/google-creds"
+    if os.path.exists(google_creds_path):
+        shutil.rmtree(google_creds_path)
+
+    print("Removing app-created.txt from various apps in %s" % APP_STORE_PATH)
+    fp = open(APP_STORE_PATH + "/app_ids.txt")
+    all_lines = fp.readlines()
+    for line in all_lines:
+        line_contents = line.split(" ")
+        app_name, app_version = parse_artifact_name_and_version(line_contents)
+        app_created_file = APP_STORE_PATH + "/" + app_name + "/app-created.txt"
+        if os.path.exists(app_created_file):
+            os.remove(app_created_file)
+
 def setup_google(dest):
     google_creds_path = APP_STORE_PATH + "/google-creds"
     if not os.path.exists(google_creds_path):
         os.makedirs(google_creds_path)
 
-        df = ("FROM ubuntu:14.04 \n"
-              "RUN apt-get update && apt-get install -y wget python \n"
-              "RUN sudo wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-126.0.0-linux-x86_64.tar.gz && \ \n"
-              "    sudo gunzip google-cloud-sdk-126.0.0-linux-x86_64.tar.gz && \ \n"
-              "    sudo tar -xvf google-cloud-sdk-126.0.0-linux-x86_64.tar \n"
+        df = ("FROM lmecld/clis:gcloud \n"
               "RUN /google-cloud-sdk/bin/gcloud components install beta \n"
               "ENTRYPOINT [\"/google-cloud-sdk/bin/gcloud\", \"beta\", \"auth\", \"login\", \"--no-launch-browser\"] \n")
 
@@ -90,8 +110,18 @@ def setup_google(dest):
         copy_file_cmd = ("docker cp {cont_id}:/root/.config/gcloud {google_creds_path}").format(cont_id=cont_id,
                                                                                                  google_creds_path=google_creds_path)
         os.system(copy_file_cmd)
-
         os.chdir(cwd)
+
+        # Remove container created to obtain creds
+        cont_name = ("{app_name}_creds").format(app_name=app_name)
+        stop_cmd = ("docker ps -a | grep {cont_name} | cut -d ' ' -f 1 | xargs docker stop").format(cont_name=cont_name)
+        os.system(stop_cmd)
+
+        rm_cmd = ("docker ps -a | grep {cont_name} | cut -d ' ' -f 1 | xargs docker rm").format(cont_name=cont_name)
+        os.system(rm_cmd)
+
+        rmi_cmd = ("docker images -a | grep {cont_name}  | awk \'{{print $3}}\' | xargs docker rmi -f").format(cont_name=cont_name)
+        os.system(rmi_cmd)
 
 def setup_aws(dest):
     aws_creds_path = APP_STORE_PATH + "/aws-creds"

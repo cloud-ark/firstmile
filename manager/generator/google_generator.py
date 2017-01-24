@@ -121,11 +121,6 @@ class GoogleGenerator(object):
 
         logging.debug("Sed pattern:%s" % cmd_1)
 
-        #df = ("FROM ubuntu:14.04 \n"
-        #      "RUN apt-get update && apt-get install -y wget python \n"
-        #      "RUN sudo wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-126.0.0-linux-x86_64.tar.gz && \ \n"
-        #      "    sudo gunzip google-cloud-sdk-126.0.0-linux-x86_64.tar.gz && \ \n"
-        #      "    sudo tar -xvf google-cloud-sdk-126.0.0-linux-x86_64.tar \n")
         df = ("FROM lmecld/clis:gcloud \n"
               "RUN /google-cloud-sdk/bin/gcloud components install beta \n"
               "COPY . /src \n"
