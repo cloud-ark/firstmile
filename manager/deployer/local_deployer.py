@@ -4,6 +4,7 @@ Created on Oct 26, 2016
 @author: devdatta
 '''
 import logging
+import subprocess
 
 from docker import Client
 from common import app
@@ -30,8 +31,8 @@ class LocalDeployer(object):
                 self.services['mysql'] = lh.MySQLServiceHandler(self.task_def)
 
         self.docker_handler = docker_lib.DockerLib()
-    
-    def _deploy_app_container(self, app_obj):
+
+    def _deploy_app_container_prev(self, app_obj):
         app_cont_name = app_obj.get_cont_name()
         self.docker_client.import_image(image=app_cont_name)
         port_list = []
@@ -54,6 +55,45 @@ class LocalDeployer(object):
         app_url = ("{app_ip_addr}:{app_port}").format(app_ip_addr=app_ip_addr,
                                                       app_port=self.app_port)
         
+        logging.debug("App URL: %s" % app_url)
+        return app_url
+
+    def _parse_app_ip(self, cont_id):
+        inspect_cmd = ("docker inspect {cont_id}").format(cont_id=cont_id)
+
+        addr = ''
+        try:
+            out = subprocess.Popen(inspect_cmd, stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE, shell=True).communicate()[0]
+            all_lines = out.split("\n")
+            for line in all_lines:
+                if line.find("IPAddress") >= 0:
+                    parts = line.split(":")
+                    addr = parts[1].replace('"',"").replace(',','')
+                    addr = addr.lstrip().rstrip()
+                    return addr
+        except Exception as e:
+            logging.error(e)
+
+        return addr
+
+    def _deploy_app_container(self, app_obj):
+        app_cont_name = app_obj.get_cont_name()
+
+        run_cmd = ("docker run -i -d --publish-all=true {cont_name}").format(cont_name=app_cont_name)
+
+        try:
+            cont_id = subprocess.Popen(run_cmd, stdout=subprocess.PIPE,
+                                       stderr=subprocess.PIPE, shell=True).communicate()[0]
+
+            app_ip_addr = self._parse_app_ip(cont_id)
+
+        except Exception as e:
+            logging.error(e)
+
+        app_url = ("{app_ip_addr}:{app_port}").format(app_ip_addr=app_ip_addr,
+                                                      app_port=self.app_port)
+
         logging.debug("App URL: %s" % app_url)
         return app_url
 
