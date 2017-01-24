@@ -63,6 +63,11 @@ class Deployment(object):
         data = {'service': service_info, 'cloud': cloud_info}
 
         response = urllib2.urlopen(req, json.dumps(data, ensure_ascii=True, encoding='ISO-8859-1'))
+
+        if response.status_code == '503':
+            print("CLD server encountered disk full error. Make space and then try again.")
+            return
+
         track_url = response.headers.get('location')
         self.log.debug("Deployment ID:%s" % track_url)
         return track_url
@@ -103,6 +108,10 @@ class Deployment(object):
         req.add_header('Content-Type', 'application/octet-stream')
 
         response = urllib2.urlopen(req, json.dumps(data, ensure_ascii=True, encoding='ISO-8859-1'))
+
+        if response.code == '503':
+            print("CLD server encountered disk full error. Make space and then try again.")
+            return
         track_url = response.headers.get('location')
         self.log.debug("Deployment ID:%s" % track_url)
         return track_url

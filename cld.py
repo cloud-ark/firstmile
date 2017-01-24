@@ -252,19 +252,20 @@ class Deployment(Resource):
 class Deployments(Resource):
     def _untar_the_app(self, app_tar_file, versioned_app_path):
         #TODO(devkulkarni): Untaring is not working
-        #os.chdir(versioned_app_path)
-        #tar = tarfile.open(app_tar_name)
+
+        logging.debug("Untarring received app tar file %s" % app_tar_file)
+        os.chdir(versioned_app_path)
+        tar = tarfile.open(app_tar_file)
+        tar.extractall(path=versioned_app_path)
+        tar.close()
         #for member in tar.getmembers():
         #    tar.extractfile(member)
         #tar.close()
 
-        logging.debug("Untarring received app tar file %s" % app_tar_file)
-
-        untar_cmd = ("tar -xf {app_tar_file} -C {versioned_app_path}").format(app_tar_file=app_tar_file,
-                                                                               versioned_app_path=versioned_app_path)
-
-        result = subprocess.check_output(untar_cmd, shell=True)
-        logging.debug(result)
+        #untar_cmd = ("tar -xf {app_tar_file} -C {versioned_app_path}").format(app_tar_file=app_tar_file,
+        #                                                                       versioned_app_path=versioned_app_path)
+        #result = subprocess.check_output(untar_cmd, shell=True)
+        #logging.debug(result)
 
     def _store_service_contents(self, service_name, setup_file_content, version):
         service_path = ("{SERVICE_STORE_PATH}/{service_name}").format(SERVICE_STORE_PATH=SERVICE_STORE_PATH,
@@ -331,76 +332,81 @@ class Deployments(Resource):
 
         args_dict = dict(args)
 
-        # Handle service deployment
-        if not 'app' in args_dict and (args_dict['service'] and args_dict['cloud']):
-            cloud_data = args['cloud']
-            cloud = cloud_data['type']
-            service_data = args['service']
+        try:
+            # Handle service deployment
+            if not 'app' in args_dict and (args_dict['service'] and args_dict['cloud']):
+                cloud_data = args['cloud']
+                cloud = cloud_data['type']
+                service_data = args['service']
 
-            # Currently supporting single service
-            service_obj = service.Service(service_data[0])
-            task_name = service_name = service_obj.get_service_name()
+                # Currently supporting single service
+                service_obj = service.Service(service_data[0])
+                task_name = service_name = service_obj.get_service_name()
 
-            version = '' # get new version for service deployment
-            service_data, service_version = self._update_service_data(service_data,
-                                                                      service_name,
-                                                                      version)
+                version = '' # get new version for service deployment
+                service_data, service_version = self._update_service_data(service_data,
+                                                                          service_name,
+                                                                          version)
 
-            task_def = task_definition.TaskDefinition('', cloud_data, service_data)
+                task_def = task_definition.TaskDefinition('', cloud_data, service_data)
 
-            service_id = utils.get_id(SERVICE_STORE_PATH, "service_ids.txt", service_name, 
-                                  service_version, '', '', cloud)
-            logging.debug("Service id:%s" % service_id)
-            response.headers['location'] = ('/deployments/{service_id}').format(service_id=service_id)
-        elif args['app'] and args['service'] and args['cloud']: #handle app and service deployment
-            app_data = args['app']
-            cloud_data = args['cloud']
-            service_data = args['service']
+                service_id = utils.get_id(SERVICE_STORE_PATH, "service_ids.txt", service_name,
+                                      service_version, '', '', cloud)
+                logging.debug("Service id:%s" % service_id)
+                response.headers['location'] = ('/deployments/{service_id}').format(service_id=service_id)
+            elif args['app'] and args['service'] and args['cloud']: #handle app and service deployment
+                app_data = args['app']
+                cloud_data = args['cloud']
+                service_data = args['service']
 
-            task_name = app_name = app_data['app_name']
-            app_tar_name = app_data['app_tar_name']
-            content = app_data['app_content']
-            cloud = cloud_data['type']
+                task_name = app_name = app_data['app_name']
+                app_tar_name = app_data['app_tar_name']
+                content = app_data['app_content']
+                cloud = cloud_data['type']
 
-            app_location, app_version = self._store_app_contents(app_name, app_tar_name, content)
-            app_data['app_location'] = app_location
-            app_data['app_version'] = app_version
+                app_location, app_version = self._store_app_contents(app_name, app_tar_name, content)
+                app_data['app_location'] = app_location
+                app_data['app_version'] = app_version
 
-            service_name = service.Service(service_data[0]).get_service_name() + "-" + app_name
-            service_data, service_version = self._update_service_data(service_data,
-                                                                      service_name,
-                                                                      app_version)
+                service_name = service.Service(service_data[0]).get_service_name() + "-" + app_name
+                service_data, service_version = self._update_service_data(service_data,
+                                                                          service_name,
+                                                                          app_version)
 
-            task_def = task_definition.TaskDefinition(app_data, cloud_data, service_data)
+                task_def = task_definition.TaskDefinition(app_data, cloud_data, service_data)
 
-            app_id = utils.get_id(APP_STORE_PATH, "app_ids.txt", app_name, app_version,
-                                  service_name, service_version, cloud)
-            logging.debug("App id:%s" % app_id)
-            response.headers['location'] = ('/deployments/{app_id}').format(app_id=app_id)
-        elif 'app' in args_dict and 'cloud' in args_dict:
+                app_id = utils.get_id(APP_STORE_PATH, "app_ids.txt", app_name, app_version,
+                                      service_name, service_version, cloud)
+                logging.debug("App id:%s" % app_id)
+                response.headers['location'] = ('/deployments/{app_id}').format(app_id=app_id)
+            elif 'app' in args_dict and 'cloud' in args_dict:
 
-            app_data = args['app']
-            cloud_data = args['cloud']
-            task_name = app_name = app_data['app_name']
-            app_tar_name = app_data['app_tar_name']
-            content = app_data['app_content']
-            cloud = cloud_data['type']
+                app_data = args['app']
+                cloud_data = args['cloud']
+                task_name = app_name = app_data['app_name']
+                app_tar_name = app_data['app_tar_name']
+                content = app_data['app_content']
+                cloud = cloud_data['type']
 
-            app_location, app_version = self._store_app_contents(app_name, app_tar_name, content)
+                app_location, app_version = self._store_app_contents(app_name, app_tar_name, content)
 
-            app_data['app_location'] = app_location
-            app_data['app_version'] = app_version
-            task_def = task_definition.TaskDefinition(app_data, cloud_data, '')
+                app_data['app_location'] = app_location
+                app_data['app_version'] = app_version
+                task_def = task_definition.TaskDefinition(app_data, cloud_data, '')
 
-            app_id = utils.get_id(APP_STORE_PATH, "app_ids.txt", app_name, app_version, '', '', cloud)
-            logging.debug("App id:%s" % app_id)
-            response.headers['location'] = ('/deployments/{app_id}').format(app_id=app_id)
+                app_id = utils.get_id(APP_STORE_PATH, "app_ids.txt", app_name, app_version, '', '', cloud)
+                logging.debug("App id:%s" % app_id)
+                response.headers['location'] = ('/deployments/{app_id}').format(app_id=app_id)
 
-        # dispatch the handler thread
-        delegatethread = mgr.Manager(task_name, task_def)
-        thread.start_new_thread(start_thread, (delegatethread, ))
-        logging.debug("Location header:%s" % response.headers['location'])
-        logging.debug("Response:%s" % response)
+            # dispatch the handler thread
+            delegatethread = mgr.Manager(task_name, task_def)
+            thread.start_new_thread(start_thread, (delegatethread, ))
+            logging.debug("Location header:%s" % response.headers['location'])
+            logging.debug("Response:%s" % response)
+        except OSError as oe:
+            logging.error(oe)
+            # Send back service unavailable status
+            response.status_code = 503
 
         return response
 
