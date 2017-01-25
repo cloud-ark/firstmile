@@ -144,17 +144,6 @@ class AWSGenerator(object):
                                                             print_prefix,
                                                             env_key_suffix)
                 runapp = runapp + runapp_env_vars
-                #runapp = ("#!/bin/sh \n"
-                #          "export DB={db_name} \n"
-                #          "export USER={user} \n"
-                #          "export PASSWORD={password} \n"
-                #          "export HOST={instance_dns} \n"
-                #          "python /src/{entry_point} \n"
-                #          ).format(db_name=db_name,
-                #                   user=user,
-                #                   password=password,
-                #                   instance_dns=instance_dns,
-                #                   entry_point=self.entry_point + ".py")
                 print_prefix = "ENV "
                 env_key_suffix = " "
                 df_env_vars = utils.get_env_vars_string(self.task_def,
@@ -173,12 +162,6 @@ class AWSGenerator(object):
                         export_vars = export_vars + ("export {key}={value}\n").format(key=key, value=value)
                     df = df + env_vars
                     runapp = runapp + export_vars
-            #      "ENV DB {db_name}\n"
-            #      "ENV USER {user} \n"
-            #      "ENV PASSWORD {password} \n"
-            #      "ENV HOST {instance_dns} \n"
-            #      ).format(db_name=db_name, user=user, password=password,
-            #               instance_dns=instance_dns)
 
             runapp = runapp + ("python /src/{entry_point}\n").format(entry_point=self.entry_point + ".py")
             runapp_fp.write(runapp)
@@ -234,17 +217,6 @@ class AWSGenerator(object):
                                                             print_prefix,
                                                             env_key_suffix)
                 runapp = runapp + runapp_env_vars
-                #runapp = ("#!/bin/sh \n"
-                #          "export DB={db_name} \n"
-                #          "export USER={user} \n"
-                #          "export PASSWORD={password} \n"
-                #          "export HOST={instance_dns} \n"
-                #          "python /src/{entry_point} \n"
-                #          ).format(db_name=db_name,
-                #                   user=user,
-                #                   password=password,
-                #                   instance_dns=instance_dns,
-                #                   entry_point=self.entry_point + ".py")
                 print_prefix = "ENV "
                 env_key_suffix = " "
                 df_env_vars = utils.get_env_vars_string(self.task_def,
@@ -263,12 +235,6 @@ class AWSGenerator(object):
                         export_vars = export_vars + ("export {key}={value}\n").format(key=key, value=value)
                     df = df + env_vars
                     runapp = runapp + export_vars
-            #      "ENV DB {db_name}\n"
-            #      "ENV USER {user} \n"
-            #      "ENV PASSWORD {password} \n"
-            #      "ENV HOST {instance_dns} \n"
-            #      ).format(db_name=db_name, user=user, password=password,
-            #               instance_dns=instance_dns)
 
         runapp = runapp + ("python /src/{entry_point}\n").format(entry_point=self.entry_point + ".py")
         runapp_fp.write(runapp)
@@ -301,10 +267,7 @@ class AWSGenerator(object):
         
         entrypt_cmd = ("ENTRYPOINT [\"eb\", \"create\", \"{env_name}\", \"-c\", "
                        "\"{env_name}\", \"--timeout\", \"20\"]  \n").format(env_name=env_name)
-        #dockerfile_maneuver = ("RUN mv Dockerfile.deploy Dockerfile.bak \n")
-        #if service_info or 'env_variables' in self.task_def.app_data:
-        ##    entrypt_cmd = ("ENTRYPOINT [\"eb\", \"create\", \"{env_name}\", \"-c\", "
-        ##                   "\"{env_name}\", \"-db\", \"--timeout\", \"20\"] \n").format(env_name=env_name)
+
         dockerfile_maneuver = ("RUN mv Dockerfile.deploy Dockerfile.bak \n"
                                "RUN mv Dockerfile.aws Dockerfile \n")
             
