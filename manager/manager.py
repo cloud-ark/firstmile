@@ -47,8 +47,6 @@ class Manager(threading.Thread):
             service_ip_addresses = {}
             services = self.task_def.service_data
 
-            #if self.task_def.cloud_data['type'] == 'local' or self.task_def.cloud_data['type'] == 'google':
-
             cloud = self.task_def.cloud_data['type']
             for serv in services:
                 service_obj = service.Service(serv)
