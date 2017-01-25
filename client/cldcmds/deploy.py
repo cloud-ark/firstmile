@@ -1,7 +1,6 @@
 import logging
 import prettytable
 import os
-import subprocess
 import sys
 
 import common
@@ -18,7 +17,6 @@ class Deploy(Command):
 
     def get_parser(self, prog_name):
         parser = super(Deploy, self).get_parser(prog_name)
-        #parser.add_argument('filename', nargs='?', default='.')
         parser.add_argument('--service-name',
                             dest='service',
                             help="Name of the required service (e.g.: MySQL)")
@@ -131,8 +129,3 @@ class Deploy(Command):
         x.add_row([app_name, dep_id, cloud_info['type']])
         self.app.stdout.write("%s\n" % x)
         self.log.debug(x)
-
-
-
-            
-

@@ -4,10 +4,8 @@ Created on Dec 23, 2016
 @author: devdatta
 '''
 import logging
-import json
 import prettytable
 import os
-import sys
 
 from cliff.command import Command
 

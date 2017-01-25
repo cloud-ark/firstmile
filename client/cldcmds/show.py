@@ -108,10 +108,6 @@ class Show(Command):
             self.app.stdout.write("%s\n" % x)
 
     def take_action(self, parsed_args):
-        #self.log.info('Show application info')
-        #self.log.debug('Show application info')
-        #self.app.stdout.write('Show app info\n')
-        #self.app.stdout.write("Passed args:%s" % parsed_args)
 
         if parsed_args.appname:
             self._app_name_show(parsed_args.appname)

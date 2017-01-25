@@ -8,10 +8,7 @@ import json
 import tarfile
 import urllib2
 import os
-import codecs
 import gzip
-import sys
-import httplib
 import requests
 
 class Deployment(object):
@@ -89,16 +86,6 @@ class Deployment(object):
         app_info['app_content'] = tarfile_content
         app_info['app_type'] = app_type
         app_info['entry_point'] = entry_point
-
-        #app_data = {'app_name':app_name, 'app_tar_name': tarfile_name,
-        #            'app_content':tarfile_content, 'app_type': app_type,
-        #            'entry_point': entry_point
-        #            }
-
-        #cloud_data = {'cloud': cloud, 'project_id': cloud_info['project_id'],
-        #              'user_email': cloud_info['user_email']}
-
-        #service_list = self._parse_service_info(service_info)
 
         data = {'app': app_info, 'service': service_info, 'cloud': cloud_info}
 
