@@ -14,11 +14,6 @@ class DockerLib(object):
         self.docker_file_snippets['aws'] = self._aws_df_snippet()
 
     def _aws_df_snippet(self):
-        #df = ("FROM ubuntu:14.04\n"
-        #      "RUN apt-get update && apt-get install -y \ \n"
-        #      "      python-setuptools python-pip git groff \n"
-        #      "RUN pip install awsebcli==3.7.7 \n"
-        #      "RUN pip install awscli==1.10.63 \n")
         df = ("FROM lmecld/clis:awscli\n")
         return df
 
