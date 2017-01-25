@@ -64,11 +64,6 @@ class LocalBuilder(object):
 
         self.docker_handler.build_container_image(cont_name, "Dockerfile")
 
-        #build_cmd = ("docker build -t {name} . ").format(name=cont_name)
-        #logging.debug("Docker build command:%s" % build_cmd)
-        #result = subprocess.check_output(build_cmd, shell=True)
-        #logging.debug(result)
-
         os.chdir(cwd)
 
     def build_for_delete(self, info):

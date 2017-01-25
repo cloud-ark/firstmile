@@ -40,8 +40,6 @@ class MySQLServiceHandler(object):
         if self.service_obj.get_setup_file_content():
             self.db_info['setup_file'] = 'setup.sh'
 
-
-
         self.app_status_file = ''
         if self.task_def.app_data:
             self.app_name = self.task_def.app_data['app_name']
