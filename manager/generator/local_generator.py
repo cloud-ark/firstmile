@@ -52,8 +52,8 @@ class LocalGenerator(object):
         df = ''
         if bool(service_ip_dict):
             df = ("FROM ubuntu:14.04\n"
-                  "RUN apt-get update -y\n"
-                  "RUN apt-get install -y python-setuptools python-pip\n"
+                  "RUN apt-get update -y \ \n"
+                  "    && apt-get install -y python-setuptools python-pip\n"
                   "ADD requirements.txt /src/requirements.txt\n"
                   "RUN cd /src; pip install -r requirements.txt\n"
                   "ADD . /src\n"
@@ -63,8 +63,8 @@ class LocalGenerator(object):
             df = df + ("CMD [\"python\", \"/src/{entry_point}\"]").format(entry_point=entry_point)
         else:
             df = ("FROM ubuntu:14.04\n"
-                  "RUN apt-get update -y\n"
-                  "RUN apt-get install -y python-setuptools python-pip\n"
+                  "RUN apt-get update -y \ \n"
+                  "    && apt-get install -y python-setuptools python-pip\n"
                   "ADD requirements.txt /src/requirements.txt\n"
                   "RUN cd /src; pip install -r requirements.txt\n"
                   "ADD . /src\n"
@@ -96,6 +96,8 @@ class LocalGenerator(object):
         if generate_type == 'service':
             self._generate_for_service()
         elif generate_type == 'app':
+            app_obj = app.App(self.task_def.app_data)
+            app_obj.update_app_status("GENERATING artifacts for local deployment")
             logging.debug("Local generator called for app %s" %
                           self.task_def.app_data['app_name'])
             if self.app_type == 'python':

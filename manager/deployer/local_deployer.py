@@ -141,6 +141,9 @@ class LocalDeployer(object):
             app_obj = app.App(self.task_def.app_data)
             app_obj.update_app_status(constants.DEPLOYING_APP)
             ip_addr = self._deploy_app_container(app_obj)
-            app_obj.update_app_status(constants.APP_DEPLOYMENT_COMPLETE)
+            if ip_addr:
+                app_obj.update_app_status(constants.APP_DEPLOYMENT_COMPLETE)
+            else:
+                app_obj.update_app_status(constants.DEPLOYMENT_ERROR)
             app_obj.update_app_ip(ip_addr)
         return ip_addr
