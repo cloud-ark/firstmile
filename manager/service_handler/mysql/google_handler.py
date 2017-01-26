@@ -105,7 +105,7 @@ class MySQLServiceHandler(object):
 
             while not user_created:
                 try:
-                    output = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                    output = subprocess.Popen(track_usr_cmd, stdout=subprocess.PIPE,
                                               stderr=subprocess.PIPE, shell=True).communicate()[0]
                 except Exception as e:
                     print(e)
@@ -124,6 +124,9 @@ class MySQLServiceHandler(object):
         cmd = ('curl --header "Authorization: Bearer {access_token}" '
                ' https://www.googleapis.com/sql/v1beta4/projects/{project_id}/instances/{db_server} -X GET'
               ).format(access_token=access_token, project_id=project_id, db_server=db_server)
+
+        logging.debug("Track google cloud sql create status")
+        logging.debug("cmd:%s" % cmd)
 
         db_instance_up = False
         while not db_instance_up:
