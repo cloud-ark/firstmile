@@ -183,4 +183,4 @@ Deploying through LME UI (Under development):
 
 Details:
 --------
-- Deployment related artifacts are stored inside ".lme" folder inside your home directory (~/.lme/data/deployments)
+- Deployment related artifacts are stored inside ".cld" folder inside your home directory (~/.cld/data/deployments)
