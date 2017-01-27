@@ -10,7 +10,7 @@ import time
 
 from testtools import TestCase
 
-MAX_WAIT_COUNT = 60
+MAX_WAIT_COUNT = 180
 SAMPLE_REPO = "https://devdattakulkarni@bitbucket.org/devdattakulkarni/lme-examples.git"
 SAMPLE_REPO_NAME = "lme-examples"
 
@@ -71,19 +71,21 @@ class TestLocal(TestCase):
     def test_with_flags_no_service(self):
         cwd = os.getcwd()
         os.chdir("/tmp/lme-examples/hello-world")
-        deploy_cmd = "lme app deploy --cloud local"
+        deploy_cmd = "cld app deploy --cloud local-docker"
         dep_id = ''
         try:
             child = pexpect.spawn(deploy_cmd)
             expected = ">"
             child.expect(expected)
             child.sendline("application.py")
+            child.expect(expected)
+            child.sendline("5000")
             lines = child.read()
-            dep_id, name = self._parse_dep_id("local", lines)
+            dep_id, name = self._parse_dep_id("local-docker", lines)
         except Exception as e:
             print(e)
 
-        show_cmd = ("lme app show --deploy-id {dep_id}").format(dep_id=dep_id)
+        show_cmd = ("cld app show --deploy-id {dep_id}").format(dep_id=dep_id)
         self.assertTrue(self._assert_deploy_complete(show_cmd, "APP_DEPLOYMENT_COMPLETE"),
                         "App deployment completed")
         self._cleanup(name)
@@ -93,17 +95,17 @@ class TestLocal(TestCase):
     def test_mysql_instance_deploy(self):
         cwd = os.getcwd()
         os.chdir("/tmp/lme-examples/greetings-python")
-        deploy_cmd = "lme service deploy --cloud local"
+        deploy_cmd = "cld service provision --cloud local-docker"
         dep_id = ''
         try:
             output = subprocess.Popen(deploy_cmd, stdout=subprocess.PIPE,
                                       stderr=subprocess.PIPE, shell=True).communicate()[0]
 
-            dep_id, name = self._parse_dep_id("local", output)
+            dep_id, name = self._parse_dep_id("local-docker", output)
         except Exception as e:
             print(e)
 
-        show_cmd = ("lme service show --deploy-id {dep_id}").format(dep_id=dep_id)
+        show_cmd = ("cld service show --deploy-id {dep_id}").format(dep_id=dep_id)
         self.assertTrue(self._assert_deploy_complete(show_cmd, "SERVICE_DEPLOYMENT_COMPLETE"),
                         "Service deployment completed")
         self._cleanup(name)
