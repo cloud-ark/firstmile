@@ -26,9 +26,9 @@ def parse_dep_id(cloud, lines):
             print("Dep id:%s Name:%s" % (dep_id, name))
             return dep_id, name
 
-def assert_deploy_complete(show_cmd, status):
+def assert_deploy_complete(show_cmd, status, wait_count=MAX_WAIT_COUNT):
     count = 0
-    while count < MAX_WAIT_COUNT:
+    while count < wait_count:
         try:
             output = subprocess.Popen(show_cmd,
                                       stdout=subprocess.PIPE,
