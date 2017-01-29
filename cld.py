@@ -99,6 +99,20 @@ class Cloud(Resource):
         response.status_code = 201
         return response
 
+class Services(Resource):
+    def get(self):
+        logging.debug("Executing GET for all services")
+
+        status_lines = utils.read_statues(SERVICE_STORE_PATH, "service_ids.txt",
+                                          "service-status.txt", '', '')
+        resp_data = {}
+
+        resp_data['data'] = status_lines
+
+        response = jsonify(**resp_data)
+        response.status_code = 201
+        return response
+
 class Service(Resource):
     def get(self, service_name):
         logging.debug("Executing GET for service:%s" % service_name)
@@ -413,6 +427,7 @@ class Deployments(Resource):
 api.add_resource(Cloud, '/clouds/<cloud_name>')
 api.add_resource(Apps, '/apps')
 api.add_resource(App, '/apps/<app_name>')
+api.add_resource(Services, '/services')
 api.add_resource(Service, '/services/<service_name>')
 api.add_resource(ServiceGetDeployID, '/servicesdepshow/<dep_id>')
 api.add_resource(Deployment, '/deployments/<dep_id>')

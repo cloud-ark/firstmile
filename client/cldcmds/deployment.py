@@ -132,6 +132,14 @@ class Deployment(object):
         self.log.debug("Response:%s" % app_data)
         return app_data
 
+    def get_all_services(self):
+        app_url = "http://localhost:5002/services"
+        req = urllib2.Request(app_url)
+        response = urllib2.urlopen(req)
+        service_data = response.fp.read()
+        self.log.debug("Response:%s" % service_data)
+        return service_data
+
     def get_service_info(self, service_name):
         service_url = "http://localhost:5002/services/" + service_name
         req = urllib2.Request(service_url)
