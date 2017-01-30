@@ -26,8 +26,8 @@ class Deploy(Command):
         return parser
 
     def _get_app_details(self):
-        default_app_port = '5000'
-        app_type = 'python'
+        default_app_port = common.DEFAULT_APP_PORT
+        app_type = common.DEFAULT_APP_TYPE
 
         default_entry_point = "application.py"
         entry_point = raw_input("Enter file name that has main function in it (e.g.: application.py)>")

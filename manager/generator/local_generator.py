@@ -77,7 +77,7 @@ class LocalGenerator(object):
                 if env_var_obj:
                     for key, value in env_var_obj.iteritems():
                         env_vars = env_vars + ("ENV {key} {value}\n").format(key=key, value=value)
-                        df = df + env_vars
+                    df = df + env_vars
 
             df = df +  ("CMD [\"python\", \"/src/{entry_point}\"]").format(entry_point=entry_point)
 

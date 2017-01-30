@@ -21,7 +21,8 @@ APP_STORE_PATH = ("{home_dir}/.cld/data/deployments").format(home_dir=home_dir)
 LOCAL_DOCKER = "local-docker"
 GOOGLE = "google"
 AWS = "aws"
-DEFAULT_APP_PORT = "80"
+DEFAULT_APP_PORT = "5000"
+DEFAULT_APP_TYPE = "python"
 
 def get_google_project_user_details(project_location):
     google_app_details_path = APP_STORE_PATH + "/google-creds/app_details.txt"
@@ -150,7 +151,8 @@ def read_app_info():
 
     fp = open(lmefile, "r")
     lme_obj = yaml.load(fp.read())
-    application_obj = lme_obj['application']
+
+    application_obj = lme_obj[0]['application']
     app_type = application_obj['type']
     entry_point = application_obj['entry_point']
 
@@ -168,6 +170,11 @@ def read_app_info():
     if 'app_variables' in application_obj:
         app_var_obj = application_obj['app_variables']
         app_info['app_variables'] = app_var_obj
+
+    app_port = DEFAULT_APP_PORT
+    if application_obj['app_port']:
+        app_port = application_obj['app_port']
+    app_info['app_port'] = app_port
 
     return app_info
 
@@ -194,14 +201,9 @@ def read_cloud_info():
 
     fp = open(lmefile, "r")
     lme_obj = yaml.load(fp.read())
-    cloud_obj = lme_obj['cloud']
+    cloud_obj = lme_obj[1]['cloud']
 
     cloud_info['type'] = cloud_obj['type']
-    if cloud_obj['type'] == LOCAL_DOCKER:
-        app_port = DEFAULT_APP_PORT
-        if cloud_obj['app_port']:
-            app_port = cloud_obj['app_port']
-            cloud_info['app_port'] = app_port
     if cloud_obj['type'] == GOOGLE:
         if not cloud_obj['project_id']:
             print("project_id required for cloud %s" % cloud_obj['type'])
