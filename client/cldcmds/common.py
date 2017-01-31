@@ -152,7 +152,11 @@ def read_app_info():
     fp = open(lmefile, "r")
     lme_obj = yaml.load(fp.read())
 
-    application_obj = lme_obj[0]['application']
+    for ob in lme_obj:
+        if 'application' in ob:
+            application_obj = ob['application']
+            break
+
     app_type = application_obj['type']
     entry_point = application_obj['entry_point']
 
@@ -187,9 +191,11 @@ def read_service_info():
 
     fp = open(lmefile, "r")
     lme_obj = yaml.load(fp.read())
-    if 'services' in lme_obj:
-        service_info = lme_obj['services']
 
+    for ob in lme_obj:
+        if 'services' in ob:
+            service_info = ob['services']
+            break
     return service_info
 
 def read_cloud_info():
@@ -201,7 +207,11 @@ def read_cloud_info():
 
     fp = open(lmefile, "r")
     lme_obj = yaml.load(fp.read())
-    cloud_obj = lme_obj[1]['cloud']
+
+    for ob in lme_obj:
+        if 'cloud' in ob:
+            cloud_obj = ob['cloud']
+            break
 
     cloud_info['type'] = cloud_obj['type']
     if cloud_obj['type'] == GOOGLE:

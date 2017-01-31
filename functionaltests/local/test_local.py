@@ -40,6 +40,70 @@ class TestLocal(TestCase):
 
         return dep_id, name
 
+    def _prep_app_vars_data(self):
+        app_vars_dict = dict()
+        app_vars_dict['db_var'] = 'DB'
+        app_vars_dict['host_var'] = 'HOST'
+        app_vars_dict['user_var'] = 'USER'
+        app_vars_dict['password_var'] = 'PASSWORD'
+
+        app_details_dict = {}
+        app_details_dict['type'] = 'python'
+        app_details_dict['entry_point'] = 'application.py'
+        app_details_dict['app_port'] = '5000'
+        app_details_dict['app_variables'] = app_vars_dict
+        app_dict = {}
+        app_dict['application'] = app_details_dict
+
+        cloud_details_dict = {}
+        cloud_details_dict['type'] = 'local-docker'
+        cloud_dict = {}
+        cloud_dict['cloud'] = cloud_details_dict
+
+        services_details_dict = {}
+        service_details_dict = {}
+        service_dict = {}
+        service_dict['type'] = 'mysql'
+        service_details_dict['service'] = service_dict
+        services_details_dict['services'] = [service_details_dict]
+
+        return app_dict, cloud_dict, services_details_dict
+
+    def _execute_app_vars_test(self, target_dir, list_of_dicts):
+        utils.create_cld_yaml_file(target_dir, list_of_dicts)
+        os.chdir(target_dir)
+
+        deploy_cmd = "cld app deploy"
+        dep_id = ''
+        try:
+            print("Deploy cmd:%s" % deploy_cmd)
+            print("cwd:%s" % os.getcwd())
+            output = subprocess.Popen(deploy_cmd, stdout=subprocess.PIPE,
+                                      stderr=subprocess.PIPE, shell=True).communicate()[0]
+            dep_id, app_name = utils.parse_dep_id("local-docker", output)
+        except Exception as e:
+            print(e)
+
+        show_cmd = ("cld app show --deploy-id {dep_id}").format(dep_id=dep_id)
+        self.assertTrue(utils.assert_deploy_complete(show_cmd, "APP_DEPLOYMENT_COMPLETE"),
+                        "App deployment completed")
+
+        try:
+            output = subprocess.Popen(show_cmd, stdout=subprocess.PIPE,
+                                      stderr=subprocess.PIPE, shell=True).communicate()[0]
+            app_url = utils.parse_app_url(output)
+        except Exception as e:
+            print(e)
+
+        req = requests.get(app_url)
+        response = req.text
+        self.assertTrue(utils.contains("Hello, World!", response))
+
+        utils.cleanup(app_name)
+        utils.cleanup(app_name)
+        utils.cleanup("mysql")
+        utils.cleanup("ubuntu")
+
     def test_app_deploy_no_service(self):
         cwd = os.getcwd()
         os.chdir("/tmp/lme-examples/hello-world")
@@ -96,6 +160,51 @@ class TestLocal(TestCase):
 
         os.chdir(cwd)
 
+    def test_app_deploy_with_app_vars_yaml_file(self):
+        cwd = os.getcwd()
+
+        app_dict, cloud_dict, services_details_dict = self._prep_app_vars_data()
+
+        list_of_dicts = list()
+        list_of_dicts.append(app_dict)
+        list_of_dicts.append(cloud_dict)
+        list_of_dicts.append(services_details_dict)
+
+        target_dir = "/tmp/lme-examples/greetings-python"
+        self._execute_app_vars_test(target_dir, list_of_dicts)
+
+        os.chdir(cwd)
+
+    def test_app_deploy_with_app_vars_yaml_file_diff_order1(self):
+        cwd = os.getcwd()
+
+        app_dict, cloud_dict, services_details_dict = self._prep_app_vars_data()
+
+        list_of_dicts = list()
+        list_of_dicts.append(cloud_dict)
+        list_of_dicts.append(app_dict)
+        list_of_dicts.append(services_details_dict)
+
+        target_dir = "/tmp/lme-examples/greetings-python"
+        self._execute_app_vars_test(target_dir, list_of_dicts)
+
+        os.chdir(cwd)
+
+    def test_app_deploy_with_app_vars_yaml_file_diff_order2(self):
+        cwd = os.getcwd()
+
+        app_dict, cloud_dict, services_details_dict = self._prep_app_vars_data()
+
+        list_of_dicts = list()
+        list_of_dicts.append(services_details_dict)
+        list_of_dicts.append(cloud_dict)
+        list_of_dicts.append(app_dict)
+
+        target_dir = "/tmp/lme-examples/greetings-python"
+        self._execute_app_vars_test(target_dir, list_of_dicts)
+
+        os.chdir(cwd)
+
     def test_app_deploy_with_yaml_file(self):
         cwd = os.getcwd()
         dep_id, service_name = self._provision_mysql_instance()
@@ -138,7 +247,7 @@ class TestLocal(TestCase):
         target_dir = "/tmp/lme-examples/greetings-python"
         utils.create_cld_yaml_file(target_dir, list_of_dicts)
 
-        deploy_cmd = "cld app deploy --cloud local-docker"
+        deploy_cmd = "cld app deploy"
         dep_id = ''
         try:
             output = subprocess.Popen(deploy_cmd, stdout=subprocess.PIPE,
