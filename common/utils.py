@@ -254,25 +254,29 @@ def get_app_and_service_info(id_file_path, id_file_name, dep_id):
         if line_contents[0] == dep_id:
             name_version = line_contents[1].rstrip().lstrip()
             k = name_version.rfind("--")
-            app_version = name_version[k+2:]
+            app_version = name_version[k+2:].rstrip().lstrip()
 
             logging.debug("App version:%s" % app_version)
 
             name = name_version[:k]
             l = name.rfind("/")
-            app_name = name[l+1:]
+            app_name = name[l+1:].rstrip().lstrip()
             logging.debug("App name:%s" % app_name)
 
-            service_name = line_contents[3]
-            service_version = line_contents[4]
-            cloud = line_contents[2]
+            cloud = line_contents[2].rstrip().lstrip()
+
+            service_name = ''
+            service_version = ''
+            if len(line_contents) == 5:
+                service_name = line_contents[3].rstrip().lstrip()
+                service_version = line_contents[4].rstrip().lstrip()
 
             info['dep_id'] = dep_id
-            info['app_name'] = app_name.rstrip().lstrip()
-            info['app_version'] = app_version.rstrip().lstrip()
-            info['service_name'] = service_name.rstrip().lstrip()
-            info['service_version'] = service_version.rstrip().lstrip()
-            info['cloud'] = cloud.rstrip().lstrip()
+            info['app_name'] = app_name
+            info['app_version'] = app_version
+            info['service_name'] = service_name
+            info['service_version'] = service_version
+            info['cloud'] = cloud
     return info
 
 def read_statues(id_file_path, id_file_name, status_file_name, artifact_name,

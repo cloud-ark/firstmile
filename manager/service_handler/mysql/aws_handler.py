@@ -176,6 +176,18 @@ class MySQLServiceHandler(object):
             fp.write("%s::%s, " % (constants.DB_USER_PASSWORD, constants.DEFAULT_DB_PASSWORD))
             fp.close()
 
+    def get_terminate_cmd(self, delete_info):
+        app_name = delete_info['app_name']
+        app_version = delete_info['app_version']
+
+        instance_name = ("{app_name}-{app_version}").format(app_name=app_name,
+                                                            app_version=app_version)
+        rds_delete_cmd = ("RUN aws rds delete-db-instance ")
+        rds_delete_cmd = rds_delete_cmd + ("--db-instance-identifier {instance_name} ")
+        rds_delete_cmd = rds_delete_cmd + ("--skip-final-snapshot").format(instance_name=instance_name)
+
+        return rds_delete_cmd
+
     def get_eb_extensions_contents(self):
         # TODO(devkulkarni): Below setup_cfg is for DynamoDB.
         # We want one for RDS

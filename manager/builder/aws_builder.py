@@ -11,6 +11,7 @@ from common import app
 from common import service
 from common import utils
 from common import docker_lib
+from common import constants
 
 from manager.service_handler.mysql import aws_handler as awsh
 
@@ -48,6 +49,16 @@ class AWSBuilder(object):
 
     def build_for_delete(self, info):
         logging.debug("AWS builder called for delete of app:%s" % info['app_name'])
+
+        app_name = info['app_name']
+        app_version = info['app_version']
+        app_dir = (constants.APP_STORE_PATH + "/{app_name}/{app_version}/{app_name}").format(app_name=app_name,
+                                                                                             app_version=app_version)
+        cwd = os.getcwd()
+        os.chdir(app_dir)
+        self.docker_handler.build_container_image(app_name + "-delete", "Dockerfile.delete")
+        os.chdir(cwd)
+        self.docker_handler.remove_container_image(app_name + "-delete", "done deleting the app")
 
     def build(self, build_type, build_name):
         if build_type == 'service':

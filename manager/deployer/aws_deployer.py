@@ -25,6 +25,7 @@ class AWSDeployer(object):
 
     def __init__(self, task_def):
         self.task_def = task_def
+        self.logger = logging.getLogger(name=self.__class__.__name__)
 
         self.services = {}
         self.app_obj = ''
@@ -138,6 +139,20 @@ class AWSDeployer(object):
         cname = self._process_logs(cont_id, app_cont_name, app_obj)
         return cname
 
+    def _cleanup(self, app_obj):
+        # Remove any temporary container created for service provisioning
+        for serv in self.task_def.service_data:
+            serv_handler = self.services[serv['service']['type']]
+            serv_handler.cleanup()
+
+        # Remove app container
+        self.docker_handler.stop_container(app_obj.get_cont_name(),
+                                           "container created to deploy application no longer needed.")
+        self.docker_handler.remove_container(app_obj.get_cont_name(),
+                                             "container created to deploy application no longer needed.")
+        self.docker_handler.remove_container_image(app_obj.get_cont_name(),
+                                                   "container created to deploy application no longer needed.")
+
     def deploy_for_delete(self, info):
         logging.debug("AWS deployer for called to delete app:%s" % info['app_name'])
 
@@ -172,3 +187,6 @@ class AWSDeployer(object):
             app_ip_addr = self._deploy_app_container(app_obj)
             app_obj.update_app_status(constants.APP_DEPLOYMENT_COMPLETE)
             app_obj.update_app_ip(app_ip_addr)
+            self.logger.debug("AWS deployment complete.")
+            self.logger.debug("Removing temporary containers created to assist in the deployment.")
+            self._cleanup(app_obj)

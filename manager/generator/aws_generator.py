@@ -273,7 +273,7 @@ class AWSGenerator(object):
             
         logging.debug("Entrypoint cmd:%s" % entrypt_cmd)
         logging.debug("Dockerfile maneuver:%s" % dockerfile_maneuver)
-            
+
         # Generate Dockerfile
         df = self.docker_handler.get_dockerfile_snippet("aws")
         df = df + ("COPY . /src \n"
@@ -299,6 +299,38 @@ class AWSGenerator(object):
 
     def generate_for_delete(self, info):
         logging.debug("AWS generator called for delete for app:%s" % info['app_name'])
+
+        app_name = info['app_name']
+        app_version = info['app_version']
+        app_dir = (constants.APP_STORE_PATH + "/{app_name}/{app_version}/{app_name}").format(app_name=app_name,
+                                                                                             app_version=app_version)
+
+        eb_terminate_cmd = ("RUN eb terminate {app_name}-{app_version} --force").format(app_name=app_name,
+                                                                                        app_version=app_version)
+
+        service_name = info['service_name']
+
+        service_terminate_cmd = ''
+        if service_name:
+            parts = service_name.split("-")
+            if parts[0] == 'mysql':
+                mysql_handler = awsh.MySQLServiceHandler(self.task_def)
+                service_terminate_cmd = mysql_handler.get_terminate_cmd()
+
+        df = self.docker_handler.get_dockerfile_snippet("aws")
+        df = df + ("COPY . /src \n"
+              "WORKDIR /src \n"
+              "RUN cp -r aws-creds $HOME/.aws \n"
+              "{eb_terminate_cmd}"
+              "{service_terminate_cmd}"
+            ).format(eb_terminate_cmd=eb_terminate_cmd,
+                     service_terminate_cmd=service_terminate_cmd)
+
+        logging.debug("Dockerfile dir:%s" % app_dir)
+        docker_file = open(app_dir + "/Dockerfile.delete", "w")
+        docker_file.write(df)
+        docker_file.flush()
+        docker_file.close()
 
     def generate(self, generate_type, service_ip_dict, service_info):
         if generate_type == 'service':
