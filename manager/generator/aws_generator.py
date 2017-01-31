@@ -315,13 +315,13 @@ class AWSGenerator(object):
             parts = service_name.split("-")
             if parts[0] == 'mysql':
                 mysql_handler = awsh.MySQLServiceHandler(self.task_def)
-                service_terminate_cmd = mysql_handler.get_terminate_cmd()
+                service_terminate_cmd = mysql_handler.get_terminate_cmd(info)
 
         df = self.docker_handler.get_dockerfile_snippet("aws")
         df = df + ("COPY . /src \n"
               "WORKDIR /src \n"
               "RUN cp -r aws-creds $HOME/.aws \n"
-              "{eb_terminate_cmd}"
+              "{eb_terminate_cmd}\n"
               "{service_terminate_cmd}"
             ).format(eb_terminate_cmd=eb_terminate_cmd,
                      service_terminate_cmd=service_terminate_cmd)

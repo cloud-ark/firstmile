@@ -181,8 +181,8 @@ class MySQLServiceHandler(object):
         instance_name = ("{app_name}-{app_version}").format(app_name=app_name,
                                                             app_version=app_version)
         rds_delete_cmd = ("RUN aws rds delete-db-instance ")
-        rds_delete_cmd = rds_delete_cmd + ("--db-instance-identifier {instance_name} ")
-        rds_delete_cmd = rds_delete_cmd + ("--skip-final-snapshot").format(instance_name=instance_name)
+        rds_delete_cmd = rds_delete_cmd + ("--db-instance-identifier {instance_name} ").format(instance_name=instance_name)
+        rds_delete_cmd = rds_delete_cmd + ("--skip-final-snapshot")
 
         return rds_delete_cmd
 
