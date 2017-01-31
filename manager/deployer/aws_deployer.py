@@ -4,10 +4,7 @@ Created on Dec 6, 2016
 @author: devdatta
 '''
 import logging
-import os
-import pexpect
 import subprocess
-import sys
 import time
 
 from docker import Client
@@ -54,9 +51,6 @@ class AWSDeployer(object):
         logging.debug("Fetching logs from AWS deployer container")
         logged_status = []
 
-        #if services_defined:
-        #    cont_id = self._parse_container_id(app_cont_name)
-
         docker_logs_cmd = ("docker logs {cont_id}").format(cont_id=cont_id)
         logging.debug("Docker logs command:%s" % docker_logs_cmd)
         cname = "1.2.3.4"
@@ -99,42 +93,6 @@ class AWSDeployer(object):
         docker_run_cmd = ("docker run -i -t -d {app_container}").format(app_container=app_cont_name)
         cont_id = subprocess.check_output(docker_run_cmd, shell=True)
         logging.debug("Running container id:%s" % cont_id)
-
-#        services_defined = False
-#        services = self.task_def.service_data
-#        cont_id = ''
-#        if services:
-#            #logging.debug("Looks like app requires Amazon RDS instance. Spawning and providing setup credentials")
-#            services_defined = True
-#            try:
-#                docker_run_cmd = ("docker run -i -t {app_container}").format(app_container=app_cont_name)
-#                #docker_attach_cmd = ("docker attach {cont_id}").format(cont_id=cont_id)
-#                #logging.debug("docker attach cmd:%s" % docker_attach_cmd)
-#                # Allow the platform to get ready
-#                #logging.debug("Allowing AWS to do its thing. Waiting for 20 seconds before continuing..")
-#                #time.sleep(20)
-#                #child = pexpect.spawn(docker_attach_cmd)
-
-                #username_val = constants.DEFAULT_DB_USER
-                #password_val = constants.DEFAULT_DB_PASSWORD
-                #child = pexpect.spawn(docker_run_cmd)
-                #child.logfile = sys.stdout
-                #child.expect("Enter an RDS DB username*", timeout=120)
-                #child.sendline(username_val)
-                #child.expect("Enter an RDS DB master password*")
-                #child.sendline(password_val)
-                #child.expect("Retype password to confirm*")
-                #child.sendline(password_val)
-                #logging.debug("Done providing db creds to eb create command.")
-                #os.system(docker_run_cmd)
-                #child.close()
-#            except Exception as e:
-#                logging.error(e)
-#        else:
-#            docker_run_cmd = ("docker run -i -t -d {app_container}").format(app_container=app_cont_name)
-            #os.system(docker_run_cmd)
-#            cont_id = subprocess.check_output(docker_run_cmd, shell=True)
-#            logging.debug("Running container id:%s" % cont_id)
 
         cname = self._process_logs(cont_id, app_cont_name, app_obj)
         return cname

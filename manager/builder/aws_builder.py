@@ -6,7 +6,6 @@ Created on Jan 5, 2017
 import logging
 import os
 
-from docker import Client
 from common import app
 from common import service
 from common import utils

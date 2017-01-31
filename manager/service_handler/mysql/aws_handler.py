@@ -5,13 +5,11 @@ Created on Jan 5, 2017
 '''
 import logging
 import os
-import stat
 import subprocess
 import time
 
 from common import docker_lib
 from common import service
-from common import utils
 from common import constants
 
 RDS_INSTANCE_DEPLOY_DFILE = "Dockerfile.rds-instance-deploy"
