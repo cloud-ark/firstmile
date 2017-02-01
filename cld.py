@@ -1,6 +1,5 @@
 import logging
 import os
-import subprocess
 import tarfile
 import datetime
 import time
@@ -96,7 +95,7 @@ class Cloud(Resource):
         resp_data['app_data'] = app_lines
 
         response = jsonify(**resp_data)
-        response.status_code = 201
+        response.status_code = 200
         return response
 
 class Services(Resource):
@@ -110,7 +109,7 @@ class Services(Resource):
         resp_data['data'] = status_lines
 
         response = jsonify(**resp_data)
-        response.status_code = 201
+        response.status_code = 200
         return response
 
 class Service(Resource):
@@ -127,7 +126,7 @@ class Service(Resource):
         resp_data['data'] = status_and_details_lines
 
         response = jsonify(**resp_data)
-        response.status_code = 201
+        response.status_code = 200
         return response
 
 class ServiceGetDeployID(Resource):
@@ -156,7 +155,7 @@ class ServiceGetDeployID(Resource):
 
         resp_data['data'] = stat_and_details_lines
         response = jsonify(**resp_data)
-        response.status_code = 201
+        response.status_code = 200
         return response
 
 class App(Resource):
@@ -170,7 +169,7 @@ class App(Resource):
         resp_data['data'] = status_lines
 
         response = jsonify(**resp_data)
-        response.status_code = 201
+        response.status_code = 200
         return response
 
 class Apps(Resource):
@@ -184,7 +183,7 @@ class Apps(Resource):
         resp_data['data'] = status_lines
 
         response = jsonify(**resp_data)
-        response.status_code = 201
+        response.status_code = 200
         return response
 
 class Deployment(Resource):
@@ -192,16 +191,21 @@ class Deployment(Resource):
         logging.debug("Executing DELETE for dep id:%s" % dep_id)
         info = utils.get_app_and_service_info(APP_STORE_PATH, "app_ids.txt", dep_id)
 
-        cloud_data = {}
-        cloud_data['type'] = info['cloud']
-        task_def = task_definition.TaskDefinition('', cloud_data, '')
-
-        # dispatch the handler thread
-        delegatethread = mgr.Manager(task_def=task_def, delete_action=True, delete_info=info)
-        thread.start_new_thread(start_thread, (delegatethread, ))
         resp_data = {}
         response = jsonify(**resp_data)
-        response.status_code = 201
+
+        cloud_data = {}
+        if info:
+            cloud_data['type'] = info['cloud']
+            task_def = task_definition.TaskDefinition('', cloud_data, '')
+
+            # dispatch the handler thread
+            delegatethread = mgr.Manager(task_def=task_def, delete_action=True, delete_info=info)
+            thread.start_new_thread(start_thread, (delegatethread, ))
+
+            response.status_code = 204
+        else:
+            response.status_code = 404
         return response
 
     def get(self, dep_id):
@@ -215,7 +219,7 @@ class Deployment(Resource):
         resp_data['data'] = status_data
 
         response = jsonify(**resp_data)
-        response.status_code = 201
+        response.status_code = 200
         return response
 
     def get_1(self, dep_id):
@@ -260,7 +264,7 @@ class Deployment(Resource):
         resp_data['app_data'] = app_status_data
 
         response = jsonify(**resp_data)
-        response.status_code = 201
+        response.status_code = 200
         return response
 
 class Deployments(Resource):
@@ -434,12 +438,11 @@ api.add_resource(Deployment, '/deployments/<dep_id>')
 api.add_resource(Deployments, '/deployments')
 
 if __name__ == '__main__':
-    # Create the data directory if it does not exist
-
     logging.basicConfig(filename=constants.LOG_FILE_NAME,
                         level=logging.DEBUG, filemode='a')
     logging.basicConfig(format='%(asctime)s %(message)s',
                         datefmt='%m/%d/%Y %I:%M:%S %p')
+    # Create the data directory if it does not exist
     if not os.path.exists(APP_STORE_PATH):
         os.makedirs(APP_STORE_PATH)
     logging.info("Starting lme server")

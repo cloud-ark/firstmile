@@ -105,8 +105,10 @@ class Deployment(object):
 
     def delete(self, dep_id):
         app_url = "http://localhost:5002/deployments/" + dep_id
-        content = requests.delete(app_url)
-        return content
+        response = requests.delete(app_url)
+        if response.status_code == 404:
+            print("Application with deploy-id %s not found." % dep_id)
+        return response
 
     def get(self, dep_id):
         app_url = "http://localhost:5002/deployments/" + dep_id
