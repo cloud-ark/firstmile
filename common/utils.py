@@ -10,7 +10,7 @@ import shutil
 from common import constants
 
 
-def get_id(path, file_name, name, version, s_name, s_version, cloud):
+def get_id(path, file_name, name, version, s_name, s_version, s_id, cloud):
     # Method 1:
     # app_id = ("{app_name}--{app_version}").format(app_name=app_name, app_version=app_version)
 
@@ -39,7 +39,7 @@ def get_id(path, file_name, name, version, s_name, s_version, cloud):
 
     f = open(path + "/" + file_name, "a")
     line = str(id_count) + " " + name + "--" + version + " " + cloud
-    line = line + " " + s_name + " " + s_version + "\n"
+    line = line + " " + s_name + " " + s_version + " " + str(s_id) + "\n"
     f.write(line)
     return id_count
 
@@ -211,12 +211,11 @@ def _parse_line(part):
     parts_dict['mysql_db_name'] = mysql_db_name
     return parts_dict
 
-def remove_app(dep_id, app_name, app_version):
-    cwd = os.getcwd()
+def remove_artifact(dep_id, artifact_id_path, artifact_id_file, artifact_name, artifact_version):
     os.chdir(constants.APP_STORE_PATH)
 
-    id_file_path = constants.APP_STORE_PATH
-    id_file_name = "app_ids.txt"
+    id_file_path = artifact_id_path
+    id_file_name = artifact_id_file
     f = open(id_file_path + "/" + id_file_name, "r")
     all_lines = f.readlines()
     for idx, line in enumerate(all_lines):
@@ -235,11 +234,11 @@ def remove_app(dep_id, app_name, app_version):
     f.flush()
     f.close()
 
-    # Remove app artifacts
-    os.chdir(app_name)
-    shutil.rmtree(app_version, ignore_errors=True)
+    # Remove artifact directory
+    os.chdir(artifact_id_path + "/" + artifact_name)
+    shutil.rmtree(artifact_version, ignore_errors=True)
 
-    os.chdir(cwd)
+    os.chdir(constants.APP_STORE_PATH)
 
 def get_app_and_service_info(id_file_path, id_file_name, dep_id):
 
@@ -267,15 +266,17 @@ def get_app_and_service_info(id_file_path, id_file_name, dep_id):
 
             service_name = ''
             service_version = ''
-            if len(line_contents) == 5:
+            if len(line_contents) == 6:
                 service_name = line_contents[3].rstrip().lstrip()
                 service_version = line_contents[4].rstrip().lstrip()
+                service_id = line_contents[5].rstrip().lstrip()
 
             info['dep_id'] = dep_id
             info['app_name'] = app_name
             info['app_version'] = app_version
             info['service_name'] = service_name
             info['service_version'] = service_version
+            info['service_id'] = service_id
             info['cloud'] = cloud
     return info
 

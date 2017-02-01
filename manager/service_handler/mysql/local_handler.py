@@ -119,3 +119,10 @@ class MySQLServiceHandler(object):
 
     def get_instance_info(self):
         return self.db_info
+
+    @classmethod
+    def get_instance_name(self, info):
+        app_name = info['app_name']
+        app_version = info['app_version']
+        instance_name = app_name + "-" + app_version + "-mysql"
+        return instance_name

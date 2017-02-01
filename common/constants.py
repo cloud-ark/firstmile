@@ -10,9 +10,13 @@ DEFAULT_DB_PASSWORD = 'testpass123!#$'
 DEFAULT_DB_NAME = 'testdb'
 DEFAULT_APP_PORT = '80'
 
+UBUNTU_IMAGE_NAME = 'ubuntu'
+MYSQL_IMAGE_NAME = 'mysql'
+
 home_dir = expanduser("~")
 
 APP_STORE_PATH = ("{home_dir}/.cld/data/deployments").format(home_dir=home_dir)
+SERVICE_STORE_PATH = APP_STORE_PATH + "/services"
 
 GOOGLE_CREDS_PATH = APP_STORE_PATH + "/google-creds"
 

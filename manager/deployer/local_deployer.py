@@ -107,19 +107,32 @@ class LocalDeployer(object):
         if app_name:
             self.docker_handler.stop_container(app_cont_name, "Stopping app cont " + app_cont_name)
             self.docker_handler.remove_container(app_cont_name, "Removing app cont " + app_cont_name)
-            self.docker_handler.remove_container_image(app_cont_name, "Removing app cont img" + app_cont_name)
-            utils.remove_app(info['dep_id'], app_name, app_version)
+            self.docker_handler.remove_container_image(app_cont_name, "Removing app cont img " + app_cont_name)
+            utils.remove_artifact(info['dep_id'], constants.APP_STORE_PATH, "app_ids.txt", app_name, app_version)
+
+            self.docker_handler.remove_container_image(constants.UBUNTU_IMAGE_NAME,
+                                                       "Removing app cont img " + constants.UBUNTU_IMAGE_NAME)
 
         service_name = info['service_name']
         service_version = info['service_version']
-        service_cont_name = service_name + "-" + service_version
+        service_id = info['service_id']
+
         if service_name:
-            self.docker_handler.stop_container(app_cont_name,
+            parts = service_name.split("-")
+            if parts[0] == 'mysql':
+                service_cont_name = lh.MySQLServiceHandler.get_instance_name(info)
+            self.docker_handler.stop_container(service_cont_name,
                                                "Stopping service cont " + service_cont_name)
-            self.docker_handler.remove_container(app_cont_name,
+            self.docker_handler.remove_container(service_cont_name,
                                                  "Removing service cont " + service_cont_name)
-            self.docker_handler.remove_container_image(app_cont_name,
+            self.docker_handler.remove_container_image(service_cont_name,
                                                        "Removing service cont img " + service_cont_name)
+
+            utils.remove_artifact(service_id, constants.SERVICE_STORE_PATH,
+                                  "service_ids.txt", service_name, service_version)
+
+            self.docker_handler.remove_container_image(constants.MYSQL_IMAGE_NAME,
+                                                       "Removing app cont img " + constants.MYSQL_IMAGE_NAME)
 
     def deploy(self, deploy_type, deploy_name):
         if deploy_type == 'service':

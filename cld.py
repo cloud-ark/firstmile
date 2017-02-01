@@ -393,8 +393,12 @@ class Deployments(Resource):
 
                 task_def = task_definition.TaskDefinition(app_data, cloud_data, service_data)
 
+                service_id = utils.get_id(SERVICE_STORE_PATH, "service_ids.txt", service_name,
+                                      service_version, '', '', '', cloud)
+                logging.debug("Service id:%s" % service_id)
+
                 app_id = utils.get_id(APP_STORE_PATH, "app_ids.txt", app_name, app_version,
-                                      service_name, service_version, cloud)
+                                      service_name, service_version, service_id, cloud)
                 logging.debug("App id:%s" % app_id)
                 response.headers['location'] = ('/deployments/{app_id}').format(app_id=app_id)
             elif 'app' in args_dict and 'cloud' in args_dict:
