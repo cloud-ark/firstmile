@@ -113,6 +113,10 @@ class AWSDeployer(object):
 
     def deploy_for_delete(self, info):
         logging.debug("AWS deployer for called to delete app:%s" % info['app_name'])
+        app_name = info['app_name']
+        app_version = info['app_version']
+        dep_id = info['dep_id']
+        utils.remove_app(dep_id, app_name, app_version)
 
     def deploy(self, deploy_type, deploy_name):
         if deploy_type == 'service':

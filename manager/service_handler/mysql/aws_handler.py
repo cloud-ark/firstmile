@@ -232,3 +232,16 @@ class MySQLServiceHandler(object):
         self._save_instance_information(instance_dns)
         return instance_dns
         
+    def cleanup(self):
+        # Stop and remove container generated for creating the database
+        if self.task_def.service_data:
+
+            cont_name = self.instance_name + "--" + self.instance_version + "--deploy-rds"
+            self.docker_handler.stop_container(cont_name, "container created to deploy rds no longer needed.")
+            self.docker_handler.remove_container(cont_name, "container created to deploy rds no longer needed.")
+            self.docker_handler.remove_container_image(cont_name, "container created to deploy rds no longer needed.")
+
+            cont_name = self.instance_name + "--" + self.instance_version + "--check-rds"
+            self.docker_handler.stop_container(cont_name, "container created to deploy rds no longer needed.")
+            self.docker_handler.remove_container(cont_name, "container created to deploy rds no longer needed.")
+            self.docker_handler.remove_container_image(cont_name, "container created to deploy rds no longer needed.")
