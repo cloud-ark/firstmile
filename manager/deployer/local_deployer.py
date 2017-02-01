@@ -71,7 +71,8 @@ class LocalDeployer(object):
                     parts = line.split(":")
                     addr = parts[1].replace('"',"").replace(',','')
                     addr = addr.lstrip().rstrip()
-                    return addr
+                    if addr:
+                        return addr
         except Exception as e:
             logging.error(e)
 
