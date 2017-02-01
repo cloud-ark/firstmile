@@ -251,15 +251,13 @@ class MySQLServiceHandler(object):
         logging.debug("Container id:%s" % cont_id)
 
         copy_file_cmd = ("docker cp {cont_id}:/src/access_token.txt {access_token_path}").format(cont_id=cont_id,
-                                                                                                 access_token_path=deploy_dir+ "/access_token.txt")
+                                                                                                 access_token_path=deploy_dir+ "/.")
         logging.debug("Copy command:%s" % copy_file_cmd)
         os.system(copy_file_cmd)
 
-        access_token_fp = open(deploy_dir + "/access_token.txt/access_token.txt")
+        access_token_fp = open(deploy_dir + "/access_token.txt")
         access_token = access_token_fp.read().rstrip().lstrip()
         logging.debug("Obtained access token:%s" % access_token)
-        os.remove(deploy_dir + "/access_token.txt/access_token.txt")
-        os.removedirs(deploy_dir + "/access_token.txt")
 
         # Stop and remove container generated for obtaining new access_token
         self.docker_handler.stop_container(self.access_token_cont_name, "access token container no longer needed")
