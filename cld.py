@@ -186,6 +186,39 @@ class Apps(Resource):
         response.status_code = 200
         return response
 
+class Logs(Resource):
+    def get(self, dep_id):
+        logging.debug("Executing GET for app:%s" % dep_id)
+
+        info = utils.get_app_and_service_info(APP_STORE_PATH, "app_ids.txt", dep_id)
+
+        app_exists = False
+        if info:
+            status_data = {}
+            status_data['name'] = info['app_name']
+            status_data['version'] = info['app_version']
+            status_data['cloud'] = info['cloud']
+
+            if os.path.exists(constants.APP_STORE_PATH + "/" + info['app_name'] + "/" + info['app_version']):
+                app_exists = True
+                log_file_name = info['app_version'] + ".log"
+                log_file = constants.APP_STORE_PATH + "/" + info['app_name'] + "/"
+                log_file = log_file + info['app_version'] + "/" + log_file_name
+                if not os.path.exists(log_file):
+                    log_file = ""
+                status_data['log_location'] = log_file
+
+                resp_data = {}
+                resp_data['data'] = status_data
+                response = jsonify(**resp_data)
+                response.status_code = 200
+
+        if not app_exists:
+            resp_data = {}
+            response = jsonify(**resp_data)
+            response.status_code = 404
+        return response
+
 class Deployment(Resource):
     def delete(self, dep_id):
         logging.debug("Executing DELETE for dep id:%s" % dep_id)
@@ -440,6 +473,7 @@ api.add_resource(Service, '/services/<service_name>')
 api.add_resource(ServiceGetDeployID, '/servicesdepshow/<dep_id>')
 api.add_resource(Deployment, '/deployments/<dep_id>')
 api.add_resource(Deployments, '/deployments')
+api.add_resource(Logs, '/logs/<dep_id>')
 
 if __name__ == '__main__':
     logging.basicConfig(filename=constants.LOG_FILE_NAME,

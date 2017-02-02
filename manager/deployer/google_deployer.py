@@ -6,6 +6,7 @@ Created on Dec 13, 2016
 import logging
 import logging.handlers as lh
 import os
+import subprocess
 import time
 
 from common import app
@@ -43,6 +44,22 @@ class GoogleDeployer(object):
 
         self.docker_handler = docker_lib.DockerLib()
 
+    def _download_logs(self, cont_id, logged_status):
+        cwd = os.getcwd()
+        self.logger.debug("Current directory:%s" % cwd)
+        for line in logged_status:
+            if line.find("/root/.config/gcloud/logs") >=0:
+                log_path = line.replace("[","").replace("]","")
+                log_path = log_path[0:len(log_path)-1]
+                src_log_file_name = log_path[log_path.rfind("/")+1:]
+                log_file_name = self.app_version + ".log"
+                import pdb; pdb.set_trace()
+                cp_cmd = ("docker cp {cont_id}:{log_path} .").format(cont_id=cont_id,
+                                                                    log_path=log_path)
+                os.system(cp_cmd)
+                os.rename(src_log_file_name, log_file_name)
+                return
+
     def _deploy_app_container(self, app_obj):
         app_cont_name = app_obj.get_cont_name()
         log_file_name = TMP_LOG_FILE + "-" + app_cont_name
@@ -53,7 +70,11 @@ class GoogleDeployer(object):
 
         deployment_done = False
 
-        os.system(docker_run_cmd)
+        try:
+            subprocess.check_output(docker_run_cmd, shell=True)
+        except Exception as e:
+            self.logger.error(e)
+
         fp = open(log_file_name)
         app_url = ""
         done_reason = "TIMEOUT"
@@ -82,6 +103,16 @@ class GoogleDeployer(object):
                     os.remove(log_file_name)
             count = count + 1
             time.sleep(1)
+
+        cont_id = ''
+        try:
+            docker_ps_cmd = ("docker ps -a | grep {app_container} | awk '{{print $1}}'").format(app_container=app_cont_name)
+            cont_id = subprocess.check_output(docker_ps_cmd, shell=True)
+            cont_id = cont_id.rstrip().lstrip()
+        except Exception as e:
+            self.logger.error(e)
+
+        self._download_logs(cont_id, logged_status)
 
         return app_url, done_reason
 
