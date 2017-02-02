@@ -266,6 +266,7 @@ def get_app_and_service_info(id_file_path, id_file_name, dep_id):
 
             service_name = ''
             service_version = ''
+            service_id = ''
             if len(line_contents) == 6:
                 service_name = line_contents[3].rstrip().lstrip()
                 service_version = line_contents[4].rstrip().lstrip()

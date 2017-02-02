@@ -13,7 +13,7 @@ import common
 import deployment as dp
 
 class ServiceShow(Command):
-    "Show a service"
+    "Display service instance information"
 
     log = logging.getLogger(__name__)
 
@@ -93,7 +93,12 @@ class ServiceDeploy(Command):
 
     def take_action(self, parsed_args):
         #self.log.info('Deploying service')
-        
+
+        service = parsed_args.service_name
+        dest = parsed_args.cloud
+
+        common.verify_inputs(service, dest)
+
         service_info = common.read_service_info()
         if not service_info:
             service_details = {}

@@ -9,7 +9,7 @@ import common
 
 
 class Show(Command):
-    "Show application status"
+    "Display application information"
 
     log = logging.getLogger(__name__)
 
@@ -17,7 +17,7 @@ class Show(Command):
         parser = super(Show, self).get_parser(prog_name)
         parser.add_argument('--deploy-id',
                                  dest='deployid',
-                                 help="Deployment ID/URL")
+                                 help="Deployment ID")
         parser.add_argument('--app-name',
                                  dest='appname',
                                  help="Name of the application")

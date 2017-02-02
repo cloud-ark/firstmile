@@ -4,12 +4,10 @@ Created on Jan 19, 2017
 @author: devdatta
 '''
 import logging
-import prettytable
 
 from cliff.command import Command
 
 import deployment as dp
-import common
 
 
 class AppDelete(Command):

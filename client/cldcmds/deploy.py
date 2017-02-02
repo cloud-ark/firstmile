@@ -10,7 +10,7 @@ from cliff.command import Command
 
 
 class Deploy(Command):
-    "Build and deploy application"
+    "Build and deploy an application"
 
     log = logging.getLogger(__name__)
     log.setLevel(logging.INFO)
@@ -19,7 +19,7 @@ class Deploy(Command):
         parser = super(Deploy, self).get_parser(prog_name)
         parser.add_argument('--service-name',
                             dest='service',
-                            help="Name of the required service (e.g.: MySQL)")
+                            help="Name of the required service (E.g.: mysql)")
         parser.add_argument('--cloud',
                             dest='cloud',
                             help="Destination to deploy application (local-docker, aws, google)")        
@@ -71,15 +71,17 @@ class Deploy(Command):
     def take_action(self, parsed_args):
         self.log.debug('Deploying application. Passed args:%s' % parsed_args)
 
+        service = parsed_args.service
+        dest = parsed_args.cloud
+
+        common.verify_inputs(service, dest)
+
         project_location = os.getcwd()
         self.log.debug("App directory:%s" % project_location)
 
         app_info = common.read_app_info()
         if not app_info:
             app_info = self._get_app_details()
-
-        service = parsed_args.service
-        dest = parsed_args.cloud
 
         service_info = common.read_service_info()
 
