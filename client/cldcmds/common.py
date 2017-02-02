@@ -21,8 +21,25 @@ APP_STORE_PATH = ("{home_dir}/.cld/data/deployments").format(home_dir=home_dir)
 LOCAL_DOCKER = "local-docker"
 GOOGLE = "google"
 AWS = "aws"
+MYSQL = "mysql"
 DEFAULT_APP_PORT = "5000"
 DEFAULT_APP_TYPE = "python"
+
+def verify_inputs(service, dest):
+    improper_inputs = False
+    if service and service.lower() != MYSQL:
+        improper_inputs = True
+        print("Incorrect service specified %s." % service)
+        print("Supported options: %s" % MYSQL)
+
+    dest = dest.lower() if dest else ''
+    if dest and dest != GOOGLE and dest != AWS and dest != LOCAL_DOCKER:
+        improper_inputs = True
+        print("Incorrect destination cloud specified %s." % (dest))
+        print("Supported options: %s, %s, %s" % (LOCAL_DOCKER, AWS, GOOGLE))
+
+    if improper_inputs:
+        exit()
 
 def get_google_project_user_details(project_location):
     google_app_details_path = APP_STORE_PATH + "/google-creds/app_details.txt"
@@ -290,5 +307,21 @@ def artifact_depid_show(result, pretty_table):
                 artifact_info = artifact_info + key + ": " + value + "\n"
         row = [name, version, cloud, status, artifact_info]
         pretty_table.add_row(row)
+
+    return pretty_table
+
+def artifact_logs_show(result, pretty_table):
+    status_json = json.loads(result)
+    app_status = status_json['data']
+
+    logging.debug(app_status)
+
+    name = app_status['name']
+    version = app_status['version']
+    cloud = app_status['cloud']
+    log_loc = app_status['log_location']
+
+    row = [name, version, cloud, log_loc]
+    pretty_table.add_row(row)
 
     return pretty_table
