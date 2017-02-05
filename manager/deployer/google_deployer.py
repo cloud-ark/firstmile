@@ -53,7 +53,6 @@ class GoogleDeployer(object):
                 log_path = log_path[0:len(log_path)-1]
                 src_log_file_name = log_path[log_path.rfind("/")+1:]
                 log_file_name = self.app_version + ".log"
-                import pdb; pdb.set_trace()
                 cp_cmd = ("docker cp {cont_id}:{log_path} .").format(cont_id=cont_id,
                                                                     log_path=log_path)
                 os.system(cp_cmd)
