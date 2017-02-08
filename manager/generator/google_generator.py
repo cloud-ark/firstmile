@@ -3,10 +3,13 @@ Created on Dec 13, 2016
 
 @author: devdatta
 '''
+import json
+import ast
 import logging
 import os
 
 from common import app
+from common import docker_lib
 from common import service
 from common import utils
 from common import constants
@@ -39,6 +42,8 @@ class GoogleGenerator(object):
 
             if self.service_obj.get_service_type() == 'mysql':
                 self.services['mysql'] = gh.MySQLServiceHandler(self.task_def)
+
+        self.docker_handler = docker_lib.DockerLib()
         
     def _generate_app_yaml(self, app_deploy_dir, service_ip_dict):
         app_yaml = ("runtime: python27 \n"
@@ -175,6 +180,30 @@ class GoogleGenerator(object):
 
     def generate_for_logs(self, info):
         logging.debug("Google generator called for getting app logs for app:%s" % info['app_name'])
+
+        app_name = info['app_name']
+        app_version = info['app_version']
+        app_dir = (constants.APP_STORE_PATH + "/{app_name}/{app_version}/{app_name}").format(app_name=app_name,
+                                                                                             app_version=app_version)
+
+        df = self.docker_handler.get_dockerfile_snippet('google')
+        df = df + ("RUN /google-cloud-sdk/bin/gcloud config set account {user_email} \ \n"
+              "    && /google-cloud-sdk/bin/gcloud config set project {project_id} \ \n"
+              "    && /google-cloud-sdk/bin/gcloud config set app/use_appengine_api false \ \n"
+              "    && /google-cloud-sdk/bin/gcloud beta logging read request_log\n")
+
+        cloud_details = ast.literal_eval(info['cloud_details'])
+
+        user_email = cloud_details['user_email']
+        project_id = cloud_details['project_id'] #'greetings-python-156518'
+        df = df.format(user_email=user_email, project_id=project_id)
+
+        logging.debug("Dockerfile dir:%s" % app_dir)
+        docker_file = open(app_dir + "/Dockerfile.logs", "w")
+        docker_file.write(df)
+        docker_file.flush()
+        docker_file.close()
+
 
     def generate(self, build_type, service_ip_dict, service_info):
         if build_type == 'service':

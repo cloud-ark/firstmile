@@ -212,8 +212,14 @@ class Logs(Resource):
                 cloud_data = {}
                 cloud_data['type'] = info['cloud']
                 task_def = task_definition.TaskDefinition('', cloud_data, '')
-                runtime_log = mgr.Manager(task_def=task_def).get_logs(info)
-                status_data['run_log_location'] = '/a.b.c.runtime-log'
+                mgr.Manager(task_def=task_def).get_logs(info)
+
+                app_log_file_name = info['app_version'] + constants.RUNTIME_LOG
+                app_log_file = constants.APP_STORE_PATH + "/" + info['app_name'] + "/"
+                app_log_file = app_log_file + info['app_version'] + "/" + app_log_file_name
+                if not os.path.exists(app_log_file):
+                    app_log_file = ""
+                status_data['run_log_location'] = app_log_file
 
                 resp_data = {}
                 resp_data['data'] = status_data
@@ -409,7 +415,7 @@ class Deployments(Resource):
                 task_def = task_definition.TaskDefinition('', cloud_data, service_data)
 
                 service_id = utils.get_id(SERVICE_STORE_PATH, "service_ids.txt", service_name,
-                                      service_version, '', '', '', cloud)
+                                      service_version, '', '', '', cloud, cloud_data)
                 logging.debug("Service id:%s" % service_id)
                 response.headers['location'] = ('/deployments/{service_id}').format(service_id=service_id)
             elif args['app'] and args['service'] and args['cloud']: #handle app and service deployment
@@ -434,11 +440,11 @@ class Deployments(Resource):
                 task_def = task_definition.TaskDefinition(app_data, cloud_data, service_data)
 
                 service_id = utils.get_id(SERVICE_STORE_PATH, "service_ids.txt", service_name,
-                                      service_version, '', '', '', cloud)
+                                      service_version, '', '', '', cloud, cloud_data)
                 logging.debug("Service id:%s" % service_id)
 
                 app_id = utils.get_id(APP_STORE_PATH, "app_ids.txt", app_name, app_version,
-                                      service_name, service_version, service_id, cloud)
+                                      service_name, service_version, service_id, cloud, cloud_data)
                 logging.debug("App id:%s" % app_id)
                 response.headers['location'] = ('/deployments/{app_id}').format(app_id=app_id)
             elif 'app' in args_dict and 'cloud' in args_dict:
@@ -456,7 +462,8 @@ class Deployments(Resource):
                 app_data['app_version'] = app_version
                 task_def = task_definition.TaskDefinition(app_data, cloud_data, '')
 
-                app_id = utils.get_id(APP_STORE_PATH, "app_ids.txt", app_name, app_version, '', '', '', cloud)
+                app_id = utils.get_id(APP_STORE_PATH, "app_ids.txt", app_name, app_version,
+                                      '', '', '', cloud, cloud_data)
                 logging.debug("App id:%s" % app_id)
                 response.headers['location'] = ('/deployments/{app_id}').format(app_id=app_id)
 

@@ -10,7 +10,8 @@ import shutil
 from common import constants
 
 
-def get_id(path, file_name, name, version, s_name, s_version, s_id, cloud):
+def get_id(path, file_name, name, version, s_name, s_version, s_id, cloud,
+           cloud_info):
     # Method 1:
     # app_id = ("{app_name}--{app_version}").format(app_name=app_name, app_version=app_version)
 
@@ -39,7 +40,7 @@ def get_id(path, file_name, name, version, s_name, s_version, s_id, cloud):
 
     f = open(path + "/" + file_name, "a")
     line = str(id_count) + " " + name + "--" + version + " " + cloud
-    line = line + " " + s_name + " " + s_version + " " + str(s_id) + "\n"
+    line = line + " " + s_name + " " + s_version + " " + str(s_id) + "--" + str(cloud_info) + "\n"
     f.write(line)
     return id_count
 
@@ -267,10 +268,18 @@ def get_app_and_service_info(id_file_path, id_file_name, dep_id):
             service_name = ''
             service_version = ''
             service_id = ''
-            if len(line_contents) == 6:
+            cloud_details = ''
+
+            if len(line_contents) >= 6:
                 service_name = line_contents[3].rstrip().lstrip()
                 service_version = line_contents[4].rstrip().lstrip()
                 service_id = line_contents[5].rstrip().lstrip()
+                # cloud_details are appended as last entry in the line with '--' as the separator
+                prts = service_id.split("--")
+                if prts:
+                    service_id = prts[0]
+                    cld_details_prts = line.split("--")
+                    cloud_details = cld_details_prts[2].rstrip().lstrip()
 
             info['dep_id'] = dep_id
             info['app_name'] = app_name
@@ -279,6 +288,7 @@ def get_app_and_service_info(id_file_path, id_file_name, dep_id):
             info['service_version'] = service_version
             info['service_id'] = service_id
             info['cloud'] = cloud
+            info['cloud_details'] = cloud_details
     return info
 
 def read_statues(id_file_path, id_file_name, status_file_name, artifact_name,

@@ -103,6 +103,25 @@ class GoogleBuilder(object):
     def build_for_logs(self, info):
         logging.debug("Google builder called for getting app logs of app:%s" % info['app_name'])
 
+        app_name = info['app_name']
+        app_version = info['app_version']
+        app_dir = (constants.APP_STORE_PATH + "/{app_name}/{app_version}/{app_name}").format(app_name=app_name,
+                                                                                             app_version=app_version)
+        cwd = os.getcwd()
+        os.chdir(app_dir)
+
+        cont_name = app_name + "-get-logs"
+        docker_file_name = "Dockerfile.logs"
+        build_cmd = ("docker build -t {cont_name} -f {docker_file_name} . >& ../{app_version}{runtime_log}").format(cont_name=cont_name,
+                                                                                                                 docker_file_name=docker_file_name,
+                                                                                                                 app_version=app_version,
+                                                                                                                 runtime_log=constants.RUNTIME_LOG)
+        logging.debug("Build cmd:%s" % build_cmd)
+
+        os.system(build_cmd)
+        os.chdir(cwd)
+
+
     def build(self, build_type, build_name):
         if build_type == 'service':
             logging.debug("Google builder called for service")
