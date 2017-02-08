@@ -39,3 +39,14 @@ class Builder(object):
             ab.AWSBuilder(self.task_def).build_for_delete(info)
         else:
             print("Cloud %s not supported" % self.cloud)
+
+    def build_for_logs(self, info):
+        logging.debug("Executing build step for building container to obtain app logs")
+        if self.cloud == constants.LOCAL_DOCKER:
+            lb.LocalBuilder(self.task_def).build_for_logs(info)
+        elif self.cloud == constants.GOOGLE:
+            gb.GoogleBuilder(self.task_def).build_for_logs(info)
+        elif self.cloud == constants.AWS:
+            ab.AWSBuilder(self.task_def).build_for_logs(info)
+        else:
+            print("Cloud %s not supported" % self.cloud)

@@ -297,6 +297,9 @@ class AWSGenerator(object):
         # self._generate_ebextensions_dir(service_info)
         self._generate_platform_dockerfile(service_ip_dict, service_info)
 
+    def generate_for_logs(self, info):
+        logging.debug("AWS generator called for getting app logs for app:%s" % info['app_name'])
+
     def generate_for_delete(self, info):
         logging.debug("AWS generator called for delete for app:%s" % info['app_name'])
 

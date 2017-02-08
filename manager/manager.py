@@ -72,3 +72,9 @@ class Manager(threading.Thread):
                                                             deploy_name=self.task_def.app_data['app_name']
                                                             )
                 logging.debug("Result:%s" % result)
+
+    def get_logs(self, info):
+        logging.debug("Manager -- logs")
+        gen.Generator(self.task_def).generate_for_logs(info)
+        bld.Builder(self.task_def).build_for_logs(info)
+        dep.Deployer(self.task_def).get_logs(info)

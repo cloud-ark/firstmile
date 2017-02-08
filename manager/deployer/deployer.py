@@ -45,3 +45,18 @@ class Deployer(object):
         if result:
             logging.debug("Deployment result:%s" % result)
         return result
+
+    def get_logs(self, info):
+        result = ''
+        if self.cloud == constants.LOCAL_DOCKER:
+            result = ld.LocalDeployer(self.task_def).get_logs(info)
+        elif self.cloud == constants.AWS:
+            result = ad.AWSDeployer(self.task_def).get_logs(info)
+        elif self.cloud == constants.GOOGLE:
+            result = gd.GoogleDeployer(self.task_def).get_logs(info)
+        else:
+            print("(Deployer) Cloud %s not supported" % self.cloud)
+
+        if result:
+            logging.debug("Deployment result:%s" % result)
+        return result

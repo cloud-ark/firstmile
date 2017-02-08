@@ -13,6 +13,9 @@ DEFAULT_APP_PORT = '80'
 UBUNTU_IMAGE_NAME = 'ubuntu'
 MYSQL_IMAGE_NAME = 'mysql'
 
+DEPLOY_LOG = ".deploy-log"
+RUNTIME_LOG = ".runtime-log"
+
 home_dir = expanduser("~")
 
 APP_STORE_PATH = ("{home_dir}/.cld/data/deployments").format(home_dir=home_dir)

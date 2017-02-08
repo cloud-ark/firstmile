@@ -111,6 +111,9 @@ class AWSDeployer(object):
         self.docker_handler.remove_container_image(app_obj.get_cont_name(),
                                                    "container created to deploy application no longer needed.")
 
+    def get_logs(self, info):
+        logging.debug("AWS deployer called for getting app logs of app:%s" % info['app_name'])
+
     def deploy_for_delete(self, info):
         logging.debug("AWS deployer for called to delete app:%s" % info['app_name'])
         app_name = info['app_name']

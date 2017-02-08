@@ -173,6 +173,9 @@ class GoogleGenerator(object):
     def generate_for_delete(self, info):
         logging.debug("Google generator called for delete for app:%s" % info['app_name'])
 
+    def generate_for_logs(self, info):
+        logging.debug("Google generator called for getting app logs for app:%s" % info['app_name'])
+
     def generate(self, build_type, service_ip_dict, service_info):
         if build_type == 'service':
             logging.debug("Google generator called for service")

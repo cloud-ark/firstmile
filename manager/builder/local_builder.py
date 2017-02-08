@@ -69,6 +69,9 @@ class LocalBuilder(object):
     def build_for_delete(self, info):
         logging.debug("Local builder called for delete of app:%s" % info['app_name'])
 
+    def build_for_logs(self, info):
+        logging.debug("Local builder called for getting app logs of app:%s" % info['app_name'])
+
     def build(self, build_type, build_name):
         if build_type == 'service':
             logging.debug("Local builder called for service %s" % build_name)

@@ -201,12 +201,19 @@ class Logs(Resource):
 
             if os.path.exists(constants.APP_STORE_PATH + "/" + info['app_name'] + "/" + info['app_version']):
                 app_exists = True
-                log_file_name = info['app_version'] + ".log"
-                log_file = constants.APP_STORE_PATH + "/" + info['app_name'] + "/"
-                log_file = log_file + info['app_version'] + "/" + log_file_name
-                if not os.path.exists(log_file):
-                    log_file = ""
-                status_data['log_location'] = log_file
+                dep_log_file_name = info['app_version'] + constants.DEPLOY_LOG
+                dep_log_file = constants.APP_STORE_PATH + "/" + info['app_name'] + "/"
+                dep_log_file = dep_log_file + info['app_version'] + "/" + dep_log_file_name
+                if not os.path.exists(dep_log_file):
+                    dep_log_file = ""
+                status_data['dep_log_location'] = dep_log_file
+
+                # Get runtime log
+                cloud_data = {}
+                cloud_data['type'] = info['cloud']
+                task_def = task_definition.TaskDefinition('', cloud_data, '')
+                runtime_log = mgr.Manager(task_def=task_def).get_logs(info)
+                status_data['run_log_location'] = '/a.b.c.runtime-log'
 
                 resp_data = {}
                 resp_data['data'] = status_data

@@ -319,7 +319,10 @@ def artifact_logs_show(result, pretty_table):
     name = app_status['name']
     version = app_status['version']
     cloud = app_status['cloud']
-    log_loc = app_status['log_location']
+    dep_log_loc = app_status['dep_log_location']
+    run_log_loc = app_status['run_log_location']
+
+    log_loc = dep_log_loc + "\n" + run_log_loc
 
     row = [name, version, cloud, log_loc]
     pretty_table.add_row(row)

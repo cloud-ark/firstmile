@@ -98,6 +98,9 @@ class LocalDeployer(object):
         logging.debug("App URL: %s" % app_url)
         return app_url
 
+    def get_logs(self, info):
+        logging.debug("Local deployer called for getting app logs of app:%s" % info['app_name'])
+
     def deploy_for_delete(self, info):
         logging.debug("Local deployer for called to delete app:%s" % info['app_name'])
 

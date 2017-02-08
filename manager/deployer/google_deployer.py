@@ -52,7 +52,7 @@ class GoogleDeployer(object):
                 log_path = line.replace("[","").replace("]","")
                 log_path = log_path[0:len(log_path)-1]
                 src_log_file_name = log_path[log_path.rfind("/")+1:]
-                log_file_name = self.app_version + ".log"
+                log_file_name = self.app_version + constants.DEPLOY_LOG
                 cp_cmd = ("docker cp {cont_id}:{log_path} .").format(cont_id=cont_id,
                                                                     log_path=log_path)
                 os.system(cp_cmd)
@@ -133,6 +133,9 @@ class GoogleDeployer(object):
         self.docker_handler.stop_container("google", "Stopping google deployment related container")
         self.docker_handler.remove_container("google", "Removing google deployment related container")
         self.docker_handler.remove_container_image("google", "Removing google deployment related container image")
+
+    def get_logs(self, info):
+        logging.debug("Google deployer called for getting app logs of app:%s" % info['app_name'])
 
     def deploy_for_delete(self, info):
         logging.debug("Google deployer for called to delete app:%s" % info['app_name'])

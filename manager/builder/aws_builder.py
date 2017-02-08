@@ -46,6 +46,9 @@ class AWSBuilder(object):
 
         os.chdir(cwd)
 
+    def build_for_logs(self, info):
+        logging.debug("AWS builder called for getting app logs of app:%s" % info['app_name'])
+
     def build_for_delete(self, info):
         logging.debug("AWS builder called for delete of app:%s" % info['app_name'])
 
