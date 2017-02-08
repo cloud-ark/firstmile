@@ -195,7 +195,7 @@ class GoogleGenerator(object):
         cloud_details = ast.literal_eval(info['cloud_details'])
 
         user_email = cloud_details['user_email']
-        project_id = cloud_details['project_id'] #'greetings-python-156518'
+        project_id = cloud_details['project_id']
         df = df.format(user_email=user_email, project_id=project_id)
 
         logging.debug("Dockerfile dir:%s" % app_dir)

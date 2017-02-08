@@ -87,6 +87,12 @@ class LocalDeployer(object):
             cont_id = subprocess.Popen(run_cmd, stdout=subprocess.PIPE,
                                        stderr=subprocess.PIPE, shell=True).communicate()[0]
 
+            # Save cont_id as it is needed for obtaining logs
+            fp = open("container_id.txt", "w")
+            fp.write(cont_id)
+            fp.flush()
+            fp.close()
+
             app_ip_addr = self._parse_app_ip(cont_id)
 
         except Exception as e:

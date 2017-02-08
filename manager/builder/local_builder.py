@@ -12,6 +12,7 @@ import re
 from io import BytesIO
 from docker import Client
 from common import app
+from common import constants
 from common import docker_lib
 
 class LocalBuilder(object):
@@ -71,6 +72,24 @@ class LocalBuilder(object):
 
     def build_for_logs(self, info):
         logging.debug("Local builder called for getting app logs of app:%s" % info['app_name'])
+
+        app_name = info['app_name']
+        app_version = info['app_version']
+        app_dir = (constants.APP_STORE_PATH + "/{app_name}/{app_version}/").format(app_name=app_name,
+                                                                                   app_version=app_version)
+        cwd = os.getcwd()
+        os.chdir(app_dir)
+
+        if os.path.exists("./container_id.txt"):
+            fp = open("container_id.txt")
+            all_lines = fp.readlines()
+            # Should be only one line
+            cont_id = all_lines[0].rstrip().lstrip()
+            logs_cmd = ("docker logs {cont_id} >& {app_version}{runtime_log}").format(cont_id=cont_id,
+                                                                                         app_version=app_version,
+                                                                                         runtime_log=constants.RUNTIME_LOG)
+            os.system(logs_cmd)
+            os.chdir(cwd)
 
     def build(self, build_type, build_name):
         if build_type == 'service':
