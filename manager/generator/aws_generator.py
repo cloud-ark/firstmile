@@ -264,9 +264,9 @@ class AWSGenerator(object):
         
         env_name = app_obj.get_cont_name()
         logging.debug("Environment name:%s" % env_name)
-        
+
         entrypt_cmd = ("ENTRYPOINT [\"eb\", \"create\", \"{env_name}\", \"-c\", "
-                       "\"{env_name}\", \"--timeout\", \"20\"]  \n").format(env_name=env_name)
+                       "\"{env_name}\", \"--keyname\", \"{env_name}\", \"--timeout\", \"20\"]  \n").format(env_name=env_name)
 
         dockerfile_maneuver = ("RUN mv Dockerfile.deploy Dockerfile.bak \n"
                                "RUN mv Dockerfile.aws Dockerfile \n")
@@ -274,15 +274,19 @@ class AWSGenerator(object):
         logging.debug("Entrypoint cmd:%s" % entrypt_cmd)
         logging.debug("Dockerfile maneuver:%s" % dockerfile_maneuver)
 
+        create_keypair_cmd = ("RUN aws ec2 create-key-pair --key-name "
+                              "{env_name} --query 'KeyMaterial' --output text > {env_name}.pem\n").format(env_name=env_name)
+
         # Generate Dockerfile
         df = self.docker_handler.get_dockerfile_snippet("aws")
         df = df + ("COPY . /src \n"
               "WORKDIR /src \n"
               "RUN cp -r aws-creds $HOME/.aws \n"
               "{dockerfile_maneuver}"
+              "{create_keypair_cmd}"
               "{entrypt_cmd}"
             ).format(aws_creds_path=AWS_CREDS_PATH, dockerfile_maneuver=dockerfile_maneuver,
-                     entrypt_cmd=entrypt_cmd)
+                     create_keypair_cmd=create_keypair_cmd, entrypt_cmd=entrypt_cmd)
 
         logging.debug("App dir: %s" % self.app_dir)
         docker_file_dir = app_deploy_dir
@@ -299,6 +303,62 @@ class AWSGenerator(object):
 
     def generate_for_logs(self, info):
         logging.debug("AWS generator called for getting app logs for app:%s" % info['app_name'])
+
+        app_name = info['app_name']
+        app_version = info['app_version']
+        app_dir = (constants.APP_STORE_PATH + "/{app_name}/{app_version}/{app_name}").format(app_name=app_name,
+                                                                                             app_version=app_version)
+        cwd = os.getcwd()
+        os.chdir(app_dir)
+
+        def _generate_retrieve_log_script():
+            if not os.path.exists(constants.RETRIEVE_LOG_PATH):
+                fp = open(constants.RETRIEVE_LOG_PATH, "w")
+                file_content = ("#!/bin/bash \n "
+                                "cont_id=`sudo docker ps | awk '{print $1}' | tail -1` \n"
+                                "sudo docker cp $cont_id:/var/log/uwsgi/uwsgi.log . \n"
+                                "sudo chown ec2-user uwsgi.log \n"
+                                "sudo chgrp ec2-user uwsgi.log \n"
+                                )
+                fp.write(file_content)
+                fp.flush()
+                fp.close()
+
+        def _generate_df_toget_ec2_instance_ip():
+            # Generate Dockerfile
+            df = self.docker_handler.get_dockerfile_snippet("aws")
+            df = df + ("COPY . /src \n"
+                       "WORKDIR /src \n"
+                       "RUN cp -r aws-creds $HOME/.aws \ \n"
+                            " && aws ec2 describe-instances")
+            fp = open("Dockerfile.get-instance-ip", "w")
+            fp.write(df)
+            fp.flush()
+            fp.close()
+
+        def _generate_partial_df_to_retrieve_logs(env_name):
+            # Generate Dockerfile
+            df = self.docker_handler.get_dockerfile_snippet("aws")
+            df = df + ("COPY . /src \n"
+                       "WORKDIR /src \n"
+                       "RUN cp -r aws-creds $HOME/.aws \ \n"
+                       #" && COPY {env_name}.pem /src \ \n "
+                       " && mkdir ~/.ssh \ \n"
+                       " && cp /src/{env_name}.pem ~/.ssh/. \ \n"
+                       " && chmod 400 ~/.ssh/{env_name}.pem \ \n"
+                       ).format(env_name=env_name)
+            fp = open("Dockerfile.retrieve-logs", "w")
+            fp.write(df)
+            fp.flush()
+            fp.close()
+
+        _generate_retrieve_log_script()
+        _generate_df_toget_ec2_instance_ip()
+
+        env_name = app_name + "-" + app_version
+        _generate_partial_df_to_retrieve_logs(env_name)
+
+        os.chdir(cwd)
 
     def generate_for_delete(self, info):
         logging.debug("AWS generator called for delete for app:%s" % info['app_name'])

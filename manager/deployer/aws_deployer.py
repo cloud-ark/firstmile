@@ -6,6 +6,7 @@ Created on Dec 6, 2016
 import logging
 import subprocess
 import time
+import os
 
 from docker import Client
 from common import app
@@ -83,6 +84,14 @@ class AWSDeployer(object):
                         is_env_ok = True
             time.sleep(1)
 
+        # Copy out .pem file
+        env_name = app_obj.get_cont_name()
+        cont_id = cont_id.rstrip().lstrip()
+        cp_cmd = ("docker cp {cont_id}:/src/{env_name}.pem {app_name}/.").format(cont_id=cont_id,
+                                                                                 env_name=env_name,
+                                                                                 app_name=self.app_obj.app_name)
+        os.system(cp_cmd)
+
         return cname
         
     def _deploy_app_container(self, app_obj):
@@ -92,6 +101,7 @@ class AWSDeployer(object):
 
         docker_run_cmd = ("docker run -i -t -d {app_container}").format(app_container=app_cont_name)
         cont_id = subprocess.check_output(docker_run_cmd, shell=True)
+        cont_id = cont_id.rstrip().lstrip()
         logging.debug("Running container id:%s" % cont_id)
 
         cname = self._process_logs(cont_id, app_cont_name, app_obj)
@@ -113,6 +123,40 @@ class AWSDeployer(object):
 
     def get_logs(self, info):
         logging.debug("AWS deployer called for getting app logs of app:%s" % info['app_name'])
+
+        app_name = info['app_name']
+        app_version = info['app_version']
+        app_dir = (constants.APP_STORE_PATH + "/{app_name}/{app_version}/{app_name}").format(app_name=app_name,
+                                                                                             app_version=app_version)
+        cwd = os.getcwd()
+        os.chdir(app_dir)
+
+        cont_name = app_name + "-" + app_version + "-retrieve-logs"
+        cmd = ("docker run {cont_name}").format(cont_name=cont_name)
+        os.system(cmd)
+
+        cmd1 = ("docker ps -a | grep {cont_name} | head -1 | awk '{{print $1}}'").format(cont_name=cont_name)
+
+        cont_id = subprocess.check_output(cmd1, shell=True)
+        cont_id = cont_id.rstrip().lstrip()
+
+        # Copy out the log file
+        log_file = app_version + constants.RUNTIME_LOG
+        cp_cmd = ("docker cp {cont_id}:/src/{log_file} ../.").format(cont_id=cont_id,
+                                                                     log_file=log_file)
+
+        os.system(cp_cmd)
+
+        self.docker_handler.remove_container(cont_name,
+                                             "container created to retrieve app logs no longer needed.")
+        self.docker_handler.remove_container_image(cont_name,
+                                                   "container created to retrieve app logs no longer needed.")
+
+        ec2_ip_cont = app_name + "-" + app_version + "-getec2-ip"
+        self.docker_handler.remove_container_image(ec2_ip_cont,
+                                                   "container created to obtain ec2 ip address no longer needed.")
+
+        os.chdir(cwd)
 
     def deploy_for_delete(self, info):
         logging.debug("AWS deployer for called to delete app:%s" % info['app_name'])

@@ -5,6 +5,7 @@ Created on Jan 5, 2017
 '''
 import logging
 import os
+import subprocess
 
 from common import app
 from common import service
@@ -48,6 +49,68 @@ class AWSBuilder(object):
 
     def build_for_logs(self, info):
         logging.debug("AWS builder called for getting app logs of app:%s" % info['app_name'])
+
+        app_name = info['app_name']
+        app_version = info['app_version']
+        app_dir = (constants.APP_STORE_PATH + "/{app_name}/{app_version}/{app_name}").format(app_name=app_name,
+                                                                                             app_version=app_version)
+        cwd = os.getcwd()
+        os.chdir(app_dir)
+        output = ''
+
+        try:
+            cont_name = app_name + "-" + app_version
+            cmd = ("docker build -t {app_name}-getec2-ip -f Dockerfile.get-instance-ip .").format(app_name=cont_name)
+            output = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                                      stderr=subprocess.PIPE, shell=True).communicate()[0]
+        except Exception as e:
+            self.logger.error(e)
+
+        # Parse the PublicIPAddress of the EC2 instance
+        env_name = app_name + "-" + app_version
+        public_ip = ""
+        public_ip_of_ec2_instance = ''
+        for line in output.split("\n"):
+            if line.find("PublicIp") >= 0:
+                prts = line.split(":")
+                public_ip = prts[1].rstrip().lstrip().replace(",","").replace("\"","")
+            if line.find("Value") >= 0:
+                prts = line.split(":")
+                is_env_name = prts[1].rstrip().lstrip().replace(",","").replace("\"","")
+            if line.find("Key") >= 0:
+                prts = line.split(":")
+                if prts and len(prts) >= 3:
+                    env_key = prts[1].rstrip().lstrip().replace(",","").replace("\"","")
+                    env_key1 = prts[2].rstrip().lstrip().replace(",","").replace("\"","")
+                    if env_key.find("elasticbeanstalk") >= 0 and env_key1.find("environment-name") >= 0:
+                        if is_env_name == env_name:
+                            logging.debug("Public IP of EC2 instance:%s" % public_ip)
+                            public_ip_of_ec2_instance = public_ip
+                            break
+
+        # Plug the public_ip in Dockerfile.retrieve-logs
+        pem_file = env_name + ".pem"
+        fp = open("Dockerfile.retrieve-logs", "a")
+        ssh_cmd = (" && ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no "
+                   "-i ~/.ssh/{pem_file} ec2-user@{public_ip} 'bash -s' < {ret_log_sh} \ \n "
+                   ).format(pem_file=pem_file, public_ip=public_ip, ret_log_sh=constants.RETRIEVE_LOG_PATH)
+
+        runtime_log = app_version + constants.RUNTIME_LOG
+        scp_cmd = (" && scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no "
+                   "-i ~/.ssh/{pem_file} ec2-user@{public_ip}:/home/ec2-user/uwsgi.log {runtime_log} \n "
+                   ).format(pem_file=pem_file, public_ip=public_ip_of_ec2_instance, runtime_log=runtime_log)
+
+        fp.write(ssh_cmd)
+        fp.write(scp_cmd)
+        fp.flush()
+        fp.close()
+
+        cmd = ("docker build -t {app_name}-retrieve-logs -f Dockerfile.retrieve-logs .").format(app_name=cont_name)
+        os.system(cmd)
+
+        logging.debug("Retrieving application runtime logs done. Remove intermediate containers.")
+
+        os.chdir(cwd)
 
     def build_for_delete(self, info):
         logging.debug("AWS builder called for delete of app:%s" % info['app_name'])

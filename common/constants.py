@@ -52,3 +52,4 @@ GOOGLE = "google"
 AWS = "aws"
 
 GOOGLE_APP_CREATE_CONT_SUF = "app-create-cont"
+RETRIEVE_LOG_PATH = "./retrieve-logs.sh"
