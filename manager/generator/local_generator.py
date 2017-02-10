@@ -7,7 +7,6 @@ import logging
 from common import service
 from common import app
 from common import utils
-from common import constants
 
 from manager.service_handler.mysql import local_handler as lh
 

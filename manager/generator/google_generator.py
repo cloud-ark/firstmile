@@ -3,7 +3,6 @@ Created on Dec 13, 2016
 
 @author: devdatta
 '''
-import json
 import ast
 import logging
 import os

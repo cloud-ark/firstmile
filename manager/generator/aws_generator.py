@@ -342,7 +342,6 @@ class AWSGenerator(object):
             df = df + ("COPY . /src \n"
                        "WORKDIR /src \n"
                        "RUN cp -r aws-creds $HOME/.aws \ \n"
-                       #" && COPY {env_name}.pem /src \ \n "
                        " && mkdir ~/.ssh \ \n"
                        " && cp /src/{env_name}.pem ~/.ssh/. \ \n"
                        " && chmod 400 ~/.ssh/{env_name}.pem \ \n"
