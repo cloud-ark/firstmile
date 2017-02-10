@@ -139,6 +139,7 @@ class GoogleDeployer(object):
 
     def deploy_for_delete(self, info):
         logging.debug("Google deployer for called to delete app:%s" % info['app_name'])
+        utils.delete(info)
 
     def deploy(self, deploy_type, deploy_name):
         if deploy_type == 'service':

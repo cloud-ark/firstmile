@@ -100,6 +100,24 @@ class GoogleBuilder(object):
     def build_for_delete(self, info):
         logging.debug("Google builder called for delete of app:%s" % info['app_name'])
 
+        app_name = info['app_name']
+        app_version = info['app_version']
+        app_dir = (constants.APP_STORE_PATH + "/{app_name}/{app_version}/{app_name}").format(app_name=app_name,
+                                                                                             app_version=app_version)
+        cwd = os.getcwd()
+        os.chdir(app_dir)
+
+        cont_name = app_name + "-delete"
+        docker_file_name = "Dockerfile.delete"
+        build_cmd = ("docker build -t {cont_name} -f {docker_file_name} .").format(cont_name=cont_name,
+                                                                                   docker_file_name=docker_file_name)
+        logging.debug("Build cmd:%s" % build_cmd)
+        os.system(build_cmd)
+
+        self.docker_handler.remove_container_image(cont_name, "Deleting container image created to perform delete action")
+
+        os.chdir(cwd)
+
     def build_for_logs(self, info):
         logging.debug("Google builder called for getting app logs of app:%s" % info['app_name'])
 
@@ -119,8 +137,10 @@ class GoogleBuilder(object):
         logging.debug("Build cmd:%s" % build_cmd)
 
         os.system(build_cmd)
-        os.chdir(cwd)
 
+        self.docker_handler.remove_container_image(cont_name, "Deleting container image created to obtain logs")
+
+        os.chdir(cwd)
 
     def build(self, build_type, build_name):
         if build_type == 'service':

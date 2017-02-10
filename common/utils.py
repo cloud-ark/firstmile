@@ -375,3 +375,18 @@ def copy_google_creds(source, dest):
     logging.debug(cp_cmd)
 
     os.system(cp_cmd)
+
+def delete(info):
+    app_name = info['app_name']
+    app_version = info['app_version']
+    dep_id = info['dep_id']
+    remove_artifact(dep_id, constants.APP_STORE_PATH, "app_ids.txt", app_name, app_version)
+
+    # Remove service directories as well, if a service has been provisioned
+    service_name = info['service_name']
+    service_version = info['service_version']
+    service_id = info['service_id']
+
+    if service_name:
+        remove_artifact(service_id, constants.SERVICE_STORE_PATH,
+                        "service_ids.txt", service_name, service_version)

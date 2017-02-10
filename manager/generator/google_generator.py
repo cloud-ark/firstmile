@@ -44,7 +44,7 @@ class GoogleGenerator(object):
 
         self.docker_handler = docker_lib.DockerLib()
         
-    def _generate_app_yaml(self, app_deploy_dir, service_ip_dict):
+    def _get_app_yaml(self):
         app_yaml = ("runtime: python27 \n"
                     "api_version: 1 \n"
                     "threadsafe: true \n"
@@ -53,8 +53,30 @@ class GoogleGenerator(object):
                     "- url: /static \n"
                     "  static_dir: static \n"
                     "- url: /.* \n"
-                    "  script: {app_entry_point}.app \n"
-                    "\n").format(app_entry_point=self.entry_point)
+                    )
+        return app_yaml
+
+    def _generate_app_yaml_delete(self, app_dir):
+        app_yaml = self._get_app_yaml()
+        app_yaml = app_yaml + ("  script: blank.app \n")
+        fp = open(app_dir + "/app.yaml", "w")
+        fp.write(app_yaml)
+        fp.close()
+
+    def _generate_app_yaml(self, app_deploy_dir, service_ip_dict):
+        #app_yaml = ("runtime: python27 \n"
+        #            "api_version: 1 \n"
+        #            "threadsafe: true \n"
+        #            "\n"
+        #            "handlers: \n"
+        #            "- url: /static \n"
+        #            "  static_dir: static \n"
+        #            "- url: /.* \n"
+        #            "  script: {app_entry_point}.app \n"
+        #            "\n").format(app_entry_point=self.entry_point)
+        app_yaml = self._get_app_yaml()
+        app_yaml = app_yaml + ("  script: {app_entry_point}.app \n"
+                               "\n").format(app_entry_point=self.entry_point)
 
         if service_ip_dict:
             print_prefix = "    "
@@ -176,6 +198,44 @@ class GoogleGenerator(object):
 
     def generate_for_delete(self, info):
         logging.debug("Google generator called for delete for app:%s" % info['app_name'])
+
+        app_name = info['app_name']
+        app_version = info['app_version']
+        app_dir = (constants.APP_STORE_PATH + "/{app_name}/{app_version}/{app_name}").format(app_name=app_name,
+                                                                                             app_version=app_version)
+
+        service_name = info['service_name']
+
+        service_terminate_cmd = ''
+        if service_name:
+            parts = service_name.split("-")
+            if parts[0] == 'mysql':
+                mysql_handler = gh.MySQLServiceHandler(self.task_def)
+                service_terminate_cmd = mysql_handler.get_terminate_cmd(info)
+
+        df = self.docker_handler.get_dockerfile_snippet('google')
+        df = df + ("RUN /google-cloud-sdk/bin/gcloud config set account {user_email} \ \n"
+              "    && /google-cloud-sdk/bin/gcloud config set project {project_id} \ \n"
+              "    && /google-cloud-sdk/bin/gcloud config set app/use_appengine_api false \ \n"
+              "    && /google-cloud-sdk/bin/gcloud app deploy --quiet "
+              )
+        if service_terminate_cmd:
+            df = df + ("\ \n && {terminate_cmd}")
+        cloud_details = ast.literal_eval(info['cloud_details'])
+        user_email = cloud_details['user_email']
+        project_id = cloud_details['project_id']
+
+        if service_terminate_cmd:
+            df = df.format(user_email=user_email, project_id=project_id, terminate_cmd=service_terminate_cmd)
+        else:
+            df = df.format(user_email=user_email, project_id=project_id)
+
+        fp = open(app_dir + "/Dockerfile.delete", "w")
+        fp.write(df)
+        fp.flush()
+        fp.close()
+
+        self._generate_app_yaml_delete(app_dir)
 
     def generate_for_logs(self, info):
         logging.debug("Google generator called for getting app logs for app:%s" % info['app_name'])
