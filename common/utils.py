@@ -25,15 +25,18 @@ def get_id(path, file_name, name, version, s_name, s_version, s_id, cloud,
             if all_lines:
                 found_non_deleted_line = False
                 last_index = len(all_lines)-1
-                while not found_non_deleted_line:
+                while not found_non_deleted_line and last_index > -1:
                     last_line = all_lines[last_index]
                     parts = last_line.split(" ")
                     if parts[0] != 'deleted':
                         found_non_deleted_line = True
                     else:
                         last_index = last_index - 1
-                last_line_parts = last_line.split(" ")
-                id_count = int(last_line_parts[0]) + 1
+                if last_index == 0 and not found_non_deleted_line:
+                    id_count = 1
+                else:
+                    last_line_parts = last_line.split(" ")
+                    id_count = int(last_line_parts[0]) + 1
             f.close()
         except IOError:
             logging.error("%s does not exist yet. Creating.." % file_name)
