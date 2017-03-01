@@ -66,7 +66,7 @@ class MySQLServiceHandler(object):
         add_rule = ("aws ec2 authorize-security-group-ingress --group-name {gname} --protocol tcp --port 3306 --cidr 0.0.0.0/0").format(gname=db_id)
         create_instance = ("aws rds create-db-instance --db-name {db_name}"
                            " --db-instance-identifier {db_id} --engine MySQL "
-                           " --db-instance-class db.m1.medium --master-username {user} " 
+                           " --db-instance-class db.t2.medium --master-username {user} "
                            " --master-user-password {password} --allocated-storage 10 "
                            " --vpc-security-group-ids $sec_group_1 --publicly-accessible").format(db_name=db_name,
                                                                                                   db_id=db_id,
@@ -209,7 +209,7 @@ class MySQLServiceHandler(object):
                      "      DBInstanceIdentifer: {db_id}\n"
                      "      DBName: {db_name}\n"
                      "      Engine: MySQL\n"
-                     "      DBInstanceClass: db.m1.medium\n"
+                     "      DBInstanceClass: db.t2.medium\n"
                      "      MasterUsername: {user}\n"
                      "      MasterUserPassword: {password}\n"
                      "      AllocatedStorage: 10\n"

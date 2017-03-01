@@ -21,7 +21,12 @@ class CloudReset(Command):
     def _reset_google(self):
         common.reset_google()
 
+    def _reset_aws(self):
+        common.reset_aws()
+
     def take_action(self, parsed_args):
         if parsed_args.cloud == 'google':
             self._reset_google()
+        if parsed_args.cloud == 'aws':
+            self._reset_aws()
     

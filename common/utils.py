@@ -394,6 +394,7 @@ def delete(info):
         remove_artifact(service_id, constants.SERVICE_STORE_PATH,
                         "service_ids.txt", service_name, service_version)
 
+## AWS-specific methods
 def read_environment_name(app_dir):
     cwd = os.getcwd()
     os.chdir(app_dir)
@@ -402,3 +403,14 @@ def read_environment_name(app_dir):
     env_name = env_name.rstrip().lstrip()
     os.chdir(cwd)
     return env_name
+
+def get_aws_region():
+    aws_creds_path = constants.APP_STORE_PATH + "/aws-creds"
+    fp = open(aws_creds_path + "/config", "r")
+    lines = fp.readlines()
+    for line in lines:
+        line = line.rstrip()
+        if line.find("region") >= 0:
+            parts = line.split("=")
+            region = parts[1].rstrip().lstrip()
+            return region

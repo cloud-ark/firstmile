@@ -67,6 +67,7 @@ class AWSGenerator(object):
         os.mkdir(beanstalk_dir + "/.elasticbeanstalk")
         fp = open(beanstalk_dir + "/.elasticbeanstalk/config.yml", "w")
         default_platform = "default_platform: Python 3.4 (Preconfigured - Docker) \n"
+        region = utils.get_aws_region()
         if service_info:
             default_platform = "default_platform: Docker 1.11.2 \n"
         ebconfig =("branch-defaults:\n"
@@ -77,10 +78,12 @@ class AWSGenerator(object):
                    "  application_name: {app_name} \n"
                    "  default_ec2_keyname: null \n"
                    "  {default_platform}"
-                   "  default_region: us-west-2 \n"
+                   "  default_region: {region} \n"
                    "  profile: null \n"
                    "  sc: null \n"
-            ).format(env_name=env_name, app_name=self.app_name, default_platform=default_platform)
+            ).format(env_name=env_name, app_name=self.app_name,
+                     default_platform=default_platform,
+                     region=region)
         fp.write(ebconfig)
         fp.close()
 

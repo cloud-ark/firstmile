@@ -141,37 +141,48 @@ def setup_google(dest):
         rmi_cmd = ("docker images -a | grep {cont_name}  | awk \'{{print $3}}\' | xargs docker rmi -f").format(cont_name=cont_name)
         os.system(rmi_cmd)
 
+def reset_aws():
+    aws_creds_path = APP_STORE_PATH + "/aws-creds"
+    shutil.rmtree(aws_creds_path, ignore_errors=True)
+
 def setup_aws(dest):
     aws_creds_path = APP_STORE_PATH + "/aws-creds"
 
     def _is_incorrect_setup():
         incorrect_setup = False
-        fp = open(aws_creds_path + "/credentials", "r")
-        lines = fp.readlines()
-        import pdb; pdb.set_trace()
-        for line in lines:
-            line = line.rstrip()
-            if line.find("aws_access_key_id") >= 0:
-                parts = line.split("=")
-                if parts[1] == '':
-                    incorrect_setup = True
-            if line.find("aws_secret_access_key") >= 0:
-                parts = line.split("=")
-                if parts[1] == '':
-                    incorrect_setup = True
 
-        fp = open(aws_creds_path + "/config", "r")
-        lines = fp.readlines()
-        for line in lines:
-            line = line.rstrip()
-            if line.find("output") >= 0:
-                parts = line.split("=")
-                if parts[1] == '':
-                    incorrect_setup = True
-            if line.find("region") >= 0:
-                parts = line.split("=")
-                if parts[1] == '':
-                    incorrect_setup = True
+        creds_file_path = aws_creds_path + "/credentials"
+        config_file_path = aws_creds_path + "/config"
+
+        if not os.path.exists(creds_file_path) or \
+            not os.path.exists(config_file_path):
+            incorrect_setup = True
+        else:
+            fp = open(aws_creds_path + "/credentials", "r")
+            lines = fp.readlines()
+            for line in lines:
+                line = line.rstrip()
+                if line.find("aws_access_key_id") >= 0:
+                    parts = line.split("=")
+                    if parts[1] == '':
+                        incorrect_setup = True
+                if line.find("aws_secret_access_key") >= 0:
+                    parts = line.split("=")
+                    if parts[1] == '':
+                        incorrect_setup = True
+
+            fp = open(aws_creds_path + "/config", "r")
+            lines = fp.readlines()
+            for line in lines:
+                line = line.rstrip()
+                if line.find("output") >= 0:
+                    parts = line.split("=")
+                    if parts[1] == '':
+                        incorrect_setup = True
+                if line.find("region") >= 0:
+                    parts = line.split("=")
+                    if parts[1] == '':
+                        incorrect_setup = True
 
         if incorrect_setup:
             shutil.rmtree(aws_creds_path, ignore_errors=True)
@@ -179,8 +190,9 @@ def setup_aws(dest):
 
     if not os.path.exists(aws_creds_path) or (os.path.exists(aws_creds_path) and _is_incorrect_setup()):
         os.makedirs(aws_creds_path)
-        access_key_id = raw_input("Enter AWS Access Key:")
         secret_access_key = raw_input("Enter AWS Secret Access Key:")
+        access_key_id = raw_input("Enter AWS Access Key ID:")
+        region = raw_input("Enter AWS region:")
         fp = open(aws_creds_path + "/credentials", "w")
         fp.write("[default]\n")
         fp.write("aws_access_key_id = %s\n" % access_key_id)
@@ -190,7 +202,7 @@ def setup_aws(dest):
         fp = open(aws_creds_path + "/config", "w")
         fp.write("[default]\n")
         fp.write("output = json\n")
-        fp.write("region = us-west-2\n")
+        fp.write("region = %s\n" % region)
         fp.close()
 
 def read_app_info():
