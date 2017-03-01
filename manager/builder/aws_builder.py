@@ -67,7 +67,8 @@ class AWSBuilder(object):
             self.logger.error(e)
 
         # Parse the PublicIPAddress of the EC2 instance
-        env_name = app_name + "-" + app_version
+        env_name = utils.read_environment_name(app_dir)
+
         public_ip = ""
         public_ip_of_ec2_instance = ''
         for line in output.split("\n"):
@@ -93,7 +94,7 @@ class AWSBuilder(object):
         fp = open("Dockerfile.retrieve-logs", "a")
         ssh_cmd = (" && ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no "
                    "-i ~/.ssh/{pem_file} ec2-user@{public_ip} 'bash -s' < {ret_log_sh} \ \n "
-                   ).format(pem_file=pem_file, public_ip=public_ip, ret_log_sh=constants.RETRIEVE_LOG_PATH)
+                   ).format(pem_file=pem_file, public_ip=public_ip_of_ec2_instance, ret_log_sh=constants.RETRIEVE_LOG_PATH)
 
         runtime_log = app_version + constants.RUNTIME_LOG
         scp_cmd = (" && scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no "

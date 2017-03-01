@@ -15,6 +15,8 @@ from common import constants
 
 from manager.service_handler.mysql import aws_handler as awsh
 
+from random import randint
+
 AWS_CREDS_PATH = constants.APP_STORE_PATH + "/aws-creds"
 
 
@@ -263,10 +265,30 @@ class AWSGenerator(object):
         os.system(cp_cmd)
         
         env_name = app_obj.get_cont_name()
+
+        if len(env_name) >=40:
+            env_name = env_name[0:30]
+
+        key_name = env_name + "-" + str(randint(0,9)) + "-" + str(randint(0,9)) + "-" + str(randint(0,9))
+        env_name = cname = key_name
+
         logging.debug("Environment name:%s" % env_name)
+        logging.debug("Key name:%s" % key_name)
+        logging.debug("CNAME:%s" % cname)
+
+        # Save environment name
+        cwd = os.getcwd()
+        os.chdir(app_deploy_dir)
+        fp = open("env-name", "w")
+        fp.write(env_name)
+        fp.flush()
+        fp.close()
+        os.chdir(cwd)
 
         entrypt_cmd = ("ENTRYPOINT [\"eb\", \"create\", \"{env_name}\", \"-c\", "
-                       "\"{env_name}\", \"--keyname\", \"{env_name}\", \"--timeout\", \"20\"]  \n").format(env_name=env_name)
+                       "\"{cname}\", \"--keyname\", \"{key_name}\", \"--timeout\", \"20\"]  \n").format(env_name=env_name,
+                                                                                                        cname=cname,
+                                                                                                        key_name=key_name)
 
         dockerfile_maneuver = ("RUN mv Dockerfile.deploy Dockerfile.bak \n"
                                "RUN mv Dockerfile.aws Dockerfile \n")
@@ -275,7 +297,8 @@ class AWSGenerator(object):
         logging.debug("Dockerfile maneuver:%s" % dockerfile_maneuver)
 
         create_keypair_cmd = ("RUN aws ec2 create-key-pair --key-name "
-                              "{env_name} --query 'KeyMaterial' --output text > {env_name}.pem\n").format(env_name=env_name)
+                              "{key_name} --query 'KeyMaterial' --output text > {key_file}.pem\n").format(key_name=key_name,
+                                                                                                          key_file=key_name)
 
         # Generate Dockerfile
         df = self.docker_handler.get_dockerfile_snippet("aws")
@@ -336,16 +359,16 @@ class AWSGenerator(object):
             fp.flush()
             fp.close()
 
-        def _generate_partial_df_to_retrieve_logs(env_name):
+        def _generate_partial_df_to_retrieve_logs(pem_file_name):
             # Generate Dockerfile
             df = self.docker_handler.get_dockerfile_snippet("aws")
             df = df + ("COPY . /src \n"
                        "WORKDIR /src \n"
                        "RUN cp -r aws-creds $HOME/.aws \ \n"
                        " && mkdir ~/.ssh \ \n"
-                       " && cp /src/{env_name}.pem ~/.ssh/. \ \n"
-                       " && chmod 400 ~/.ssh/{env_name}.pem \ \n"
-                       ).format(env_name=env_name)
+                       " && cp /src/{pem_file_name}.pem ~/.ssh/. \ \n"
+                       " && chmod 400 ~/.ssh/{pem_file_name}.pem \ \n"
+                       ).format(pem_file_name=pem_file_name)
             fp = open("Dockerfile.retrieve-logs", "w")
             fp.write(df)
             fp.flush()
@@ -354,8 +377,10 @@ class AWSGenerator(object):
         _generate_retrieve_log_script()
         _generate_df_toget_ec2_instance_ip()
 
-        env_name = app_name + "-" + app_version
-        _generate_partial_df_to_retrieve_logs(env_name)
+        app_dir = os.getcwd()
+        pem_file_name = utils.read_environment_name(app_dir)
+
+        _generate_partial_df_to_retrieve_logs(pem_file_name)
 
         os.chdir(cwd)
 
@@ -367,8 +392,9 @@ class AWSGenerator(object):
         app_dir = (constants.APP_STORE_PATH + "/{app_name}/{app_version}/{app_name}").format(app_name=app_name,
                                                                                              app_version=app_version)
 
-        eb_terminate_cmd = ("RUN eb terminate {app_name}-{app_version} --force").format(app_name=app_name,
-                                                                                        app_version=app_version)
+        env_name = utils.read_environment_name(app_dir)
+
+        eb_terminate_cmd = ("RUN eb terminate {env_name} --force").format(env_name=env_name)
 
         service_name = info['service_name']
 

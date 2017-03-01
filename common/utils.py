@@ -393,3 +393,12 @@ def delete(info):
     if service_name:
         remove_artifact(service_id, constants.SERVICE_STORE_PATH,
                         "service_ids.txt", service_name, service_version)
+
+def read_environment_name(app_dir):
+    cwd = os.getcwd()
+    os.chdir(app_dir)
+    fp = open("env-name", "r")
+    env_name = fp.readline()
+    env_name = env_name.rstrip().lstrip()
+    os.chdir(cwd)
+    return env_name

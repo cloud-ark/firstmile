@@ -85,7 +85,8 @@ class AWSDeployer(object):
             time.sleep(1)
 
         # Copy out .pem file
-        env_name = app_obj.get_cont_name()
+        app_dir = os.getcwd() + "/" + self.app_obj.app_name
+        env_name = utils.read_environment_name(app_dir)
         cont_id = cont_id.rstrip().lstrip()
         cp_cmd = ("docker cp {cont_id}:/src/{env_name}.pem {app_name}/.").format(cont_id=cont_id,
                                                                                  env_name=env_name,
