@@ -145,7 +145,7 @@ def reset_aws():
     aws_creds_path = APP_STORE_PATH + "/aws-creds"
     shutil.rmtree(aws_creds_path, ignore_errors=True)
 
-def setup_aws(dest):
+def setup_aws():
     aws_creds_path = APP_STORE_PATH + "/aws-creds"
 
     def _is_incorrect_setup():

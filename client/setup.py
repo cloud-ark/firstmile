@@ -61,6 +61,7 @@ setup(
             'service show = cldcmds.service:ServiceShow',
             'service list = cldcmds.service_list:ServiceList',
             'cloud reset = cldcmds.cloud_reset:CloudReset',
+            'cloud setup = cldcmds.cloud_setup:CloudSetup',
         ],
     },
 

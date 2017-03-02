@@ -96,7 +96,7 @@ class Deploy(Command):
             if dest:
                 self.log.debug("Destination:%s" % dest)
                 if dest.lower() == common.AWS:
-                    common.setup_aws(dest)
+                    common.setup_aws()
                     cloud_info['type'] = common.AWS
                 if dest.lower() == common.GOOGLE:
                     project_id = ''
