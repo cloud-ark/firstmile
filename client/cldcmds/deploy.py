@@ -101,7 +101,7 @@ class Deploy(Command):
                 if dest.lower() == common.GOOGLE:
                     project_id = ''
                     user_email = ''
-                    common.setup_google(dest)
+                    common.setup_google()
                     project_id, user_email = common.get_google_project_user_details(project_location)
                     print("Using project_id:%s" % project_id)
                     print("Using user email:%s" % user_email)

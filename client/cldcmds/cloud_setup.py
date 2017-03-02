@@ -19,7 +19,7 @@ class CloudSetup(Command):
         return parser
 
     def _setup_google(self):
-        common.reset_google()
+        common.setup_google()
 
     def _setup_aws(self):
         common.setup_aws()

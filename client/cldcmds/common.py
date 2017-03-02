@@ -51,27 +51,26 @@ def get_google_project_user_details(project_location):
         lines = fp.readlines()
         for line in lines:
             parts = line.split(":")
-            potential_project_id = parts[1].rstrip().lstrip()
             if line.find("User Email") >=0:
                 user_email = parts[1].rstrip().lstrip()
-            if potential_project_id.find(app_name) >= 0:
-                project_id = potential_project_id
+            if line.find(app_name) >= 0:
+                project_id = parts[1].rstrip().lstrip()
         if not user_email:
             user_email = raw_input("Enter Gmail address associated with your Google App Engine account>")
             fp = open(google_app_details_path, "a")
             fp.write("User Email:%s\n" % user_email)
             fp.close()
         if not project_id:
-            project_id = raw_input("Enter project id>")
+            project_id = raw_input("Enter ID of the Google Cloud project that you want to use:")
             fp = open(google_app_details_path, "a")
-            fp.write("Project ID:%s\n" % project_id)
+            fp.write("%s:%s\n" % (app_name, project_id))
             fp.close()
     else:
-        project_id = raw_input("Enter project id>")
-        user_email = raw_input("Enter Gmail address associated with your Google App Engine account>")
+        user_email = raw_input("Enter Gmail address associated with your Google Cloud account:")
+        project_id = raw_input("Enter ID of the Google Cloud project that you want to use:")
         fp = open(google_app_details_path, "w")
         fp.write("User Email:%s\n" % user_email)
-        fp.write("Project ID:%s\n" % project_id)
+        fp.write("%s:%s\n" % (app_name, project_id))
         fp.close()
     return project_id, user_email
 
@@ -98,10 +97,16 @@ def reset_google():
         if os.path.exists(app_created_file):
             os.remove(app_created_file)
 
-def setup_google(dest):
+def setup_google():
     google_creds_path = APP_STORE_PATH + "/google-creds"
     if not os.path.exists(google_creds_path):
         os.makedirs(google_creds_path)
+
+        user_email = raw_input("Enter Gmail address associated with your Google Cloud account:")
+        fp = open(google_creds_path + "/app_details.txt", "w")
+        fp.write("User Email:%s\n" % user_email)
+        fp.flush()
+        fp.close()
 
         df = ("FROM lmecld/clis:gcloud \n"
               "RUN /google-cloud-sdk/bin/gcloud components install beta \n"
@@ -117,7 +122,8 @@ def setup_google(dest):
         app_name = app_name[k+1:]
 
         docker_build_cmd = ("docker build -t {app_name}_creds .").format(app_name=app_name)
-        os.system(docker_build_cmd)
+
+        subprocess.check_output(docker_build_cmd, shell=True)
 
         docker_run_cmd = ("docker run -i -t {app_name}_creds").format(app_name=app_name)
         os.system(docker_run_cmd)
@@ -126,20 +132,20 @@ def setup_google(dest):
         cont_id = subprocess.check_output(cont_id_cmd, shell=True).rstrip().lstrip()
 
         copy_file_cmd = ("docker cp {cont_id}:/root/.config/gcloud {google_creds_path}").format(cont_id=cont_id,
-                                                                                                 google_creds_path=google_creds_path)
-        os.system(copy_file_cmd)
+                                                                                                google_creds_path=google_creds_path)
+        subprocess.check_output(copy_file_cmd, shell=True)
         os.chdir(cwd)
 
         # Remove container created to obtain creds
         cont_name = ("{app_name}_creds").format(app_name=app_name)
         stop_cmd = ("docker ps -a | grep {cont_name} | cut -d ' ' -f 1 | xargs docker stop").format(cont_name=cont_name)
-        os.system(stop_cmd)
+        subprocess.check_output(stop_cmd, shell=True)
 
         rm_cmd = ("docker ps -a | grep {cont_name} | cut -d ' ' -f 1 | xargs docker rm").format(cont_name=cont_name)
-        os.system(rm_cmd)
+        subprocess.check_output(rm_cmd, shell=True)
 
         rmi_cmd = ("docker images -a | grep {cont_name}  | awk \'{{print $3}}\' | xargs docker rmi -f").format(cont_name=cont_name)
-        os.system(rmi_cmd)
+        subprocess.check_output(rmi_cmd, shell=True)
 
 def reset_aws():
     aws_creds_path = APP_STORE_PATH + "/aws-creds"
