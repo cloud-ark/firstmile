@@ -25,18 +25,54 @@ class Deploy(Command):
                             help="Destination to deploy application (local-docker, aws, google)")        
         return parser
 
+    def _check_entry_point(self, entry_point):
+        valid = False
+        if not os.path.exists("./" + entry_point):
+            return valid
+        if os.path.isdir(entry_point):
+            return valid
+
+        fp = open(entry_point, "r")
+        lines = fp.readlines()
+        check_1 = False
+        check_2 = False
+        for line in lines:
+            line = line.replace("\"",'')
+            line = line.replace("'",'')
+            line = line.replace("\s+","\s")
+            if line.find("Flask(__name__)") >= 0:
+                check_1 = True
+            if line.find("__main__") >= 0:
+                check_2 = True
+        valid = check_1 and check_2
+        return valid
+
+    def _check_port(self, port):
+        try:
+            int(port)
+            return True
+        except ValueError:
+            return False
+
     def _get_app_details(self):
         default_app_port = common.DEFAULT_APP_PORT
         app_type = common.DEFAULT_APP_TYPE
 
         default_entry_point = "application.py"
-        entry_point = raw_input("Enter file name that has main function in it (e.g.: application.py)>")
-        if not entry_point:
-            entry_point = default_entry_point
 
-        app_port = raw_input("Enter port number on which application listens>")
-        if not app_port:
-            app_port = default_app_port
+        valid_entry_point = False
+        while not valid_entry_point:
+            entry_point = raw_input("Enter application's main file (default: application.py)>")
+            if not entry_point:
+                entry_point = default_entry_point
+            valid_entry_point = self._check_entry_point(entry_point)
+
+        valid_port = False
+        while not valid_port:
+            app_port = raw_input("Enter port number on which application listens (default: 5000>)")
+            if not app_port:
+                app_port = default_app_port
+            valid_port = self._check_port(app_port)
 
         app_info = {}
         app_info['entry_point'] = entry_point
