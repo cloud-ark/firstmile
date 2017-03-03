@@ -1,8 +1,10 @@
 '''
-Created on Jan 3, 2017
-
-@author: devdatta
+ Copyright (C) Devcentric, Inc - All Rights Reserved
+ Unauthorized copying of this file, via any medium is strictly prohibited
+ Proprietary and confidential
+ Written by Devdatta Kulkarni <devdattakulkarni@gmail.com> January 3 2017
 '''
+
 from os.path import expanduser
 
 DEFAULT_DB_USER = 'testuser'
