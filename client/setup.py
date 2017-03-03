@@ -1,5 +1,12 @@
 #!/usr/bin/env python
 
+'''
+ Copyright (C) Devcentric, Inc - All Rights Reserved
+ Unauthorized copying of this file, via any medium is strictly prohibited
+ Proprietary and confidential
+ Written by Devdatta Kulkarni <devdattakulkarni@gmail.com>
+'''
+
 PROJECT = 'cld'
 
 # Change docs/sphinx/conf.py too!
