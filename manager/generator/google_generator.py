@@ -1,8 +1,10 @@
 '''
-Created on Dec 13, 2016
-
-@author: devdatta
+ Copyright (C) Devcentric, Inc - All Rights Reserved
+ Unauthorized copying of this file, via any medium is strictly prohibited
+ Proprietary and confidential
+ Written by Devdatta Kulkarni <devdattakulkarni@gmail.com>, December 13, 2016
 '''
+
 import ast
 import logging
 import os
