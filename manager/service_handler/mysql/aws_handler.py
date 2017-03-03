@@ -127,6 +127,13 @@ class MySQLServiceHandler(object):
         time_out = False
         count = 0
         instance_available = False
+        instance_dns = ''
+
+        def _cleanup_containers(cont_name):
+            message = ("Stopping container %s" % cont_name)
+            self.docker_handler.stop_container(cont_name, message)
+            self.docker_handler.remove_container(cont_name, message)
+
         while not time_out:
             try:
                 output = subprocess.Popen(cmd, stdout=subprocess.PIPE,
@@ -144,20 +151,27 @@ class MySQLServiceHandler(object):
                         if line.find("Address") >= 0:
                             parts = line.split(":")
                             instance_dns = parts[1].rstrip().lstrip().replace("\"", "")
+                            import pdb; pdb.set_trace()
+                            _cleanup_containers(cont_name)
+                            message = ("Removing container image: %s" % cont_name)
+                            self.docker_handler.remove_container_image(cont_name, message)
+
+                            cont_name = self.instance_name + "--" + self.instance_version + "--deploy-rds"
+                            _cleanup_containers(cont_name)
+                            message = ("Removing container image: %s" % cont_name)
+                            self.docker_handler.remove_container_image(cont_name, message)
                             return instance_dns
             except Exception as e:
                 print(e)
             count = count + 1
-            
-            self.docker_handler.stop_container(cont_name,
-                                               "Stopping container created for checking instance prov status")
-            self.docker_handler.remove_container(cont_name,
-                                                 "Stopping container created for checking instance prov status")
+
+            _cleanup_containers(cont_name)
+
             if count == MAX_WAIT_COUNT:
                 time_out = True
             else:
                 time.sleep(2)
-        return
+        return instance_dns
 
     def _save_instance_information(self, instance_ip):
         fp = open(self.service_obj.get_service_details_file_location(), "w")
