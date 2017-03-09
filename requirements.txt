@@ -2,7 +2,6 @@ flask
 flask-restful
 pexpect
 docker-py
-Pillow
 testtools
 requests
 gevent

@@ -1,125 +1,37 @@
-Multi-cloud app orchestration and service provisioning CLI 
--------------------------------------------------------------
-CloudFlow supports building and deploying Python web applications to target clouds (Local Docker, Google, and Amazon)
+FirstMile CLI 
+------------------
+FirstMile supports building and deploying Python Flask web applications to target clouds (Google and Amazon)
 without requiring you to make any changes to application code.
+You can also test applications locally by deploying them in FirstMile's Docker-based sandbox.
+FirstMile also supports provisioning service instances (such as MySQL, Google Cloud SQL, Amazon RDS).
 
-Pre-requisites:
----------------
-You will need Python (2.7 or above) and Docker installed on your machine to use CloudFlow.
 
-Sample applications:
---------------------
-Following sample applications are available in lme-examples repository
-(https://devdattakulkarni@bitbucket.org/devdattakulkarni/lme-examples.git)
-- hello-world
-- greetings-python
-- express-checkout
+Installation
+--------------
+Run ./install.sh
 
-greetings-python and express-checkout applications depend on a MySQL database for their correct functioning.
 
-To test lme you can clone lme-examples and use these sample applications.
+Deployment to local Docker sandbox:
+----------------------------------------
+1) Deploy hello-world sample application:
+   - Navigate to the application folder (cd ../firstmile-samples/hello-world)
+   - Deploy application:
+     > cld app deploy --cloud local-docker
+     
+     +------------------+-----------+-----------------+
+     |     App Name     | Deploy ID |    Cloud        |
+     +------------------+-----------+-----------------+
+     | hello-world      |    1      | local-docker    |
+     +------------------+-----------+-----------------+
 
-Installing LME:
----------------
-1) Using install.sh script
-   - git https://devdattakulkarni@bitbucket.org/devdattakulkarni/lme.git
-   - cd lme
-   - ./install.sh
-
-2) Manual setup
-a) Install virtualenv (pip install virtualenv)
-b) Create virtualenv (virtualenv test-lme)
-c) Start virtualenv (source test-lme/bin/activate)
-d) Install lme
-   - git clone https://devdattakulkarni@bitbucket.org/devdattakulkarni/lme.git
-   - cd lme
-   - pip install -r requirements.txt
-e) Start the server:
-   - python cld.py
-f) Install the CloudFlow cli
-   - Open a new terminal window and navigate to the directory where you cloned
-     the lme repository. Go inside the "client" folder inside this directory
-     and install the client.
-   - cd client; sudo python setup.py install
-     - This will install the LME cli.
-     - You can check the features of the LME cli by using "cld --help"
-
-      (virtenv) devdatta@devdatta-ThinkPad-T430:~/Code/lme/client$ cld app deploy --help
-      usage: cld app deploy [-h] [--service-name SERVICE] [--cloud CLOUD]
-
-      Build and deploy application
-
-      optional arguments:
-      -h, --help         show this help message and exit
-      --service SERVICE  Name of the required service (e.g.: MySQL)
-      --cloud CLOUD      Destination to deploy application (local, AWS, Google)
-
-       (virtenv) devdatta@devdatta-ThinkPad-T430:~/Code/lme/client$ cld app show --help
-       usage: cld app show [-h] [--deploy-id DEPLOYID]
-
-       Show application status
-
-       optional arguments:
-       -h, --help            show this help message and exit
-       --deploy-id DEPLOYID  Deployment ID/URL
-
-Deploying applications:
-------------------------
-CloudFlow supports deployments of applications and services (currently MySQL) to local Docker, Google, and AWS clouds.
-The deployments are supported using command line flags. It is also possible to provide the required
-deployment related inputs in a yaml file. Below we outline steps to deploy an application using command
-line flags. For detailed discussion about various deployment options, please check
-deployment-details.txt file.
-
-1) Navigate to the application folder (say, greetings-python) and then run
-      cld app deploy --service-name mysql --cloud local
-   This will show output of following nature.
-
-+------------------+-----------+--------+
-|     App Name     | Deploy ID | Cloud  |
-+------------------+-----------+--------+
-| greetings-python |    1      | local  |
-+------------------+-----------+--------+
-
-2) Use the deploy-id to check the deployment status
-      cld app show --deploy-id 1
-
-+------------------+-----------+---------------------+--------+--------------------------------------------+
-|     App Name     | Deploy ID |        Status       | Cloud  |                App URL                     |
-+------------------+-----------+---------------------+--------+--------------------------------------------+
-| greetings-python |    1      | DEPLOYMENT_COMPLETE | local  |  http://172.17.1.09:5000                   |
-+------------------+-----------+---------------------+--------+--------------------------------------------+
-
-3) You don't have to specify the "service" flag if an application does not need MySQL database for its functioning.
-   The hello-world application is of this nature. You can deploy it simply by executing
-   cld app deploy --cloud <local-docker|google|aws> command
-
-Deployment to Google App Engine:
---------------------------------
-1) Sign up for a Google cloud account by visiting https://console.cloud.google.com
-2) In order to deploy an application on Google App Engine, you will need to first
-   create a Google App Engine project from the GAE Console.
-   - Create a project and note down the Project ID (Note that it is important to use Project ID and not the Project name).
-3) Deploy the application by navigating to the application folder and executing following command:
-   cld app deploy --cloud google --service-name mysql
-
-+------------------+-----------+--------+
-|     App Name     | Deploy ID | Cloud  |
-+------------------+-----------+--------+
-| greetings-python |    2      | google |
-+------------------+-----------+--------+
-
-4) Check deployment status
-
-cld app show --deploy-id 2
-+------------------+-----------+---------------------+--------+---------------------------------------+
-|     App Name     | Deploy ID |        Status       | Cloud  |                App URL                |
-+------------------+-----------+---------------------+--------+---------------------------------------+
-| greetings-python |    2      | DEPLOYMENT_COMPLETE | google |  https://greetings-python.appspot.com |
-+------------------+-----------+---------------------+--------+---------------------------------------+
-
-Note:
-- Your application and all its resources will be deployed in the us-central region of GAE
+2) Check deployment status
+   > cld app show --deploy-id 1
+   
+   +------------------+-----------+---------------------+--------------+---------------------------------------+
+   |     App Name     | Deploy ID |        Status       | Cloud        |                App URL                |
+   +------------------+-----------+---------------------+--------------+---------------------------------------+
+   | hello-world      |    1      | DEPLOYMENT_COMPLETE | local-docker | http://172.0.0.1                      |
+   +------------------+-----------+---------------------+--------------+---------------------------------------+
 
 
 Deployment to Amazon Elastic Beanstalk:
@@ -129,20 +41,61 @@ Deployment to Amazon Elastic Beanstalk:
    - Create a IAM User (choose any name)
    - Grant following permission to the user: "AWSElasticBeanstalkFullAccess - AWS Managed Policy" by
      clicking the "Add permissions" button on the user panel.
-3) Note down SECRET_ACCESS_KEY and ACCESS_KEY_ID for this user. Provide these values when asked by CLD.
+3) Note down SECRET_ACCESS_KEY and ACCESS_KEY_ID for this user. Provide these values when asked by cld.
 
-4) Deploy the application by navigating to the application folder:
-   cld app deploy --cloud aws --service-name mysql
+4) Deploy hello-world sample application:
+   - Navigate to the application folder (cd ../firstmile-samples/hello-world)
+   - Deploy application:
+     > cld app deploy --cloud aws
+     
+     +------------------+-----------+------------+
+     |     App Name     | Deploy ID |    Cloud   |
+     +------------------+-----------+------------+
+     | hello-world      |    2      |     aws    |
+     +------------------+-----------+------------+
 
 5) Check deployment status
-   cld app show --deploy-id <deploy-id>
+   > cld app show --deploy-id 2
+   
+   +------------------+-----------+---------------------+--------------+---------------------------------------+
+   |     App Name     | Deploy ID |        Status       |     Cloud    |                App URL                |
+   +------------------+-----------+---------------------+--------------+---------------------------------------+
+   | hello-world      |    2      | DEPLOYMENT_COMPLETE |      aws     | <App URL on AWS>                      |
+   +------------------+-----------+---------------------+--------------+---------------------------------------+
+
+
+Deployment to Google App Engine:
+--------------------------------
+1) Sign up for a Google cloud account by visiting https://console.cloud.google.com
+2) In order to deploy an application on Google App Engine, you will need to first
+   create a Google App Engine project from the GAE Console.
+   - Create a project and note down the Project ID (Note that it is important to use Project ID and not the Project name).
+3) Deploy sample application greetings-python:
+   - Navigate to the application folder (cd ../firstmile-samples/greetings-python)
+   - Deploy application: 
+     > cld app deploy --cloud google --service-name mysql
+
+     +------------------+-----------+--------+
+     |     App Name     | Deploy ID | Cloud  |
+     +------------------+-----------+--------+
+     | greetings-python |    3      | google |
+     +------------------+-----------+--------+
+
+4) Check deployment status
+   > cld app show --deploy-id 1
+
+   +------------------+-----------+---------------------+--------+---------------------------------------+
+   |     App Name     | Deploy ID |        Status       | Cloud  |                App URL                |
+   +------------------+-----------+---------------------+--------+---------------------------------------+
+   | greetings-python |    3      | DEPLOYMENT_COMPLETE | google |  https://greetings-python.appspot.com |
+   +------------------+-----------+---------------------+--------+---------------------------------------+
 
 Note:
-- Your application and all its resources will be deployed in the us-west-2 region of Amazon ElasticBeanstalk
+- Your application and all its resources will be deployed in the us-central region of GAE
 
 
-All available commands:
-------------------------
+App commands:
+--------------
 1) cld app deploy --cloud <cloud>
 2) cld app deploy --cloud <cloud> --service mysql
 3) cld app show --deploy-id <deploy-id>
@@ -169,18 +122,93 @@ All available commands:
 |    151    | express-checkout | 2016-12-19-13-40-03 |  https://express-checkout-153019.appspot.com |
 +-----------+------------------+---------------------+----------------------------------------------+
 
-
-Deploying through LME UI (Under development):
----------------------------------------------
-1) Start the UI
-   - cd client; python lmeui.py
-2) Create a deployment
-   - Select the application by navigating to the application folder of the sample application (say, greetings-python)
-   - Hit "Deploy"
-3) Track the deployment
-   - Hit "Track"
+6) cld app logs --deploy-id <deploy-id>
+7) cld app delete --deploy-id <deploy-id>
 
 
-Details:
---------
-- Deployment related artifacts are stored inside ".cld" folder inside your home directory (~/.cld/data/deployments)
+Service commands:
+------------------
+1) cld service provision --service-name <service-name>
+2) cld service show --service-name <service-name>
+3) cld service delete --service-name <service-name>
+
+
+
+Deploying using YAML file
+--------------------------
+FirstMile supports YAML file for deployments.
+
+
+Structure of YAML file:
+-----------------------
+The YAML file consists of three sections: application, services, cloud.
+The cloud section is compulsory whereas application and services section
+can be included depending on whether you want to deploy a service instance
+or an application. Below is an example of YAML file containing all three sections.
+
++++++++++++++++++++++++++++++++++++++++
+application:
+  type: python
+  entry_point: application.py
+  env_variables:
+    MY_VAR1: VALUE1
+    MY_VAR2: VALUE2
+services:
+  - service:
+      type: mysql
+cloud:
+  type: google
+  project_id: greetings-python
+  user_email: cc1h499@gmail.com
++++++++++++++++++++++++++++++++++++++++
+
+Here are some examples of YAML file for different deployments.
+
+1) Deploying MySQL service instance locally
+--
+services:
+  - service:
+      type: mysql
+cloud:
+  type: local-docker
+--
+
+2) Deploying Cloud SQL service instance on Google cloud
+--
+services:
+  - service:
+      type: mysql
+cloud:
+  type: google
+  project_id: greetings-python
+  user_email: cc1h499@gmail.com
+--
+
+3) Deploying RDS instance on AWS cloud
+--
+services:
+  - service:
+      type: mysql
+cloud:
+  type: aws
+  SECRET_ACCESS_KEY: secret-access-key
+  ACCESS_KEY_ID: access-key-id
+--
+
+4) Deploying application on Google cloud and using env_variables to 
+   connect to an existing Cloud SQL instance:
+--
+application:
+  type: python
+  entry_point: application.py
+  env_variables:
+    DB: testdb
+    HOST: 107.178.214.1
+    USER: testuser
+    PASSWORD: testpass123!@#
+cloud:
+  type: google
+  project_id: greetings-python
+  user_email: cc1h499@gmail.com
+--
+

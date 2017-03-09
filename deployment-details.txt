@@ -179,3 +179,106 @@ Commands:
   help           print detailed help for another command
   service provision  Deploy a service
   service show   Show a service
+
+  
+----
+Additional Notes
+
+Installing FirstMile (Manually):
+---------------------------------
+a) Install virtualenv (pip install virtualenv)
+b) Create virtualenv (virtualenv test-firstmile)
+c) Start virtualenv (source test-firstmile/bin/activate)
+d) Install firstmile
+   - git clone https://devdattakulkarni@bitbucket.org/devdattakulkarni/lme.git
+   - cd lme
+   - pip install -r requirements.txt
+e) Start the server:
+   - python cld.py
+f) Install the FirstMile cli
+   - Open a new terminal window and navigate to the directory where you cloned
+     the lme repository. Go inside the "client" folder inside this directory
+     and install the client.
+   - cd client; sudo python setup.py install
+     - This will install the FirstMile cli.
+     - You can check the features of the FirstMile cli by using "cld --help"
+
+      (virtenv) devdatta@devdatta-ThinkPad-T430:~/Code/lme/client$ cld app deploy --help
+      usage: cld app deploy [-h] [--service-name SERVICE] [--cloud CLOUD]
+
+      Build and deploy application
+
+      optional arguments:
+      -h, --help         show this help message and exit
+      --service SERVICE  Name of the required service (e.g.: MySQL)
+      --cloud CLOUD      Destination to deploy application (local, AWS, Google)
+
+       (virtenv) devdatta@devdatta-ThinkPad-T430:~/Code/lme/client$ cld app show --help
+       usage: cld app show [-h] [--deploy-id DEPLOYID]
+
+       Show application status
+
+       optional arguments:
+       -h, --help            show this help message and exit
+       --deploy-id DEPLOYID  Deployment ID/URL
+
+Deploying applications:
+------------------------
+FirstMile supports deployments of applications and services (currently MySQL) to local Docker, Google, and AWS clouds.
+The deployments are supported using command line flags. It is also possible to provide the required
+deployment related inputs in a yaml file. Below we outline steps to deploy an application using command
+line flags. For detailed discussion about various deployment options, please check
+deployment-details.txt file.
+
+Sample applications:
+---------------------
+Following sample applications are available in lme-examples repository
+(https://devdattakulkarni@bitbucket.org/devdattakulkarni/lme-examples.git)
+- hello-world
+- greetings-python
+- express-checkout
+
+greetings-python and express-checkout applications depend on a MySQL database for their correct functioning.
+
+
+1) Navigate to the application folder (say, greetings-python) and then run
+      cld app deploy --service-name mysql --cloud local
+   This will show output of following nature.
+
++------------------+-----------+--------+
+|     App Name     | Deploy ID | Cloud  |
++------------------+-----------+--------+
+| greetings-python |    1      | local  |
++------------------+-----------+--------+
+
+2) Use the deploy-id to check the deployment status
+      cld app show --deploy-id 1
+
++------------------+-----------+---------------------+--------+--------------------------------------------+
+|     App Name     | Deploy ID |        Status       | Cloud  |                App URL                     |
++------------------+-----------+---------------------+--------+--------------------------------------------+
+| greetings-python |    1      | DEPLOYMENT_COMPLETE | local  |  http://172.17.1.09:5000                   |
++------------------+-----------+---------------------+--------+--------------------------------------------+
+
+3) You don't have to specify the "service" flag if an application does not need MySQL database for its functioning.
+   The hello-world application is of this nature. You can deploy it simply by executing
+   cld app deploy --cloud <local-docker|google|aws> command
+
+
+Deploying through FirstMile UI (Under development):
+---------------------------------------------
+1) Start the UI
+   - cd client; python lmeui.py
+2) Create a deployment
+   - Select the application by navigating to the application folder of the sample application (say, greetings-python)
+   - Hit "Deploy"
+3) Track the deployment
+   - Hit "Track"
+
+
+Details:
+--------
+- Deployment related artifacts are stored inside ".cld" folder inside your home directory (~/.cld/data/deployments)
+
+
+  

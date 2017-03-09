@@ -132,7 +132,7 @@ class GoogleBuilder(object):
 
         cont_name = app_name + "-get-logs"
         docker_file_name = "Dockerfile.logs"
-        build_cmd = ("docker build -t {cont_name} -f {docker_file_name} . >& ../{app_version}{runtime_log}").format(cont_name=cont_name,
+        build_cmd = ("docker build -t {cont_name} -f {docker_file_name} . &> ../{app_version}{runtime_log}").format(cont_name=cont_name,
                                                                                                                  docker_file_name=docker_file_name,
                                                                                                                  app_version=app_version,
                                                                                                                  runtime_log=constants.RUNTIME_LOG)
