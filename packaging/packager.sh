@@ -17,7 +17,7 @@ git checkout remotes/origin/service-app-separation
 sha=`git log --oneline | head -1`
 
 today=`date`
-echo "$today $version $sha" >> $release_file
+echo "$today $version $sha" >> ../../$release_file
 
 python -m compileall .
 
@@ -33,6 +33,10 @@ rm -rf build
 rm -rf dist
 rm cld.egg-info
 rm -rf packaging
+rm deployment-details.txt
+rm client/lmecli.pyc
+rm client/lmeui.pyc
+rm client/small-devcentric.png
 
 
 # Clone lme-examples
