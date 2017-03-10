@@ -147,7 +147,7 @@ def setup_google():
         rm_cmd = ("sg docker -c \"docker ps -a | grep {cont_name} | cut -d ' ' -f 1 | xargs docker rm\"").format(cont_name=cont_name)
         subprocess.check_output(rm_cmd, shell=True)
 
-        rmi_cmd = ("sg docker -c \"docker images -a | grep {cont_name}  | cut -d ' ' -f 24 | xargs docker rmi -f\"").format(cont_name=cont_name)
+        rmi_cmd = ("sg docker -c \"docker images -a | grep {cont_name}  | sed s'/ \+/ /g' | cut -d ' ' -f 3 | xargs docker rmi -f\"").format(cont_name=cont_name)
         subprocess.check_output(rmi_cmd, shell=True)
 
 def reset_aws():
