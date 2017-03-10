@@ -124,30 +124,30 @@ def setup_google():
         k = app_name.rfind("/")
         app_name = app_name[k+1:]
 
-        docker_build_cmd = ("docker build -t {app_name}_creds .").format(app_name=app_name)
+        docker_build_cmd = ("sg docker -c \"docker build -t {app_name}_creds .\"").format(app_name=app_name)
 
         subprocess.check_output(docker_build_cmd, shell=True)
 
-        docker_run_cmd = ("docker run -i -t {app_name}_creds").format(app_name=app_name)
+        docker_run_cmd = ("sg docker -c \"docker run -i -t {app_name}_creds\"").format(app_name=app_name)
         os.system(docker_run_cmd)
 
-        cont_id_cmd = ("docker ps -a | grep {app_name}_creds | cut -d ' ' -f 1 | head -1").format(app_name=app_name)
+        cont_id_cmd = ("sg docker -c \"docker ps -a | grep {app_name}_creds | cut -d ' ' -f 1 | head -1\"").format(app_name=app_name)
         cont_id = subprocess.check_output(cont_id_cmd, shell=True).rstrip().lstrip()
 
-        copy_file_cmd = ("docker cp {cont_id}:/root/.config/gcloud {google_creds_path}").format(cont_id=cont_id,
-                                                                                                google_creds_path=google_creds_path)
+        copy_file_cmd = ("sg docker -c \"docker cp {cont_id}:/root/.config/gcloud {google_creds_path}\"").format(cont_id=cont_id,
+                                                                                                                 google_creds_path=google_creds_path)
         subprocess.check_output(copy_file_cmd, shell=True)
         os.chdir(cwd)
 
         # Remove container created to obtain creds
         cont_name = ("{app_name}_creds").format(app_name=app_name)
-        stop_cmd = ("docker ps -a | grep {cont_name} | cut -d ' ' -f 1 | xargs docker stop").format(cont_name=cont_name)
+        stop_cmd = ("sg docker -c \"docker ps -a | grep {cont_name} | cut -d ' ' -f 1 | xargs docker stop\"").format(cont_name=cont_name)
         subprocess.check_output(stop_cmd, shell=True)
 
-        rm_cmd = ("docker ps -a | grep {cont_name} | cut -d ' ' -f 1 | xargs docker rm").format(cont_name=cont_name)
+        rm_cmd = ("sg docker -c \"docker ps -a | grep {cont_name} | cut -d ' ' -f 1 | xargs docker rm\"").format(cont_name=cont_name)
         subprocess.check_output(rm_cmd, shell=True)
 
-        rmi_cmd = ("docker images -a | grep {cont_name}  | awk \'{{print $3}}\' | xargs docker rmi -f").format(cont_name=cont_name)
+        rmi_cmd = ("sg docker -c \"docker images -a | grep {cont_name}  | awk \'{{print $3}}\' | xargs docker rmi -f\"").format(cont_name=cont_name)
         subprocess.check_output(rmi_cmd, shell=True)
 
 def reset_aws():
