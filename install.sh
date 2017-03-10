@@ -16,37 +16,47 @@ fi
 # Install requirements
 sudo apt-get update &>> $install_log && sudo apt-get install -y docker.io python-dev python-pip &>> $install_log
 
+sudo usermod -aG docker $USER &>> $install_log
+# Adding the current user to docker group so docker commands can be run without sudo
+sudo gpasswd -a ${USER} docker &>> $install_log
+sudo service docker restart &>> $install_log
+
+
 # Install FirstMile client
 echo "Installing FirstMile client"
 #echo "Creating virtual environment"
-pip install virtualenv &>> $install_log
+sudo pip install virtualenv &>> $install_log
 virtenv="firstmile"
-virtualenv $virtenv &>> $install_log
+sudo virtualenv $virtenv &>> $install_log
 source $virtenv/bin/activate &>> $install_log
 
 #if [[ ! -e cld.pyc ]]; then
-sudo ./$virtenv/bin/python -m compileall . &>> $install_log
+#sudo ./$virtenv/bin/python -m compileall . &>> $install_log
 #fi
 
 cd client
 sudo ../$virtenv/bin/python setup.pyc install &>> $install_log
+export PATH=$PATH:`pwd`
+export PYTHONPATH=$PYTHONPATH:`pwd`
 cd ..
 
 # ?
-pip install -r requirements.txt &>> $install_log
+sudo $virtenv/bin/pip install -r requirements.txt &>> $install_log
+
+pushd $virtenv/bin
+export PATH=$PATH:`pwd`
+export PYTHONPATH=$PYTHONPATH:`pwd`
+popd
 
 #echo "Starting firstmile server. Server logs stored in cld-server.log"
 #echo "Home:$HOME"
 #sudo groupadd docker
 
-# Adding the current user to docker group so docker commands can be run without sudo
-sudo gpasswd -a ${USER} docker &>> $install_log
-sudo service docker restart &>> $install_log
 
 # Starting a sub-shell to enable the docker group that we set above
 #echo "Executing newgrp command"
-/usr/bin/newgrp docker <<EONG
-EONG
+#/usr/bin/newgrp docker <<EONG
+#EONG
 #echo "Done executing newgrp command"
 
 # Find id of docker group
@@ -71,17 +81,17 @@ echo "CMD [\"python\", \"/src/cld.pyc\"]" >> Dockerfile
 # Start the firstmile server container
 #set -x
 echo "Starting FirstMile"
-docker build -t firstmile-img . &>> $install_log
-docker run -u ubuntu -p 5002:5002 -v /var/run/docker.sock:/var/run/docker.sock -v $HOME:/home/ubuntu -d firstmile-img &>> $install_log
+sg docker -c "docker build -t firstmile-img . &>> $install_log"
+sg docker -c "docker run -u ubuntu -p 5002:5002 -v /var/run/docker.sock:/var/run/docker.sock -v $HOME:/home/ubuntu -d firstmile-img &>> $install_log"
 
-has_server_started=`docker ps -a | grep firstmile`
+has_server_started=`sg docker -c "docker ps -a | grep firstmile"`
 
 if [[ ! -z "${has_server_started}" ]]; then
     echo "FirstMile successfully installed."
     echo "Next steps:"
     echo "- Quick try: Run 'cld app list'"
     echo "- Then try out samples from firstmile-samples directory (available one level above)"
-    echo "...Happy coding"
+    echo "Happy coding :-)"
 fi
 
 # Activate the virtual environment in which we have installed the FirstMile client.
