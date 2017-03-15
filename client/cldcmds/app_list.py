@@ -22,7 +22,7 @@ class AppList(Command):
     def _app_list(self):
         result = dp.Deployment().get_all_apps()
         x = prettytable.PrettyTable()
-        x.field_names = ["Deploy ID", "App Name", "App Version", "Cloud"]
+        x.field_names = ["Deploy ID", "App Name", "App Version", "Cloud", "Status"]
 
         if result:
             pretty_table = common.artifact_list_show(result, x)

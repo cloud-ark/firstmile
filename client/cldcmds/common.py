@@ -313,8 +313,9 @@ def artifact_list_show(result, pretty_table):
         dep_id = line['dep_id'] if 'dep_id' in line else ''
         version = line['version'] if 'version' in line else ''
         cloud = line['cloud'] if 'cloud' in line else ''
+        status = line['status'] if 'status' in line else ''
 
-        row = [dep_id, name, version, cloud]
+        row = [dep_id, name, version, cloud, status]
         pretty_table.add_row(row)
 
     return pretty_table
