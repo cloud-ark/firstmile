@@ -89,6 +89,22 @@ class DockerLib(object):
         logging.debug("Docker build cmd:%s" % docker_build_cmd)
         os.system(docker_build_cmd)
 
+    def build_ct_image(self, cont_name, docker_file_name):
+        build_cmd = ("docker build -t {cont_name} -f {docker_file_name} .").format(cont_name=cont_name,
+                                                                                   docker_file_name=docker_file_name)
+        logging.debug("Docker build cmd:%s" % build_cmd)
+
+        try:
+            import pdb; pdb.set_trace()
+            chanl = subprocess.Popen(build_cmd, stdout=subprocess.PIPE,
+                                     stderr=subprocess.PIPE, shell=True).communicate()
+            err = chanl[1]
+            output = chanl[0]
+        except Exception as e:
+            logging.debug(e)
+            raise e
+        return err, output
+
     def run_container(self, cont_name):
         docker_run_cmd = ("docker run -i -t -d {cont_name}").format(cont_name=cont_name)
         logging.debug("Docker run cmd:%s" % docker_run_cmd)

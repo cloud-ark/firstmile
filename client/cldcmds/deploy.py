@@ -116,11 +116,33 @@ class Deploy(Command):
 
         service = parsed_args.service
         dest = parsed_args.cloud
-
         common.verify_inputs(service, dest)
 
         project_location = os.getcwd()
         self.log.debug("App directory:%s" % project_location)
+
+        cloud_info = common.read_cloud_info()
+        if not cloud_info:
+            if dest:
+                self.log.debug("Destination:%s" % dest)
+            else:
+                dest = raw_input("Please enter Cloud deployment target>")
+            if dest.lower() == common.AWS:
+                common.setup_aws()
+                cloud_info['type'] = common.AWS
+            if dest.lower() == common.GOOGLE:
+                project_id = ''
+                user_email = ''
+                common.setup_google()
+                project_id, user_email = common.get_google_project_user_details(project_location)
+                print("Using project_id:%s" % project_id)
+                print("Using user email:%s" % user_email)
+                cloud_info['type'] = common.GOOGLE
+                cloud_info['project_id'] = project_id
+                cloud_info['user_email'] = user_email
+            if dest.lower() == common.LOCAL_DOCKER:
+                cloud_info['type'] = common.LOCAL_DOCKER
+                cloud_info['app_port'] = '5000'
 
         app_info = common.read_app_info()
         if not app_info:
@@ -134,29 +156,6 @@ class Deploy(Command):
                 service_info = self._get_service_details(service)
                 app_info = self._get_app_service_details(app_info)
 
-        cloud_info = common.read_cloud_info()
-        if not cloud_info:
-            if dest:
-                self.log.debug("Destination:%s" % dest)
-                if dest.lower() == common.AWS:
-                    common.setup_aws()
-                    cloud_info['type'] = common.AWS
-                if dest.lower() == common.GOOGLE:
-                    project_id = ''
-                    user_email = ''
-                    common.setup_google()
-                    project_id, user_email = common.get_google_project_user_details(project_location)
-                    print("Using project_id:%s" % project_id)
-                    print("Using user email:%s" % user_email)
-                    cloud_info['type'] = common.GOOGLE
-                    cloud_info['project_id'] = project_id
-                    cloud_info['user_email'] = user_email
-                if dest.lower() == common.LOCAL_DOCKER:
-                    cloud_info['type'] = common.LOCAL_DOCKER
-                    cloud_info['app_port'] = '5000'
-            else:
-                print("Cloud deployment target not specified. Exiting.")
-                sys.exit(0)
 
         self.dep_track_url = dp.Deployment().post(project_location, app_info, 
                                                   service_info, cloud_info)

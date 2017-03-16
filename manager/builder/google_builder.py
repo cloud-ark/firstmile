@@ -94,10 +94,14 @@ class GoogleBuilder(object):
         build_cmd = ("docker build -t {name} . ").format(name=cont_name)
         logging.debug("Docker build command:%s" % build_cmd)
 
-        result = subprocess.check_output(build_cmd, shell=True)
-        logging.debug(result)
-
-        os.chdir(cwd)
+        try:
+            err, _ = self.docker_handler.build_ct_image(cont_name, "Dockerfile")
+            os.chdir(cwd)
+            if err and err.lower().index("error") >= 0:
+                app_obj.update_app_status("ERROR:%s" % err)
+        except Exception as e:
+            logging.error(e)
+            raise e
 
     def build_for_delete(self, info):
         logging.debug("Google builder called for delete of app:%s" % info['app_name'])
@@ -156,8 +160,12 @@ class GoogleBuilder(object):
             logging.debug("Google builder called for app %s" %
                           self.task_def.app_data['app_name'])
             app_obj = app.App(self.task_def.app_data)
-            self._build_app_container(app_obj)
-            self._build_first_time_container(app_obj)
+            try:
+                self._build_app_container(app_obj)
+                self._build_first_time_container(app_obj)
+            except Exception as e:
+                logging.error(e)
+                raise e
         else:
             logging.debug("Build type %s not supported." % build_type)
         

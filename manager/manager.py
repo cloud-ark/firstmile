@@ -56,24 +56,32 @@ class Manager(threading.Thread):
                 utils.update_status(service_obj.get_status_file_location(), "name::" + service_name)
                 utils.update_status(service_obj.get_status_file_location(), "cloud::" + cloud)
 
-                gen.Generator(self.task_def).generate('service', service_ip_addresses, services)
-                bld.Builder(self.task_def).build(build_type='service', build_name=service_name)
-                serv_ip_addr = dep.Deployer(self.task_def).deploy(deploy_type='service',
-                                                                  deploy_name=service_name)
-                logging.debug("IP Address of the service:%s" % serv_ip_addr)
-                service_ip_addresses[service_name] = serv_ip_addr
+                try:
+                    gen.Generator(self.task_def).generate('service', service_ip_addresses, services)
+                    bld.Builder(self.task_def).build(build_type='service', build_name=service_name)
+                    serv_ip_addr = dep.Deployer(self.task_def).deploy(deploy_type='service',
+                                                                      deploy_name=service_name)
+                    logging.debug("IP Address of the service:%s" % serv_ip_addr)
+                    service_ip_addresses[service_name] = serv_ip_addr
+                except Exception as e:
+                    logging.error(e)
+                    return
 
             # Step 2:
             # - Generate, build, deploy app
             if self.task_def.app_data:
                 # Allow time for service container to be deployed and started
                 time.sleep(5)
-                gen.Generator(self.task_def).generate('app', service_ip_addresses, services)
-                bld.Builder(self.task_def).build(build_type='app', build_name=self.task_def.app_data['app_name'])
-                result = dep.Deployer(self.task_def).deploy(deploy_type='app',
-                                                            deploy_name=self.task_def.app_data['app_name']
-                                                            )
-                logging.debug("Result:%s" % result)
+                try:
+                    gen.Generator(self.task_def).generate('app', service_ip_addresses, services)
+                    bld.Builder(self.task_def).build(build_type='app', build_name=self.task_def.app_data['app_name'])
+                    result = dep.Deployer(self.task_def).deploy(deploy_type='app',
+                                                                deploy_name=self.task_def.app_data['app_name']
+                                                                )
+                    logging.debug("Result:%s" % result)
+                except Exception as e:
+                    logging.error(e)
+                    return
 
     def get_logs(self, info):
         logging.debug("Manager -- logs")
