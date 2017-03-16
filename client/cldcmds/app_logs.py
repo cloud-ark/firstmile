@@ -35,5 +35,8 @@ class AppLogs(Command):
         self.app.stdout.write("%s\n" % pretty_table)
 
     def take_action(self, parsed_args):
-        if parsed_args.deployid:
-            self._app_logs(parsed_args.deployid)
+
+        dest = parsed_args.deployid
+        if not dest:
+            dest = raw_input("Please enter deploy id>")
+        self._app_logs(dest)
