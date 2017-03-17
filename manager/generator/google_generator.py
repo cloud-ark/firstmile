@@ -177,7 +177,6 @@ class GoogleGenerator(object):
         first_time = self._check_if_first_time_app_deploy(self.app_name,
                                                           user_email,
                                                           project_id)
-        import pdb; pdb.set_trace()
         region = self._get_region()
         if first_time:
             df1 = df + ("RUN /google-cloud-sdk/bin/gcloud beta app create --region {region}\n")
