@@ -153,7 +153,6 @@ class MySQLServiceHandler(object):
                         if line.find("Address") >= 0:
                             parts = line.split(":")
                             instance_dns = parts[1].rstrip().lstrip().replace("\"", "")
-                            import pdb; pdb.set_trace()
                             _cleanup_containers(cont_name)
                             message = ("Removing container image: %s" % cont_name)
                             self.docker_handler.remove_container_image(cont_name, message)
