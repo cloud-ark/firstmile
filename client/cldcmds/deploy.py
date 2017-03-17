@@ -127,6 +127,7 @@ class Deploy(Command):
                 self.log.debug("Destination:%s" % dest)
             else:
                 dest = raw_input("Please enter Cloud deployment target>")
+                common.verify_inputs(service, dest)
             if dest.lower() == common.AWS:
                 common.setup_aws()
                 cloud_info['type'] = common.AWS
