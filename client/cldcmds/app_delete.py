@@ -29,6 +29,8 @@ class AppDelete(Command):
         self.log.debug("App delete result:%s" % result)
 
     def take_action(self, parsed_args):
-        
-        if parsed_args.deployid:
-            self._app_delete(parsed_args.deployid)
+
+        dest = parsed_args.deployid
+        if not dest:
+            dest = raw_input("Please enter deploy id>")
+        self._app_delete(dest)

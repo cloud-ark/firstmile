@@ -271,7 +271,7 @@ class AWSGenerator(object):
         
         env_name = app_obj.get_cont_name()
 
-        if len(env_name) >=40:
+        if len(env_name) + 6 >=40:
             env_name = env_name[0:30]
 
         key_name = env_name + "-" + str(randint(0,9)) + "-" + str(randint(0,9)) + "-" + str(randint(0,9))
