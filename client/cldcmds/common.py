@@ -106,8 +106,13 @@ def setup_google():
         os.makedirs(google_creds_path)
 
         user_email = raw_input("Enter Gmail address associated with your Google Cloud account:")
+
+        regions = ["asia-northeast1", "europe-west", "us-central", "us-east1"]
+        region = get_region("google", regions)
+
         fp = open(google_creds_path + "/app_details.txt", "w")
         fp.write("User Email:%s\n" % user_email)
+        fp.write("Region:%s\n" % region)
         fp.flush()
         fp.close()
 
@@ -201,17 +206,11 @@ def setup_aws():
         os.makedirs(aws_creds_path)
         secret_access_key = raw_input("Enter AWS Secret Access Key:")
         access_key_id = raw_input("Enter AWS Access Key ID:")
+
         regions = ["us-east-1", "us-east-2", "us-west-1", "us-west-2", "ca-central-1", "eu-west-1", "eu-west-2", "eu-central-1", "ap-southeast-1"]
         regions.extend(["ap-southeast-2", "ap-northeast-1", "ap-northeast-2", "ap-south-1", "sa-east-1"])
-        print("AWS regions:")
-        for r in regions:
-            print(r)
-        while True:
-            region = raw_input("Enter AWS region:")
-            if region in regions:
-                break
-            else:
-                print("Incorrect region specified. Please choose one of above.")
+        region = get_region("aws", regions)
+
         fp = open(aws_creds_path + "/credentials", "w")
         fp.write("[default]\n")
         fp.write("aws_access_key_id = %s\n" % access_key_id)
@@ -223,6 +222,18 @@ def setup_aws():
         fp.write("output = json\n")
         fp.write("region = %s\n" % region)
         fp.close()
+
+def get_region(cloud, regions):
+    print(" %s regions:" % cloud)
+    for r in regions:
+        print(r)
+    while True:
+        region = raw_input("Enter %s region:" % cloud)
+        if region in regions:
+            break
+        else:
+            print("Incorrect region specified. Please choose one of above.")
+    return region
 
 def read_app_info():
     cwd = os.getcwd()

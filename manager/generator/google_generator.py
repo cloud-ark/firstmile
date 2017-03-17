@@ -141,6 +141,15 @@ class GoogleGenerator(object):
                     break
             return first_time_app
     
+    def _get_region(self):
+        fp = open(GOOGLE_CREDS_PATH + "/app_details.txt", "r")
+        lines = fp.readlines()
+        for line in lines:
+            if line.find("Region") >= 0:
+                parts = line.split(":")
+                region = parts[1].rstrip().lstrip()
+        return region
+
     def _generate_docker_file(self, app_deploy_dir):
 
         cmd_1 = ("RUN sed -i 's/{pat}access_token{pat}.*/{pat}access_token{pat}/' credentials \n").format(pat="\\\"")
@@ -168,10 +177,12 @@ class GoogleGenerator(object):
         first_time = self._check_if_first_time_app_deploy(self.app_name,
                                                           user_email,
                                                           project_id)
+        import pdb; pdb.set_trace()
+        region = self._get_region()
         if first_time:
-            df1 = df + ("RUN /google-cloud-sdk/bin/gcloud beta app create --region us-central \n")
+            df1 = df + ("RUN /google-cloud-sdk/bin/gcloud beta app create --region {region}\n")
             df1 = df1.format(cmd_1=cmd_1, cmd_2=cmd_2, user_email=self.task_def.cloud_data['user_email'],
-                             project_id=self.task_def.cloud_data['project_id'])
+                             project_id=self.task_def.cloud_data['project_id'], region=region)
 
         df = df + ("ENTRYPOINT [\"/google-cloud-sdk/bin/gcloud\", \"app\", \"deploy\", \"--quiet\"] \n")
 
