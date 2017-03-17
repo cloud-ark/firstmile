@@ -95,7 +95,6 @@ class DockerLib(object):
         logging.debug("Docker build cmd:%s" % build_cmd)
 
         try:
-            import pdb; pdb.set_trace()
             chanl = subprocess.Popen(build_cmd, stdout=subprocess.PIPE,
                                      stderr=subprocess.PIPE, shell=True).communicate()
             err = chanl[1]

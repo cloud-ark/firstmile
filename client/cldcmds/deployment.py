@@ -25,6 +25,13 @@ class Deployment(object):
         with tarfile.open(output_filename, "w:gz") as tar:
             tar.add(source_dir, arcname=os.path.basename(source_dir))
 
+    def _delete_tarfile(self, tarfile_name, source_dir):
+        cwd = os.getcwd()
+        os.chdir(source_dir)
+        if os.path.exists(tarfile_name):
+            os.remove(tarfile_name)
+        os.chdir(cwd)
+
     def _read_tarfile(self, tarfile_name):
         with gzip.open(tarfile_name, "rb") as f:
             contents = f.read()
@@ -103,6 +110,9 @@ class Deployment(object):
             return
         track_url = response.headers.get('location')
         self.log.debug("Deployment ID:%s" % track_url)
+
+        self._delete_tarfile(tarfile_name, source_dir)
+
         return track_url
 
     def delete(self, dep_id):

@@ -63,34 +63,19 @@ class GoogleDeployer(object):
 
     def _deploy_app_container(self, app_obj):
         app_cont_name = app_obj.get_cont_name()
-        log_file_name = TMP_LOG_FILE + "-" + app_cont_name
         self.logger.debug("Deploying app container:%s" % app_cont_name)
-        # Create the temporary file:
-        # touch_cmd = ("touch {tmp_file}").format(tmp_file=log_file_name)
-        #     os.system(touch_cmd)
+
         docker_run_cmd = ("docker run {app_container}").format(app_container=app_cont_name)
 
         err = subprocess.Popen(docker_run_cmd, stdout=subprocess.PIPE, 
                                stderr=subprocess.PIPE, shell=True).communicate()[1]
 
-
         logged_status = []
 
-        deployment_done = False
-
-        #try:
-        #    subprocess.check_output(docker_run_cmd, shell=True)
-        #except Exception as e:
-        #    self.logger.error(e)
-
-        #fp = open(log_file_name)
         app_url = ""
         done_reason = "TIMEOUT"
-        count = 0
-        #while not deployment_done and count < 300:
+
         log_lines = err.split("\n")
-        #    log_lines = fp.readlines()
-            #self.logger.debug("Log lines:%s" % log_lines)
         for line in log_lines:
             line = line.rstrip().lstrip()
             if line.find("Deployed URL") >= 0:
@@ -102,16 +87,10 @@ class GoogleDeployer(object):
                 logged_status.append(line)
                 app_obj.update_app_status(line)
             if line.find("Deployed service [default] to") >= 0:
-                deployment_done = True
                 done_reason = constants.APP_DEPLOYMENT_COMPLETE
-                #os.remove(log_file_name)
             if line.find("ERROR") >=0:
-                deployment_done = True
                 done_reason = constants.DEPLOYMENT_ERROR
                 app_url = ""
-                #os.remove(log_file_name)
-            #count = count + 1
-            #time.sleep(1)
 
         cont_id = ''
         try:
