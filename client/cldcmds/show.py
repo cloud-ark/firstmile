@@ -116,11 +116,18 @@ class Show(Command):
 
     def take_action(self, parsed_args):
 
-        if parsed_args.appname:
-            self._app_name_show(parsed_args.appname)
+        app_name = parsed_args.appname
+        cloud = parsed_args.cloud
+        dep_id = parsed_args.deployid
 
-        if parsed_args.cloud:
-            self._cloud_show(parsed_args.cloud)
+        if not app_name and not cloud and not dep_id:
+            dep_id = raw_input("Please enter deploy id>")
 
-        if parsed_args.deployid:
-            self._deployid_show(parsed_args.deployid)
+        if app_name:
+            self._app_name_show(app_name)
+
+        if cloud:
+            self._cloud_show(cloud)
+
+        if dep_id:
+            self._deployid_show(dep_id)
