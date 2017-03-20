@@ -125,9 +125,14 @@ class Deployment(object):
     def logs(self, dep_id):
         app_url = "http://localhost:5002/logs/" + dep_id
         req = urllib2.Request(app_url)
-        response = urllib2.urlopen(req)
-        app_data = response.fp.read()
-        self.log.debug("Response:%s" % app_data)
+        app_data = ''
+        try:
+            response = urllib2.urlopen(req)
+            app_data = response.fp.read()
+            self.log.debug("Response:%s" % app_data)
+        except urllib2.HTTPError as e:
+            if e.getcode() == 404:
+                print("Application with deploy-id %s not found." % dep_id)
         return app_data
 
     def get(self, dep_id):

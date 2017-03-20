@@ -32,7 +32,7 @@ class AppLogs(Command):
         x.field_names = ["App Name", "App Version", "Cloud", "Log location"]
         if result:
             pretty_table = common.artifact_logs_show(result, x)
-        self.app.stdout.write("%s\n" % pretty_table)
+            self.app.stdout.write("%s\n" % pretty_table)
 
     def take_action(self, parsed_args):
 
