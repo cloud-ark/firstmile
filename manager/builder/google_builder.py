@@ -46,7 +46,7 @@ class GoogleBuilder(object):
             logging.debug(e)
             
         if not gae_app_created:
-            app_obj.update_app_status("BUILDING FIRST TIME APP CONTAINER")
+            app_obj.update_app_status(constants.SETTING_UP_APP)
             cwd = os.getcwd()
             app_dir = self.app_dir
             app_name = self.app_name
@@ -82,7 +82,7 @@ class GoogleBuilder(object):
             os.chdir(cwd)
 
     def _build_app_container(self, app_obj):
-        app_obj.update_app_status("BUILDING APP CONTAINER")
+        app_obj.update_app_status(constants.BUILDING_APP)
         cwd = os.getcwd()
         app_dir = self.task_def.app_data['app_location']
         app_name = self.task_def.app_data['app_name']

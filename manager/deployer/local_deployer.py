@@ -148,7 +148,7 @@ class LocalDeployer(object):
     def deploy(self, deploy_type, deploy_name):
         if deploy_type == 'service':
             logging.debug("Local deployer called for service %s" % deploy_name)
-            utils.update_status(self.service_obj.get_status_file_location(), "DEPLOYING_SERVICE_INSTANCE")
+            utils.update_status(self.service_obj.get_status_file_location(), constants.DEPLOYING_SERVICE_INSTANCE)
             serv_handler = self.services[deploy_name]
             utils.update_status(self.service_obj.get_status_file_location(),
                                 constants.DEPLOYING_SERVICE_INSTANCE)
