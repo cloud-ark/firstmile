@@ -172,11 +172,13 @@ class App(Resource):
         status_lines = utils.read_statues(APP_STORE_PATH, "app_ids.txt",
                                           "app-status.txt", app_name, '')
         resp_data = {}
-
-        resp_data['data'] = status_lines
-
         response = jsonify(**resp_data)
-        response.status_code = 200
+
+        if status_lines:
+            resp_data['data'] = status_lines
+            response.status_code = 200
+        else:
+            response.status_code = 404
         return response
 
 class Apps(Resource):
@@ -268,11 +270,13 @@ class Deployment(Resource):
                                                    "app-status.txt",
                                                    dep_id)
         resp_data = {}
-
-        resp_data['data'] = status_data
-
         response = jsonify(**resp_data)
-        response.status_code = 200
+
+        if status_data:
+            resp_data['data'] = status_data
+            response.status_code = 200
+        else:
+            response.status_code = 404
         return response
 
     def get_1(self, dep_id):

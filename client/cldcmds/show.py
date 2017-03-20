@@ -35,28 +35,25 @@ class Show(Command):
 
     def _app_name_show(self, appname):
         result = dp.Deployment().get_app_info(appname)
-        x = prettytable.PrettyTable()
-        x.field_names = ["Deploy ID", "App Version", "Cloud", "Status", "App Info"]
-
         if result:
+            x = prettytable.PrettyTable()
+            x.field_names = ["Deploy ID", "App Version", "Cloud", "Status", "App Info"]
             pretty_table = common.artifact_name_show(result, x)
-
-        self.app.stdout.write("%s\n" % pretty_table)
+            self.app.stdout.write("%s\n" % pretty_table)
 
     def _deployid_show(self, dep_id):
         result = dp.Deployment().get(dep_id)
-        x = prettytable.PrettyTable()
-        x.field_names = ["App Name", "App Version", "Cloud", "Status", "App Info"]
-
         if result:
+            x = prettytable.PrettyTable()
+            x.field_names = ["App Name", "App Version", "Cloud", "Status", "App Info"]
             pretty_table = common.artifact_depid_show(result, x)
-
-        self.app.stdout.write("%s\n" % pretty_table)
+            self.app.stdout.write("%s\n" % pretty_table)
 
     def _cloud_show(self, cloud):
         result = dp.Deployment().get_cloud_info(cloud)
         x = prettytable.PrettyTable()
         x.field_names = ["Deploy ID", "App Name", "App Version", "App URL"]
+
         if result:
             status_json = json.loads(result)
             app_status_list = status_json['app_data']
