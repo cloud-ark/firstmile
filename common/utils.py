@@ -34,7 +34,7 @@ def get_id(path, file_name, name, version, s_name, s_version, s_id, cloud,
                         found_non_deleted_line = True
                     else:
                         last_index = last_index - 1
-                if last_index == 0 and not found_non_deleted_line:
+                if last_index <= 0 and not found_non_deleted_line:
                     id_count = 1
                 else:
                     last_line_parts = last_line.split(" ")
