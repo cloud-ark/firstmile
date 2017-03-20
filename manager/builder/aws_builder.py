@@ -108,10 +108,9 @@ class AWSBuilder(object):
         fp.flush()
         fp.close()
 
-        cmd = ("docker build -t {app_name}-retrieve-logs -f Dockerfile.retrieve-logs .").format(app_name=cont_name)
+        log_cont_name = ("{app_name}-retrieve-logs").format(app_name=cont_name)
+        cmd = ("docker build -t {log_cont_name} -f Dockerfile.retrieve-logs .").format(log_cont_name=log_cont_name)
         os.system(cmd)
-
-        logging.debug("Retrieving application runtime logs done. Remove intermediate containers.")
 
         os.chdir(cwd)
 

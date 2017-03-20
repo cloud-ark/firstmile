@@ -159,6 +159,10 @@ class AWSDeployer(object):
         self.docker_handler.remove_container_image(ec2_ip_cont,
                                                    "container created to obtain ec2 ip address no longer needed.")
 
+        logging.debug("Retrieving application runtime logs done. Remove intermediate containers.")
+        log_cont_name = ("{app_name}-retrieve-logs").format(app_name=cont_name)
+        self.docker_handler.remove_container_image(log_cont_name, "Deleting container image created to obtain logs")
+
         os.chdir(cwd)
 
     def deploy_for_delete(self, info):
