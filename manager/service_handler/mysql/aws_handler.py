@@ -71,13 +71,7 @@ class MySQLServiceHandler(object):
         if hasattr(self, 'service_obj'):
             path = self.service_obj.get_service_details_file_location()
         if path and os.path.exists(path):
-            fp = open(path, "r")
-            lines = fp.readlines()
-            for l in lines:
-                if l.find("PASSWORD") >= 0:
-                    parts = l.split("::")
-                    password = parts[1].lstrip().rstrip()
-                    break
+            password = utils.read_password(path)
         return password
 
     def _generate_rds_instance_create_df(self):

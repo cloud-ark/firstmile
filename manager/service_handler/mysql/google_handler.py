@@ -46,15 +46,30 @@ class MySQLServiceHandler(object):
 
         self.mysql_db_name = constants.DEFAULT_DB_NAME
         self.mysql_user = constants.DEFAULT_DB_USER
-        self.mysql_password = constants.DEFAULT_DB_PASSWORD
+
+        # Check if we have already provisioned a db instance. If so, use that password
+        password = self._read_password()
+        if not password:
+            self.mysql_password = utils.generate_google_password()
+        else:
+            self.mysql_password = password
 
         self.db_info = {}
 
         self.db_info['user'] = self.mysql_user
-        self.db_info['password'] = self.mysql_password
         self.db_info['db'] = self.mysql_db_name
+        self.db_info['password'] = self.mysql_password
 
         self.docker_handler = docker_lib.DockerLib()
+
+    def _read_password(self):
+        password = ''
+        path = ''
+        if hasattr(self, 'service_obj'):
+            path = self.service_obj.get_service_details_file_location()
+        if path and os.path.exists(path):
+            password = utils.read_password(path)
+        return password
 
     def _deploy_instance(self, access_token, project_id, db_server):
         cmd = ('curl --header "Authorization: Bearer {access_token}" --header '
@@ -75,7 +90,7 @@ class MySQLServiceHandler(object):
     def _create_user(self, access_token, project_id, db_server):
         # TODO(devkulkarni): Need to read these values from a configuration file
         username_val = constants.DEFAULT_DB_USER
-        password_val = constants.DEFAULT_DB_PASSWORD
+        password_val = self.db_info['password']
         cmd = ('curl --header "Authorization: Bearer {access_token}" --header '
                '"Content-Type: application/json" --data \'{{"name":"{username_val}", "password":"{password_val}"}}\''
                ' https://www.googleapis.com/sql/v1beta4/projects/{project_id}/instances/{db_server}/users?host=%25&name={username_val} -X PUT '
@@ -121,6 +136,12 @@ class MySQLServiceHandler(object):
                 time.sleep(2)
 
             logging.debug("Creating user done.")
+
+        # Save Cloud SQL instance information
+        fp = open(self.service_obj.get_service_details_file_location(), "w")
+        fp.write("%s::%s\n" % (constants.DB_NAME, constants.DEFAULT_DB_NAME))
+        fp.write("%s::%s\n" % (constants.DB_USER, constants.DEFAULT_DB_USER))
+        fp.write("%s::%s\n" % (constants.DB_USER_PASSWORD, password_val))
 
     def _wait_for_db_instance_to_get_ready(self, access_token, project_id, db_server):
         cmd = ('curl --header "Authorization: Bearer {access_token}" '
@@ -203,7 +224,7 @@ class MySQLServiceHandler(object):
 
         # Read these values from lme.conf file
         db_user = constants.DEFAULT_DB_USER
-        db_password = constants.DEFAULT_DB_PASSWORD
+        db_password = self.db_info['password']
         db_name = constants.DEFAULT_DB_NAME
         cmd = (" echo \" create database {db_name} \" | mysql -h{db_ip} --user={db_user} --password={db_password}  ").format(db_ip=db_ip,
                                                                                                                              db_user=db_user,
@@ -305,12 +326,8 @@ class MySQLServiceHandler(object):
         os.chdir(cwd)
 
     def _save_instance_information(self, instance_ip):
-        fp = open(self.service_obj.get_service_details_file_location(), "w")
 
-        fp.write("%s::%s\n" % (constants.DB_NAME, constants.DEFAULT_DB_NAME))
-        fp.write("%s::%s\n" % (constants.DB_USER, constants.DEFAULT_DB_USER))
-        fp.write("%s::%s\n" % (constants.DB_USER_PASSWORD, constants.DEFAULT_DB_PASSWORD))
-
+        fp = open(self.service_obj.get_service_details_file_location(), "a")
         fp.write("%s::%s\n" % (constants.CLOUD_SQL_CONNECTION_STR, self.connection_name))
         fp.write("%s::%s\n" % (constants.MYSQL_VERSION, self.database_version))
         fp.write("%s::%s\n" % (constants.CLOUD_SQL_TIER, self.database_tier))
@@ -321,7 +338,7 @@ class MySQLServiceHandler(object):
             fp.write("%s::%s, " % (constants.CLOUD_SQL_INSTANCE, instance_ip))
             fp.write("%s::%s, " % (constants.DB_NAME, constants.DEFAULT_DB_NAME))
             fp.write("%s::%s, " % (constants.DB_USER, constants.DEFAULT_DB_USER))
-            fp.write("%s::%s, " % (constants.DB_USER_PASSWORD, constants.DEFAULT_DB_PASSWORD))
+            fp.write("%s::%s, " % (constants.DB_USER_PASSWORD, self.db_info['password']))
             fp.close()
 
     # Public interface

@@ -369,6 +369,7 @@ def read_service_details(id_file_path, id_file_name, details_file_name,
                                 line['info'] = artifact_info_dict
     return artifact_status_lines
 
+# Google-specific commands
 def copy_google_creds(source, dest):
     # Copy google-creds to the app directory
     if not os.path.exists(dest):
@@ -380,6 +381,9 @@ def copy_google_creds(source, dest):
     logging.debug(cp_cmd)
 
     os.system(cp_cmd)
+
+def generate_google_password():
+    return generate_password()
 
 def delete(info):
     app_name = info['app_name']
@@ -395,6 +399,35 @@ def delete(info):
     if service_name:
         remove_artifact(service_id, constants.SERVICE_STORE_PATH,
                         "service_ids.txt", service_name, service_version)
+
+def generate_password():
+    import string, random
+    all_printable = list(string.printable)
+    valid_list = []
+    for c in all_printable:
+        if c not in ['/','"','@',' ','\n','\t','\r','\x0b','\x0c', '(', ')', ':']:
+            valid_list.append(c)
+
+    valid_charset = ''.join(valid_list)
+
+    # Below snippet taken from [1]
+    # [1] http://stackoverflow.com/questions/7479442/high-quality-simple-random-password-generator
+
+    length = 10
+    random.seed = (os.urandom(1024))
+    password = ''.join(random.choice(valid_charset) for i in range(length))
+    return password
+
+def read_password(path):
+    password = ''
+    fp = open(path, "r")
+    lines = fp.readlines()
+    for l in lines:
+        if l.find("PASSWORD") >= 0:
+            parts = l.split("::")
+            password = parts[1].lstrip().rstrip()
+            break
+    return password
 
 ## AWS-specific methods
 def read_environment_name(app_dir):
@@ -419,20 +452,4 @@ def get_aws_region():
 
 def generate_aws_password():
     #  Can be any printable ASCII character except "/", """, or "@"
-
-    import string, random
-    all_printable = list(string.printable)
-    valid_list = []
-    for c in all_printable:
-        if c not in ['/','"','@',' ','\n','\t','\r','\x0b','\x0c', '(', ')']:
-            valid_list.append(c)
-
-    valid_charset = ''.join(valid_list)
-
-    # Below snippet taken from [1]
-    # [1] http://stackoverflow.com/questions/7479442/high-quality-simple-random-password-generator
-
-    length = 10
-    random.seed = (os.urandom(1024))
-    password = ''.join(random.choice(valid_charset) for i in range(length))
-    return password
+    return generate_password()
