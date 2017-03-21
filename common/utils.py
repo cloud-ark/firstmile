@@ -416,3 +416,23 @@ def get_aws_region():
             parts = line.split("=")
             region = parts[1].rstrip().lstrip()
             return region
+
+def generate_aws_password():
+    #  Can be any printable ASCII character except "/", """, or "@"
+
+    import string, random
+    all_printable = list(string.printable)
+    valid_list = []
+    for c in all_printable:
+        if c not in ['/','"','@',' ','\n','\t','\r','\x0b','\x0c', '(', ')']:
+            valid_list.append(c)
+
+    valid_charset = ''.join(valid_list)
+
+    # Below snippet taken from [1]
+    # [1] http://stackoverflow.com/questions/7479442/high-quality-simple-random-password-generator
+
+    length = 10
+    random.seed = (os.urandom(1024))
+    password = ''.join(random.choice(valid_charset) for i in range(length))
+    return password

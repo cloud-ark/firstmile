@@ -13,6 +13,7 @@ import time
 from common import docker_lib
 from common import service
 from common import constants
+from common import utils
 
 RDS_INSTANCE_DEPLOY_DFILE = "Dockerfile.rds-instance-deploy"
 RDS_INSTANCE_STAT_CHECK_DFILE = "Dockerfile.rds-instance-check"
@@ -55,21 +56,42 @@ class MySQLServiceHandler(object):
 
         # These are app_variables: user, password, db
         self.db_info['user'] = constants.DEFAULT_DB_USER
-        self.db_info['password'] = constants.DEFAULT_DB_PASSWORD
         self.db_info['db'] = constants.DEFAULT_DB_NAME
-            
+
+        # Check if we have already provisioned a db instance. If so, use that password
+        password = self._read_password()
+        if not password:
+            self.db_info['password'] = utils.generate_aws_password()
+        else:
+            self.db_info['password'] = password
+
+    def _read_password(self):
+        password = ''
+        path = ''
+        if hasattr(self, 'service_obj'):
+            path = self.service_obj.get_service_details_file_location()
+        if path and os.path.exists(path):
+            fp = open(path, "r")
+            lines = fp.readlines()
+            for l in lines:
+                if l.find("PASSWORD") >= 0:
+                    parts = l.split("::")
+                    password = parts[1].lstrip().rstrip()
+                    break
+        return password
+
     def _generate_rds_instance_create_df(self):
         logging.debug("Generating Dockerfile for RDS instance creation")
         db_name = constants.DEFAULT_DB_NAME
         db_id = self.instance_name + "-" + self.instance_version
         user = constants.DEFAULT_DB_USER
-        password = constants.DEFAULT_DB_PASSWORD
+        password = self.db_info['password']
         sec_group = ("`aws ec2 create-security-group --group-name {gname} --description \"My security group - SQL\"`").format(gname=db_id)
         add_rule = ("aws ec2 authorize-security-group-ingress --group-name {gname} --protocol tcp --port 3306 --cidr 0.0.0.0/0").format(gname=db_id)
         create_instance = ("aws rds create-db-instance --db-name {db_name}"
                            " --db-instance-identifier {db_id} --engine MySQL "
                            " --db-instance-class db.t2.medium --master-username {user} "
-                           " --master-user-password {password} --allocated-storage 10 "
+                           " --master-user-password '{password}' --allocated-storage 10 "
                            " --vpc-security-group-ids $sec_group_1 --publicly-accessible").format(db_name=db_name,
                                                                                                   db_id=db_id,
                                                                                                   user=user,
@@ -87,6 +109,13 @@ class MySQLServiceHandler(object):
               
         fp = open(self.deploy_dir + "/" + RDS_INSTANCE_DEPLOY_DFILE, "w")
         fp.write(df)
+        fp.close()
+
+        # Save db creds
+        fp = open(self.service_obj.get_service_details_file_location(), "w")
+        fp.write("%s::%s\n" % (constants.DB_NAME, constants.DEFAULT_DB_NAME))
+        fp.write("%s::%s\n" % (constants.DB_USER, constants.DEFAULT_DB_USER))
+        fp.write("%s::%s\n" % (constants.DB_USER_PASSWORD, self.db_info['password']))
         fp.close()
 
     def _generate_rds_instance_check_df(self):
@@ -175,18 +204,13 @@ class MySQLServiceHandler(object):
         return instance_dns
 
     def _save_instance_information(self, instance_ip):
-        fp = open(self.service_obj.get_service_details_file_location(), "w")
-        fp.write("%s::%s\n" % (constants.DB_NAME, constants.DEFAULT_DB_NAME))
-        fp.write("%s::%s\n" % (constants.DB_USER, constants.DEFAULT_DB_USER))
-        fp.write("%s::%s\n" % (constants.DB_USER_PASSWORD, constants.DEFAULT_DB_PASSWORD))
-        fp.close()
 
         if self.app_status_file:
             fp = open(self.app_status_file, "a")
             fp.write("%s::%s, " % (constants.RDS_INSTANCE, instance_ip))
             fp.write("%s::%s, " % (constants.DB_NAME, constants.DEFAULT_DB_NAME))
             fp.write("%s::%s, " % (constants.DB_USER, constants.DEFAULT_DB_USER))
-            fp.write("%s::%s, " % (constants.DB_USER_PASSWORD, constants.DEFAULT_DB_PASSWORD))
+            fp.write("%s::%s, " % (constants.DB_USER_PASSWORD, self._read_password()))
             fp.close()
 
     def get_terminate_cmd(self, delete_info):
