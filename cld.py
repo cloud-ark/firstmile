@@ -176,6 +176,7 @@ class App(Resource):
 
         if status_lines:
             resp_data['data'] = status_lines
+            response = jsonify(**resp_data)
             response.status_code = 200
         else:
             response.status_code = 404
@@ -242,6 +243,17 @@ class Logs(Resource):
         return response
 
 class Deployment(Resource):
+    def _update_app_status(self, info):
+        app_name = info['app_name']
+        app_version = info['app_version']
+        app_status_file = (APP_STORE_PATH + "/{app_name}/{app_version}/app-status.txt").format(app_name=app_name,
+                                                                                               app_version=app_version)
+        fp = open(app_status_file, "a")
+        status_line = (", status::{status}").format(status=constants.DELETING)
+        fp.write(status_line)
+        fp.flush()
+        fp.close()
+
     def delete(self, dep_id):
         logging.debug("Executing DELETE for dep id:%s" % dep_id)
         info = utils.get_app_and_service_info(APP_STORE_PATH, "app_ids.txt", dep_id)
@@ -253,6 +265,9 @@ class Deployment(Resource):
         if info:
             cloud_data['type'] = info['cloud']
             task_def = task_definition.TaskDefinition('', cloud_data, '')
+
+            # update app status to DELETING
+            self._update_app_status(info)
 
             # dispatch the handler thread
             delegatethread = mgr.Manager(task_def=task_def, delete_action=True, delete_info=info)
@@ -274,6 +289,7 @@ class Deployment(Resource):
 
         if status_data:
             resp_data['data'] = status_data
+            response = jsonify(**resp_data)
             response.status_code = 200
         else:
             response.status_code = 404
