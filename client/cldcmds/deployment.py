@@ -13,6 +13,8 @@ import os
 import gzip
 import requests
 
+import common
+
 class Deployment(object):
 
     log = logging.getLogger(__name__)
@@ -194,6 +196,9 @@ class Deployment(object):
         return service_data
 
     def get_cloud_info(self, cloud):
+        improper_input = common.verify_cloud(cloud)
+        if improper_input:
+            exit()
         app_url = "http://localhost:5002/clouds/" + cloud
         req = urllib2.Request(app_url)
         response = urllib2.urlopen(req)

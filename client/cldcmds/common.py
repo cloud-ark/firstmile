@@ -28,18 +28,26 @@ MYSQL = "mysql"
 DEFAULT_APP_PORT = "5000"
 DEFAULT_APP_TYPE = "python"
 
-def verify_inputs(service, dest):
+def verify_cloud(dest):
     improper_inputs = False
-    if service and service.lower() != MYSQL:
-        improper_inputs = True
-        print("Incorrect service specified %s." % service)
-        print("Supported options: %s" % MYSQL)
-
     dest = dest.lower() if dest else ''
     if dest and dest != GOOGLE and dest != AWS and dest != LOCAL_DOCKER:
         improper_inputs = True
         print("Incorrect destination cloud specified %s." % (dest))
         print("Supported options: %s, %s, %s" % (LOCAL_DOCKER, AWS, GOOGLE))
+    return improper_inputs
+
+def verify_service(service):
+    improper_inputs = False
+    if service and service.lower() != MYSQL:
+        improper_inputs = True
+        print("Incorrect service specified %s." % service)
+        print("Supported options: %s" % MYSQL)
+    return improper_inputs
+
+def verify_inputs(service, dest):
+    improper_inputs = verify_cloud(dest)
+    improper_inputs = improper_inputs and verify_service(service)
 
     if improper_inputs:
         exit()
