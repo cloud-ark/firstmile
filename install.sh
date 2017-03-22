@@ -66,6 +66,8 @@ echo "RUN chown ubuntu:ubuntu -R ." >> Dockerfile
 echo "USER ubuntu" >> Dockerfile
 echo "RUN sudo pip install -r requirements.txt" >> Dockerfile
 echo "EXPOSE 5002" >> Dockerfile
+HOST_HOME="$HOME/.cld/data/deployments"
+echo "ENV HOST_HOME $HOST_HOME" >> Dockerfile
 echo "CMD [\"python\", \"/src/cld.pyc\"]" >> Dockerfile
 
 # Start the firstmile server container

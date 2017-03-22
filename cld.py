@@ -212,7 +212,14 @@ class Logs(Resource):
             if os.path.exists(constants.APP_STORE_PATH + "/" + info['app_name'] + "/" + info['app_version']):
                 app_exists = True
                 dep_log_file_name = info['app_version'] + constants.DEPLOY_LOG
-                dep_log_file = constants.APP_STORE_PATH + "/" + info['app_name'] + "/"
+
+                prefix = os.getenv('HOST_HOME')
+                logging.debug("HOST_HOME: %s" % prefix)
+                logging.debug("Inside get_logs - prefix value for log file path:%s" % prefix)
+                if not prefix:
+                    prefix = constants.APP_STORE_PATH
+                    logging.debug("Inside get_logs - prefix value for log file path:%s" % prefix)
+                dep_log_file = prefix + "/" + info['app_name'] + "/"
                 dep_log_file = dep_log_file + info['app_version'] + "/" + dep_log_file_name
                 if not os.path.exists(dep_log_file):
                     dep_log_file = ""
@@ -225,7 +232,7 @@ class Logs(Resource):
                 mgr.Manager(task_def=task_def).get_logs(info)
 
                 app_log_file_name = info['app_version'] + constants.RUNTIME_LOG
-                app_log_file = constants.APP_STORE_PATH + "/" + info['app_name'] + "/"
+                app_log_file = prefix + "/" + info['app_name'] + "/"
                 app_log_file = app_log_file + info['app_version'] + "/" + app_log_file_name
                 if not os.path.exists(app_log_file):
                     app_log_file = ""
