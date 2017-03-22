@@ -65,7 +65,7 @@ docker_group_id=`getent group docker | cut -d: -f3`
 # Generate Dockerfile
 truncate -s 0 Dockerfile
 echo "FROM ubuntu:14.04" >> Dockerfile
-echo "RUN apt-get update && apt-get install -y docker.io python-dev python-setuptools python-pip git sudo \\" >> Dockerfile
+echo "RUN apt-get update && apt-get install -y docker.io python-dev python-setuptools python-pip git sudo curl \\" >> Dockerfile
 echo "    && pip install urllib3==1.14" >> Dockerfile
 echo "RUN sudo useradd -ms /bin/bash -d /home/ubuntu ubuntu && echo \"ubuntu:ubuntu\" | chpasswd && adduser ubuntu sudo \\" >> Dockerfile
 echo "    && echo \"ubuntu ALL=(ALL) NOPASSWD: ALL\" >> /etc/sudoers \\" >> Dockerfile
