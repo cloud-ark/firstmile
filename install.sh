@@ -14,11 +14,12 @@ install_log="install.log"
 echo "Installing FirstMile. Installation logs stored in $install_log"
 
 # Check if the platform is one that we support
-declare -a supported_platform_list=("Ubuntu 14.04", "OS X");
-platform=`uname -a | grep 14.04`
+declare -a supported_platform_list=("Ubuntu 14.04", "Ubuntu 16.04");
+platform=`uname -a | grep -i Ubuntu`
 
-if [[ ! -z "$platform" ]]; then
-   echo "Unsupported platform. Currently supported platform: $supported_platform_list"
+if [[ -z "$platform" ]]; then
+   echo "Unsupported platform. Currently supported platforms: ${supported_platform_list[@]}"
+   exit
 fi
 
 # Install requirements
