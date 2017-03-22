@@ -1,5 +1,13 @@
 #!/bin/bash
 
+# Check if running as root -- if so, exit
+if (( $EUID == 0 )); then
+   echo "Looks like you are trying to run install.sh as root."
+   echo "That is not required actually."
+   echo "Just run ./install.sh as regular user."
+   exit
+fi
+
 # define installation log file
 truncate -s 0 install.log
 install_log="install.log"
