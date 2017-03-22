@@ -273,7 +273,7 @@ class Deployment(Resource):
             delegatethread = mgr.Manager(task_def=task_def, delete_action=True, delete_info=info)
             thread.start_new_thread(start_thread, (delegatethread, ))
 
-            response.status_code = 204
+            response.status_code = 202
         else:
             response.status_code = 404
         return response

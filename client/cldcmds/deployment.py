@@ -122,6 +122,8 @@ class Deployment(object):
         response = requests.delete(app_url)
         if response.status_code == 404:
             print("Application with deploy-id %s not found." % dep_id)
+        if response.status_code == 202:
+            print("Request to delete application with deploy-id %s accepted" % dep_id)
         return response
 
     def logs(self, dep_id):
