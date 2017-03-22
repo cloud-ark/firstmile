@@ -136,8 +136,6 @@ class Deploy(Command):
                 user_email = ''
                 common.setup_google()
                 project_id, user_email = common.get_google_project_user_details(project_location)
-                print("Using project_id:%s" % project_id)
-                print("Using user email:%s" % user_email)
                 cloud_info['type'] = common.GOOGLE
                 cloud_info['project_id'] = project_id
                 cloud_info['user_email'] = user_email

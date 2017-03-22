@@ -62,9 +62,9 @@ def get_google_project_user_details(project_location):
         lines = fp.readlines()
         for line in lines:
             parts = line.split(":")
-            if line.find("User Email") >=0:
+            if parts[0].find("User Email") >=0:
                 user_email = parts[1].rstrip().lstrip()
-            if line.find(app_name) >= 0:
+            if parts[0] == app_name:
                 project_id = parts[1].rstrip().lstrip()
         if not user_email:
             user_email = raw_input("Enter Gmail address associated with your Google App Engine account>")
@@ -76,6 +76,11 @@ def get_google_project_user_details(project_location):
             fp = open(google_app_details_path, "a")
             fp.write("%s:%s\n" % (app_name, project_id))
             fp.close()
+        print("Using email %s" % user_email)
+        print("Using project id %s" % project_id)
+        new_project_id = raw_input("Change project id? (current %s)>" % project_id)
+        if new_project_id:
+            project_id = new_project_id
     else:
         user_email = raw_input("Enter Gmail address associated with your Google Cloud account:")
         project_id = raw_input("Enter ID of the Google Cloud project that you want to use:")
