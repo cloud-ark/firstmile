@@ -24,15 +24,10 @@ sudo service docker restart &>> $install_log
 
 # Install FirstMile client
 echo "Installing FirstMile client"
-#echo "Creating virtual environment"
 sudo pip install virtualenv &>> $install_log
 virtenv="firstmile"
 sudo virtualenv $virtenv &>> $install_log
 source $virtenv/bin/activate &>> $install_log
-
-#if [[ ! -e cld.pyc ]]; then
-#sudo ./$virtenv/bin/python -m compileall . &>> $install_log
-#fi
 
 cd client
 sudo ../$virtenv/bin/python setup.pyc install &>> $install_log
@@ -42,22 +37,17 @@ cd ..
 
 # ?
 sudo $virtenv/bin/pip install -r requirements.txt &>> $install_log
-
 pushd $virtenv/bin
 export PATH=$PATH:`pwd`
+echo '### Added by FirstMile' >> ~/.profile
+echo "export PATH=`pwd`:$PATH" >> ~/.profile
+echo '### Added by FirstMile' >> ~/.bashrc
+echo "export PATH=`pwd`:$PATH" >> ~/.bashrc
 export PYTHONPATH=$PYTHONPATH:`pwd`
 popd
 
-#echo "Starting firstmile server. Server logs stored in cld-server.log"
-#echo "Home:$HOME"
-#sudo groupadd docker
-
-
-# Starting a sub-shell to enable the docker group that we set above
-#echo "Executing newgrp command"
-#/usr/bin/newgrp docker <<EONG
-#EONG
-#echo "Done executing newgrp command"
+# Create /etc/profile.d/firstmile.sh
+#sudo touch /etc/profile.d/firstmile.sh
 
 # Find id of docker group
 docker_group_id=`getent group docker | cut -d: -f3`
