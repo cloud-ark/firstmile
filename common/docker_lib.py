@@ -7,7 +7,9 @@
 
 import os
 import subprocess
-import logging
+from common import fm_logger
+
+fmlogging = fm_logger.Logging()
 
 class DockerLib(object):
 
@@ -25,8 +27,8 @@ class DockerLib(object):
 
         cmd_2 = ("RUN sed -i \"s/{pat}access_token{pat}.*/{pat}access_token{pat}:{pat}$token{pat},/\" credentials \n").format(pat="\\\"")
 
-        logging.debug("Sed pattern 1:%s" % cmd_1)
-        logging.debug("Sed pattern 2:%s" % cmd_2)
+        fmlogging.debug("Sed pattern 1:%s" % cmd_1)
+        fmlogging.debug("Sed pattern 2:%s" % cmd_2)
 
         df = ("FROM lmecld/clis:gcloud \n"
               "RUN /google-cloud-sdk/bin/gcloud components install beta \n"
@@ -53,24 +55,24 @@ class DockerLib(object):
         return out
 
     def stop_container(self, cont_name, reason_phrase):
-        logging.debug("Stopping container %s. Reason: %s" % (cont_name, reason_phrase))
+        fmlogging.debug("Stopping container %s. Reason: %s" % (cont_name, reason_phrase))
         cont_id = self._get_cont_id(cont_name)
         if cont_id:
             stop_cmd = ("docker stop {cont_id}").format(cont_id=cont_id)
-            logging.debug("stop command:%s" % stop_cmd)
+            fmlogging.debug("stop command:%s" % stop_cmd)
             os.system(stop_cmd)
 
     def remove_container(self, cont_name, reason_phrase):
-        logging.debug("Removing container %s. Reason: %s" % (cont_name, reason_phrase))
+        fmlogging.debug("Removing container %s. Reason: %s" % (cont_name, reason_phrase))
         cont_id = self._get_cont_id(cont_name)
         if cont_id:
             rm_cmd = ("docker rm -f {cont_id}").format(cont_id=cont_id)
             #rm_cmd = ("docker ps -a | grep {cont_name} | cut -d ' ' -f 1 | xargs docker rm -f").format(cont_name=cont_name)
-            logging.debug("rm command:%s" % rm_cmd)
+            fmlogging.debug("rm command:%s" % rm_cmd)
             os.system(rm_cmd)
 
     def remove_container_image(self, cont_name, reason_phrase):
-        logging.debug("Removing container image %s. Reason: %s" % (cont_name, reason_phrase))
+        fmlogging.debug("Removing container image %s. Reason: %s" % (cont_name, reason_phrase))
         #cont_id = self._get_cont_id(cont_name)
         #if cont_id:
         #rmi_cmd = ("docker rmi -f {cont_id}").format(cont_id=cont_id)
@@ -80,19 +82,19 @@ class DockerLib(object):
                                stderr=subprocess.PIPE, shell=True).communicate()[0]
         if cont_id:
             rmi_cmd =  ("docker rmi -f {cont_id}").format(cont_id=cont_id)
-            logging.debug("rmi command:%s" % rmi_cmd)
+            fmlogging.debug("rmi command:%s" % rmi_cmd)
             os.system(rmi_cmd)
 
     def build_container_image(self, cont_name, docker_file_name):
         docker_build_cmd = ("docker build -t {cont_name} -f {docker_file_name} .").format(cont_name=cont_name,
                                                                                           docker_file_name=docker_file_name)
-        logging.debug("Docker build cmd:%s" % docker_build_cmd)
+        fmlogging.debug("Docker build cmd:%s" % docker_build_cmd)
         os.system(docker_build_cmd)
 
     def build_ct_image(self, cont_name, docker_file_name):
         build_cmd = ("docker build -t {cont_name} -f {docker_file_name} .").format(cont_name=cont_name,
                                                                                    docker_file_name=docker_file_name)
-        logging.debug("Docker build cmd:%s" % build_cmd)
+        fmlogging.debug("Docker build cmd:%s" % build_cmd)
 
         try:
             chanl = subprocess.Popen(build_cmd, stdout=subprocess.PIPE,
@@ -100,13 +102,13 @@ class DockerLib(object):
             err = chanl[1]
             output = chanl[0]
         except Exception as e:
-            logging.debug(e)
+            fmlogging.debug(e)
             raise e
         return err, output
 
     def run_container(self, cont_name):
         docker_run_cmd = ("docker run -i -t -d {cont_name}").format(cont_name=cont_name)
-        logging.debug("Docker run cmd:%s" % docker_run_cmd)
+        fmlogging.debug("Docker run cmd:%s" % docker_run_cmd)
         os.system(docker_run_cmd)
 
     

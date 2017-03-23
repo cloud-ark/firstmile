@@ -5,11 +5,13 @@
  Written by Devdatta Kulkarni <devdattakulkarni@gmail.com> December 23 2016
 '''
 
-import logging
+from common import fm_logger
 import os
 import shutil
 
 from common import constants
+
+fmlogging = fm_logger.Logging()
 
 
 def get_id(path, file_name, name, version, s_name, s_version, s_id, cloud,
@@ -41,7 +43,7 @@ def get_id(path, file_name, name, version, s_name, s_version, s_id, cloud,
                     id_count = int(last_line_parts[0]) + 1
             f.close()
         except IOError:
-            logging.error("%s does not exist yet. Creating.." % file_name)
+            fmlogging.error("%s does not exist yet. Creating.." % file_name)
 
     f = open(path + "/" + file_name, "a")
     line = str(id_count) + " " + name + "--" + version + " " + cloud
@@ -261,12 +263,12 @@ def get_app_and_service_info(id_file_path, id_file_name, dep_id):
             k = name_version.rfind("--")
             app_version = name_version[k+2:].rstrip().lstrip()
 
-            logging.debug("App version:%s" % app_version)
+            fmlogging.debug("App version:%s" % app_version)
 
             name = name_version[:k]
             l = name.rfind("/")
             app_name = name[l+1:].rstrip().lstrip()
-            logging.debug("App name:%s" % app_name)
+            fmlogging.debug("App name:%s" % app_name)
 
             cloud = line_contents[2].rstrip().lstrip()
 
@@ -377,8 +379,8 @@ def copy_google_creds(source, dest):
     cp_cmd = ("cp -r {google_creds_path} {app_deploy_dir}/.").format(google_creds_path=source,
                                                                      app_deploy_dir=dest)
 
-    logging.debug("Copying google-creds directory..")
-    logging.debug(cp_cmd)
+    fmlogging.debug("Copying google-creds directory..")
+    fmlogging.debug(cp_cmd)
 
     os.system(cp_cmd)
 
