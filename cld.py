@@ -22,6 +22,7 @@ from common import task_definition
 from common import utils
 from common import service
 from common import constants
+from common import fm_logger
 
 
 app = Flask(__name__)
@@ -40,7 +41,7 @@ def start_thread(delegatethread):
     try:
         delegatethread.run()
     except Exception as e:
-        logging.error(e)
+        fmlogging.error(e)
 
 class Cloud(Resource):
 
@@ -91,7 +92,7 @@ class Cloud(Resource):
         return app_lines
 
     def get(self, cloud_name):
-        logging.debug("Executing GET for cloud:%s" % cloud_name)
+        fmlogging.debug("Executing GET for cloud:%s" % cloud_name)
         app_lines = list()
 
         if os.path.exists(APP_STORE_PATH + "/app_ids.txt"):
@@ -107,7 +108,7 @@ class Cloud(Resource):
 
 class Services(Resource):
     def get(self):
-        logging.debug("Executing GET for all services")
+        fmlogging.debug("Executing GET for all services")
 
         status_lines = utils.read_statues(SERVICE_STORE_PATH, "service_ids.txt",
                                           "service-status.txt", '', '')
@@ -121,7 +122,7 @@ class Services(Resource):
 
 class Service(Resource):
     def get(self, service_name):
-        logging.debug("Executing GET for service:%s" % service_name)
+        fmlogging.debug("Executing GET for service:%s" % service_name)
 
         status_lines = utils.read_statues(SERVICE_STORE_PATH, "service_ids.txt", 
                                           "service-status.txt", service_name, '')
@@ -138,7 +139,7 @@ class Service(Resource):
 
 class ServiceGetDeployID(Resource):
     def get(self, dep_id):
-        logging.debug("Executing GET for deploy id:%s" % dep_id)
+        fmlogging.debug("Executing GET for deploy id:%s" % dep_id)
 
         resp_data = {}
         stat_and_details_lines = list()
@@ -167,7 +168,7 @@ class ServiceGetDeployID(Resource):
 
 class App(Resource):
     def get(self, app_name):
-        logging.debug("Executing GET for app:%s" % app_name)
+        fmlogging.debug("Executing GET for app:%s" % app_name)
 
         status_lines = utils.read_statues(APP_STORE_PATH, "app_ids.txt",
                                           "app-status.txt", app_name, '')
@@ -183,8 +184,9 @@ class App(Resource):
         return response
 
 class Apps(Resource):
+
     def get(self):
-        logging.debug("Executing GET for all apps")
+        fmlogging.debug("Executing GET for all apps")
 
         status_lines = utils.read_statues(APP_STORE_PATH, "app_ids.txt",
                                           "app-status.txt", '', '')
@@ -197,8 +199,9 @@ class Apps(Resource):
         return response
 
 class Logs(Resource):
+
     def get(self, dep_id):
-        logging.debug("Executing GET for app:%s" % dep_id)
+        fmlogging.debug("Executing GET for app:%s" % dep_id)
 
         info = utils.get_app_and_service_info(APP_STORE_PATH, "app_ids.txt", dep_id)
 
@@ -214,11 +217,11 @@ class Logs(Resource):
                 dep_log_file_name = info['app_version'] + constants.DEPLOY_LOG
 
                 prefix = os.getenv('HOST_HOME')
-                logging.debug("HOST_HOME: %s" % prefix)
-                logging.debug("Inside get_logs - prefix value for log file path:%s" % prefix)
+                fmlogging.debug("HOST_HOME: %s" % prefix)
+                fmlogging.debug("Inside get_logs - prefix value for log file path:%s" % prefix)
                 if not prefix:
                     prefix = constants.APP_STORE_PATH
-                    logging.debug("Inside get_logs - prefix value for log file path:%s" % prefix)
+                    fmlogging.debug("Inside get_logs - prefix value for log file path:%s" % prefix)
                 dep_log_file = prefix + "/" + info['app_name'] + "/"
                 dep_log_file = dep_log_file + info['app_version'] + "/" + dep_log_file_name
                 if not os.path.exists(dep_log_file):
@@ -262,7 +265,7 @@ class Deployment(Resource):
         fp.close()
 
     def delete(self, dep_id):
-        logging.debug("Executing DELETE for dep id:%s" % dep_id)
+        fmlogging.debug("Executing DELETE for dep id:%s" % dep_id)
         info = utils.get_app_and_service_info(APP_STORE_PATH, "app_ids.txt", dep_id)
 
         resp_data = {}
@@ -286,7 +289,7 @@ class Deployment(Resource):
         return response
 
     def get(self, dep_id):
-        logging.debug("Executing GET for dep id:%s" % dep_id)
+        fmlogging.debug("Executing GET for dep id:%s" % dep_id)
         status_data = utils.read_statuses_given_id(APP_STORE_PATH,
                                                    "app_ids.txt",
                                                    "app-status.txt",
@@ -303,7 +306,7 @@ class Deployment(Resource):
         return response
 
     def get_1(self, dep_id):
-        logging.debug("Executing GET for dep id:%s" % dep_id)
+        fmlogging.debug("Executing GET for dep id:%s" % dep_id)
 
         def _get_app_location(app_id):
 
@@ -317,28 +320,28 @@ class Deployment(Resource):
 
             k = dep_id.rfind("--")
             app_version = dep_id[k+2:]
-            logging.debug("App version:%s" % app_version)
+            fmlogging.debug("App version:%s" % app_version)
 
             dep_id = dep_id[:k]
             l = dep_id.rfind("/")
             app_name = dep_id[l+1:]
-            logging.debug("App name:%s" % app_name)
+            fmlogging.debug("App name:%s" % app_name)
             return APP_STORE_PATH + "/" + app_name + "/" + app_version
 
         app_location = _get_app_location(dep_id)
-        logging.debug("App location:%s" % app_location)
+        fmlogging.debug("App location:%s" % app_location)
 
         try:
             app_status_data = "No status available yet."
             status_file = app_location + "/app-status.txt"
             app_status_file = open(status_file, "r")
             app_status_data = app_status_file.read()
-            logging.debug("--- App status ---")
-            logging.debug(app_status_data)
-            logging.debug("--- App status ---")
+            fmlogging.debug("--- App status ---")
+            fmlogging.debug(app_status_data)
+            fmlogging.debug("--- App status ---")
         except IOError:
-            logging.error("Status file does not exist:%s" % str(status_file))
-            logging.error("App status: %s" % app_status_data)
+            fmlogging.error("Status file does not exist:%s" % str(status_file))
+            fmlogging.error("App status: %s" % app_status_data)
         
         resp_data = {}
         resp_data['app_data'] = app_status_data
@@ -351,7 +354,7 @@ class Deployments(Resource):
     def _untar_the_app(self, app_tar_file, versioned_app_path):
         #TODO(devkulkarni): Untaring is not working
 
-        logging.debug("Untarring received app tar file %s" % app_tar_file)
+        fmlogging.debug("Untarring received app tar file %s" % app_tar_file)
         os.chdir(versioned_app_path)
         tar = tarfile.open(app_tar_file)
         tar.extractall(path=versioned_app_path)
@@ -422,7 +425,7 @@ class Deployments(Resource):
     # Handle service, app, and app+service deployments
     def post(self):
         #args = parser.parse_args()
-        logging.debug("Received POST request.")
+        fmlogging.debug("Received POST request.")
         args = request.get_json(force=True)
         
         response = jsonify()
@@ -450,7 +453,7 @@ class Deployments(Resource):
 
                 service_id = utils.get_id(SERVICE_STORE_PATH, "service_ids.txt", service_name,
                                       service_version, '', '', '', cloud, cloud_data)
-                logging.debug("Service id:%s" % service_id)
+                fmlogging.debug("Service id:%s" % service_id)
                 response.headers['location'] = ('/deployments/{service_id}').format(service_id=service_id)
             elif args['app'] and args['service'] and args['cloud']: #handle app and service deployment
                 app_data = args['app']
@@ -475,11 +478,11 @@ class Deployments(Resource):
 
                 service_id = utils.get_id(SERVICE_STORE_PATH, "service_ids.txt", service_name,
                                       service_version, '', '', '', cloud, cloud_data)
-                logging.debug("Service id:%s" % service_id)
+                fmlogging.debug("Service id:%s" % service_id)
 
                 app_id = utils.get_id(APP_STORE_PATH, "app_ids.txt", app_name, app_version,
                                       service_name, service_version, service_id, cloud, cloud_data)
-                logging.debug("App id:%s" % app_id)
+                fmlogging.debug("App id:%s" % app_id)
                 response.headers['location'] = ('/deployments/{app_id}').format(app_id=app_id)
             elif 'app' in args_dict and 'cloud' in args_dict:
 
@@ -498,16 +501,16 @@ class Deployments(Resource):
 
                 app_id = utils.get_id(APP_STORE_PATH, "app_ids.txt", app_name, app_version,
                                       '', '', '', cloud, cloud_data)
-                logging.debug("App id:%s" % app_id)
+                fmlogging.debug("App id:%s" % app_id)
                 response.headers['location'] = ('/deployments/{app_id}').format(app_id=app_id)
 
             # dispatch the handler thread
             delegatethread = mgr.Manager(task_name, task_def)
             thread.start_new_thread(start_thread, (delegatethread, ))
-            logging.debug("Location header:%s" % response.headers['location'])
-            logging.debug("Response:%s" % response)
+            fmlogging.debug("Location header:%s" % response.headers['location'])
+            fmlogging.debug("Response:%s" % response)
         except OSError as oe:
-            logging.error(oe)
+            fmlogging.error(oe)
             # Send back service unavailable status
             response.status_code = 503
 
@@ -524,14 +527,16 @@ api.add_resource(Deployments, '/deployments')
 api.add_resource(Logs, '/logs/<dep_id>')
 
 if __name__ == '__main__':
-    logging.basicConfig(filename=constants.LOG_FILE_NAME,
-                        level=logging.DEBUG, filemode='a')
-    logging.basicConfig(format='%(asctime)s %(message)s',
-                        datefmt='%m/%d/%Y %I:%M:%S %p')
+    #logging.basicConfig(filename=constants.LOG_FILE_NAME,
+    #                    level=logging.DEBUG, filemode='a')
+    #logging.basicConfig(format='%(asctime)s %(message)s',
+    #                    datefmt='%m/%d/%Y %I:%M:%S %p')
     # Create the data directory if it does not exist
     if not os.path.exists(APP_STORE_PATH):
         os.makedirs(APP_STORE_PATH)
-    logging.info("Starting lme server")
+    #logging.info("Starting lme server")
+    fmlogging = fm_logger.Logging()
+    fmlogging.info("Starting LME server")
 
     from gevent.wsgi import WSGIServer
     http_server = WSGIServer(('', 5002), app)
