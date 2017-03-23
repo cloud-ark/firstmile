@@ -11,6 +11,10 @@ import google_builder as gb
 import aws_builder as ab
 from common import constants
 
+from common import fm_logger
+
+fmlogging = fm_logger.Logging()
+
 import logging
 
 class Builder(object):
@@ -20,7 +24,7 @@ class Builder(object):
         self.cloud = task_def.cloud_data['type']
 
     def build(self, build_type, build_name):
-        logging.debug("Executing build step")
+        fmlogging.debug("Executing build step")
         if self.cloud == constants.LOCAL_DOCKER:
             lb.LocalBuilder(self.task_def).build(build_type, build_name)
         elif self.cloud == constants.GOOGLE:
@@ -31,7 +35,7 @@ class Builder(object):
             print("Cloud %s not supported" % self.cloud)
 
     def build_for_delete(self, info):
-        logging.debug("Executing build step for delete")
+        fmlogging.debug("Executing build step for delete")
         if self.cloud == constants.LOCAL_DOCKER:
             lb.LocalBuilder(self.task_def).build_for_delete(info)
         elif self.cloud == constants.GOOGLE:
@@ -42,7 +46,7 @@ class Builder(object):
             print("Cloud %s not supported" % self.cloud)
 
     def build_for_logs(self, info):
-        logging.debug("Executing build step for building container to obtain app logs")
+        fmlogging.debug("Executing build step for building container to obtain app logs")
         if self.cloud == constants.LOCAL_DOCKER:
             lb.LocalBuilder(self.task_def).build_for_logs(info)
         elif self.cloud == constants.GOOGLE:

@@ -16,6 +16,9 @@ from docker import Client
 from common import app
 from common import constants
 from common import docker_lib
+from common import fm_logger
+
+fmlogging = fm_logger.Logging()
 
 class LocalBuilder(object):
     
@@ -51,7 +54,7 @@ class LocalBuilder(object):
                 ]
         # -----
 
-        logging.debug(parsed_lines)
+        fmlogging.debug(parsed_lines)
 
     def _build_app_container(self, app_obj):
         cwd = os.getcwd()
@@ -60,7 +63,7 @@ class LocalBuilder(object):
         os.chdir(app_dir + "/" + app_name)
 
         cont_name = app_obj.get_cont_name()
-        logging.debug("Container name that will be used in building:%s" % cont_name)
+        fmlogging.debug("Container name that will be used in building:%s" % cont_name)
         
         # Following is not working, so continuing to use 'docker build'
         # self._do_docker_build(cont_name)
@@ -70,10 +73,10 @@ class LocalBuilder(object):
         os.chdir(cwd)
 
     def build_for_delete(self, info):
-        logging.debug("Local builder called for delete of app:%s" % info['app_name'])
+        fmlogging.debug("Local builder called for delete of app:%s" % info['app_name'])
 
     def build_for_logs(self, info):
-        logging.debug("Local builder called for getting app logs of app:%s" % info['app_name'])
+        fmlogging.debug("Local builder called for getting app logs of app:%s" % info['app_name'])
 
         app_name = info['app_name']
         app_version = info['app_version']
@@ -95,10 +98,10 @@ class LocalBuilder(object):
 
     def build(self, build_type, build_name):
         if build_type == 'service':
-            logging.debug("Local builder called for service %s" % build_name)
+            fmlogging.debug("Local builder called for service %s" % build_name)
             self._build_service_container()
         elif build_type == 'app':
-            logging.debug("Local builder called for app %s" %
+            fmlogging.debug("Local builder called for app %s" %
                           self.task_def.app_data['app_name'])
             app_obj = app.App(self.task_def.app_data)
             app_obj.update_app_status("BUILDING")

@@ -14,7 +14,11 @@ from common import service
 from common import utils
 from common import constants
 from common import docker_lib
+from common import fm_logger
+
 from manager.service_handler.mysql import local_handler as lh
+
+fmlogging = fm_logger.Logging()
 
 class LocalDeployer(object):
     
@@ -57,7 +61,7 @@ class LocalDeployer(object):
         app_url = ("{app_ip_addr}:{app_port}").format(app_ip_addr=app_ip_addr,
                                                       app_port=self.app_port)
         
-        logging.debug("App URL: %s" % app_url)
+        fmlogging.debug("App URL: %s" % app_url)
         return app_url
 
     def _parse_app_ip(self, cont_id):
@@ -76,7 +80,7 @@ class LocalDeployer(object):
                     if addr:
                         return addr
         except Exception as e:
-            logging.error(e)
+            fmlogging.error(e)
 
         return addr
 
@@ -98,19 +102,19 @@ class LocalDeployer(object):
             app_ip_addr = self._parse_app_ip(cont_id)
 
         except Exception as e:
-            logging.error(e)
+            fmlogging.error(e)
 
         app_url = ("{app_ip_addr}:{app_port}").format(app_ip_addr=app_ip_addr,
                                                       app_port=self.app_port)
 
-        logging.debug("App URL: %s" % app_url)
+        fmlogging.debug("App URL: %s" % app_url)
         return app_url
 
     def get_logs(self, info):
-        logging.debug("Local deployer called for getting app logs of app:%s" % info['app_name'])
+        fmlogging.debug("Local deployer called for getting app logs of app:%s" % info['app_name'])
 
     def deploy_for_delete(self, info):
-        logging.debug("Local deployer for called to delete app:%s" % info['app_name'])
+        fmlogging.debug("Local deployer for called to delete app:%s" % info['app_name'])
 
         app_name = info['app_name']
         app_version = info['app_version']
@@ -147,7 +151,7 @@ class LocalDeployer(object):
 
     def deploy(self, deploy_type, deploy_name):
         if deploy_type == 'service':
-            logging.debug("Local deployer called for service %s" % deploy_name)
+            fmlogging.debug("Local deployer called for service %s" % deploy_name)
             utils.update_status(self.service_obj.get_status_file_location(), constants.DEPLOYING_SERVICE_INSTANCE)
             serv_handler = self.services[deploy_name]
             utils.update_status(self.service_obj.get_status_file_location(),
@@ -161,7 +165,7 @@ class LocalDeployer(object):
             # TODO(devkulkarni): Add support for returning multiple service IPs
             return service_ip
         elif deploy_type == 'app':
-            logging.debug("Local deployer called for app %s" %
+            fmlogging.debug("Local deployer called for app %s" %
                           self.task_def.app_data['app_name'])
             app_obj = app.App(self.task_def.app_data)
             app_obj.update_app_status(constants.DEPLOYING_APP)

@@ -9,8 +9,11 @@ import logging
 from common import service
 from common import app
 from common import utils
+from common import fm_logger
 
 from manager.service_handler.mysql import local_handler as lh
+
+fmlogging = fm_logger.Logging()
 
 
 class LocalGenerator(object):
@@ -82,19 +85,19 @@ class LocalGenerator(object):
 
             df = df +  ("CMD [\"python\", \"/src/{entry_point}\"]").format(entry_point=entry_point)
 
-        logging.debug("App dir: %s" % self.app_dir)
+        fmlogging.debug("App dir: %s" % self.app_dir)
         docker_file_dir = ("{app_dir}/{app_name}").format(app_dir=self.app_dir, 
                                                           app_name=self.app_name)
-        logging.debug("Dockerfile dir:%s" % docker_file_dir)
+        fmlogging.debug("Dockerfile dir:%s" % docker_file_dir)
         docker_file = open(docker_file_dir + "/Dockerfile", "w")
         docker_file.write(df)
         docker_file.close()
 
     def generate_for_delete(self, info):
-        logging.debug("Local generator called for delete for app:%s" % info['app_name'])
+        fmlogging.debug("Local generator called for delete for app:%s" % info['app_name'])
 
     def generate_for_logs(self, info):
-        logging.debug("Local generator called for getting app logs for app:%s" % info['app_name'])
+        fmlogging.debug("Local generator called for getting app logs for app:%s" % info['app_name'])
 
     def generate(self, generate_type, service_ip_dict):
         if generate_type == 'service':
@@ -102,7 +105,7 @@ class LocalGenerator(object):
         elif generate_type == 'app':
             app_obj = app.App(self.task_def.app_data)
             app_obj.update_app_status("GENERATING artifacts for local deployment")
-            logging.debug("Local generator called for app %s" %
+            fmlogging.debug("Local generator called for app %s" %
                           self.task_def.app_data['app_name'])
             if self.app_type == 'python':
                 self._generate_for_python_app(service_ip_dict)
