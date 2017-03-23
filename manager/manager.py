@@ -16,9 +16,12 @@ from deployer import deployer as dep
 from common import app
 from common import service
 from common import utils
+from common import fm_logger
+
+fmlogging = fm_logger.Logging()
 
 class Manager(threading.Thread):
-    
+
     def __init__(self, name='', task_def='', delete_action=False, delete_info=''):
         threading.Thread.__init__(self)
         self.name = name
@@ -27,10 +30,10 @@ class Manager(threading.Thread):
         self.delete_info = delete_info
         
     def run(self):
-        logging.debug("Starting build/deploy for %s" % self.name)
+        fmlogging.debug("Starting build/deploy for %s" % self.name)
 
         if self.delete_action:
-            logging.debug("Manager -- delete")
+            fmlogging.debug("Manager -- delete")
             gen.Generator(self.task_def).generate_for_delete(self.delete_info)
             bld.Builder(self.task_def).build_for_delete(self.delete_info)
             dep.Deployer(self.task_def).deploy_for_delete(self.delete_info)
@@ -61,10 +64,10 @@ class Manager(threading.Thread):
                     bld.Builder(self.task_def).build(build_type='service', build_name=service_name)
                     serv_ip_addr = dep.Deployer(self.task_def).deploy(deploy_type='service',
                                                                       deploy_name=service_name)
-                    logging.debug("IP Address of the service:%s" % serv_ip_addr)
+                    fmlogging.debug("IP Address of the service:%s" % serv_ip_addr)
                     service_ip_addresses[service_name] = serv_ip_addr
                 except Exception as e:
-                    logging.error(e)
+                    fmlogging.error(e)
                     return
 
             # Step 2:
@@ -78,13 +81,13 @@ class Manager(threading.Thread):
                     result = dep.Deployer(self.task_def).deploy(deploy_type='app',
                                                                 deploy_name=self.task_def.app_data['app_name']
                                                                 )
-                    logging.debug("Result:%s" % result)
+                    fmlogging.debug("Result:%s" % result)
                 except Exception as e:
-                    logging.error(e)
+                    fmlogging.error(e)
                     return
 
     def get_logs(self, info):
-        logging.debug("Manager -- logs")
+        fmlogging.debug("Manager -- logs")
         gen.Generator(self.task_def).generate_for_logs(info)
         bld.Builder(self.task_def).build_for_logs(info)
         dep.Deployer(self.task_def).get_logs(info)
