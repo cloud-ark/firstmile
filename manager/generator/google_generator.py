@@ -14,8 +14,11 @@ from common import docker_lib
 from common import service
 from common import utils
 from common import constants
+from common import fm_logger
 
 from manager.service_handler.mysql import google_handler as gh
+
+fmlogging = fm_logger.Logging()
 
 GOOGLE_CREDS_PATH = constants.APP_STORE_PATH + "/google-creds"
 
@@ -110,7 +113,7 @@ class GoogleGenerator(object):
             cwd = os.getcwd()
             os.chdir(app_deploy_dir)
             generate_lib_cmd = ("pip install -t lib -r requirements.txt")
-            logging.debug("Generating Python application libs:%s" % generate_lib_cmd)
+            fmlogging.debug("Generating Python application libs:%s" % generate_lib_cmd)
             os.system(generate_lib_cmd)
             os.chdir(cwd)
 
@@ -156,7 +159,7 @@ class GoogleGenerator(object):
 
         cmd_2 = ("RUN sed -i \"s/{pat}access_token{pat}.*/{pat}access_token{pat}:{pat}$token{pat},/\" credentials \n").format(pat="\\\"")
 
-        logging.debug("Sed pattern:%s" % cmd_1)
+        fmlogging.debug("Sed pattern:%s" % cmd_1)
 
         df = ("FROM lmecld/clis:gcloud \n"
               "RUN /google-cloud-sdk/bin/gcloud components install beta \n"
@@ -190,7 +193,7 @@ class GoogleGenerator(object):
 
         if first_time:
             df_first_time_loc = self.app_dir[:self.app_dir.rfind("/")]
-            logging.debug("First time app location:%s" % df_first_time_loc)
+            fmlogging.debug("First time app location:%s" % df_first_time_loc)
             first_time_df = open(app_deploy_dir + "/Dockerfile.first_time", "w")
             first_time_df.write(df1)
             first_time_df.close()
@@ -209,7 +212,7 @@ class GoogleGenerator(object):
         self._generate_docker_file(app_deploy_dir)
 
     def generate_for_delete(self, info):
-        logging.debug("Google generator called for delete for app:%s" % info['app_name'])
+        fmlogging.debug("Google generator called for delete for app:%s" % info['app_name'])
 
         app_name = info['app_name']
         app_version = info['app_version']
@@ -250,7 +253,7 @@ class GoogleGenerator(object):
         self._generate_app_yaml_delete(app_dir)
 
     def generate_for_logs(self, info):
-        logging.debug("Google generator called for getting app logs for app:%s" % info['app_name'])
+        fmlogging.debug("Google generator called for getting app logs for app:%s" % info['app_name'])
 
         app_name = info['app_name']
         app_version = info['app_version']
@@ -269,7 +272,7 @@ class GoogleGenerator(object):
         project_id = cloud_details['project_id']
         df = df.format(user_email=user_email, project_id=project_id)
 
-        logging.debug("Dockerfile dir:%s" % app_dir)
+        fmlogging.debug("Dockerfile dir:%s" % app_dir)
         docker_file = open(app_dir + "/Dockerfile.logs", "w")
         docker_file.write(df)
         docker_file.flush()
@@ -278,7 +281,7 @@ class GoogleGenerator(object):
 
     def generate(self, build_type, service_ip_dict, service_info):
         if build_type == 'service':
-            logging.debug("Google generator called for service")
+            fmlogging.debug("Google generator called for service")
             
             if self.task_def.app_data:
                 app_obj = app.App(self.task_def.app_data)
@@ -288,7 +291,7 @@ class GoogleGenerator(object):
                 # Invoke public interface
                 serv_handler.generate_instance_artifacts()
         else:
-            logging.debug("Google generator called for app %s" %
+            fmlogging.debug("Google generator called for app %s" %
                           self.task_def.app_data['app_name'])
             app_obj = app.App(self.task_def.app_data)
             app_obj.update_app_status("GENERATING Google ARTIFACTS for App")
