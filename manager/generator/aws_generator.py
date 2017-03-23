@@ -14,10 +14,13 @@ from common import service
 from common import utils
 from common import docker_lib
 from common import constants
+from common import fm_logger
 
 from manager.service_handler.mysql import aws_handler as awsh
 
 from random import randint
+
+fmlogging = fm_logger.Logging()
 
 AWS_CREDS_PATH = constants.APP_STORE_PATH + "/aws-creds"
 
@@ -63,7 +66,7 @@ class AWSGenerator(object):
         
     def _generate_elasticbeanstalk_dir(self, service_info, env_name):
         # Generate .elasticbeanstalk/config.yml
-        logging.debug("Inside _generate_elasticbeanstalk_dir")
+        fmlogging.debug("Inside _generate_elasticbeanstalk_dir")
         beanstalk_dir = ("{app_dir}/{app_name}").format(app_dir=self.app_dir, 
                                                         app_name=self.app_name)
         os.mkdir(beanstalk_dir + "/.elasticbeanstalk")
@@ -90,7 +93,7 @@ class AWSGenerator(object):
         fp.close()
 
     def _generate_ebextensions_dir(self, service_info):
-        logging.debug("Inside _generate_ebextensions_dir")
+        fmlogging.debug("Inside _generate_ebextensions_dir")
         if service_info:
             ebextension_dir = ("{app_dir}/{app_name}").format(app_dir=self.app_dir, 
                                                         app_name=self.app_name)
@@ -112,7 +115,7 @@ class AWSGenerator(object):
 
     def _generate_platform_dockerfile_prev(self, service_ip_dict,
                                       service_info):
-        logging.debug("Inside _generate_platform_dockerfile")
+        fmlogging.debug("Inside _generate_platform_dockerfile")
         if service_info:
             app_dir = ("{app_dir}/{app_name}").format(app_dir=self.app_dir, 
                                                       app_name=self.app_name)
@@ -184,7 +187,7 @@ class AWSGenerator(object):
 
     def _generate_platform_dockerfile(self, service_ip_dict,
                                       service_info):
-        logging.debug("Inside _generate_platform_dockerfile")
+        fmlogging.debug("Inside _generate_platform_dockerfile")
         if service_info:
             app_dir = ("{app_dir}/{app_name}").format(app_dir=self.app_dir,
                                                       app_name=self.app_name)
@@ -264,8 +267,8 @@ class AWSGenerator(object):
         cp_cmd = ("cp -r {aws_creds_path} {app_deploy_dir}/.").format(aws_creds_path=AWS_CREDS_PATH,
                                                                     app_deploy_dir=app_deploy_dir)
         
-        logging.debug("Copying aws-creds directory..")
-        logging.debug(cp_cmd)
+        fmlogging.debug("Copying aws-creds directory..")
+        fmlogging.debug(cp_cmd)
         
         os.system(cp_cmd)
         
@@ -277,9 +280,9 @@ class AWSGenerator(object):
         key_name = env_name + "-" + str(randint(0,9)) + "-" + str(randint(0,9)) + "-" + str(randint(0,9))
         env_name = cname = key_name
 
-        logging.debug("Environment name:%s" % env_name)
-        logging.debug("Key name:%s" % key_name)
-        logging.debug("CNAME:%s" % cname)
+        fmlogging.debug("Environment name:%s" % env_name)
+        fmlogging.debug("Key name:%s" % key_name)
+        fmlogging.debug("CNAME:%s" % cname)
 
         # Save environment name
         cwd = os.getcwd()
@@ -298,8 +301,8 @@ class AWSGenerator(object):
         dockerfile_maneuver = ("RUN mv Dockerfile.deploy Dockerfile.bak \n"
                                "RUN mv Dockerfile.aws Dockerfile \n")
             
-        logging.debug("Entrypoint cmd:%s" % entrypt_cmd)
-        logging.debug("Dockerfile maneuver:%s" % dockerfile_maneuver)
+        fmlogging.debug("Entrypoint cmd:%s" % entrypt_cmd)
+        fmlogging.debug("Dockerfile maneuver:%s" % dockerfile_maneuver)
 
         create_keypair_cmd = ("RUN aws ec2 create-key-pair --key-name "
                               "{key_name} --query 'KeyMaterial' --output text > {key_file}.pem\n").format(key_name=key_name,
@@ -316,9 +319,9 @@ class AWSGenerator(object):
             ).format(aws_creds_path=AWS_CREDS_PATH, dockerfile_maneuver=dockerfile_maneuver,
                      create_keypair_cmd=create_keypair_cmd, entrypt_cmd=entrypt_cmd)
 
-        logging.debug("App dir: %s" % self.app_dir)
+        fmlogging.debug("App dir: %s" % self.app_dir)
         docker_file_dir = app_deploy_dir
-        logging.debug("Dockerfile dir:%s" % docker_file_dir)
+        fmlogging.debug("Dockerfile dir:%s" % docker_file_dir)
         docker_file = open(docker_file_dir + "/Dockerfile.deploy", "w")
         docker_file.write(df)
         docker_file.close()
@@ -330,7 +333,7 @@ class AWSGenerator(object):
         self._generate_platform_dockerfile(service_ip_dict, service_info)
 
     def generate_for_logs(self, info):
-        logging.debug("AWS generator called for getting app logs for app:%s" % info['app_name'])
+        fmlogging.debug("AWS generator called for getting app logs for app:%s" % info['app_name'])
 
         app_name = info['app_name']
         app_version = info['app_version']
@@ -390,7 +393,7 @@ class AWSGenerator(object):
         os.chdir(cwd)
 
     def generate_for_delete(self, info):
-        logging.debug("AWS generator called for delete for app:%s" % info['app_name'])
+        fmlogging.debug("AWS generator called for delete for app:%s" % info['app_name'])
 
         app_name = info['app_name']
         app_version = info['app_version']
@@ -419,7 +422,7 @@ class AWSGenerator(object):
             ).format(eb_terminate_cmd=eb_terminate_cmd,
                      service_terminate_cmd=service_terminate_cmd)
 
-        logging.debug("Dockerfile dir:%s" % app_dir)
+        fmlogging.debug("Dockerfile dir:%s" % app_dir)
         docker_file = open(app_dir + "/Dockerfile.delete", "w")
         docker_file.write(df)
         docker_file.flush()
@@ -427,15 +430,15 @@ class AWSGenerator(object):
 
     def generate(self, generate_type, service_ip_dict, service_info):
         if generate_type == 'service':
-            logging.debug("AWS generator called for service")
+            fmlogging.debug("AWS generator called for service")
             self.service_obj = service.Service(self.task_def.service_data[0])
             # deploy_dir = self.service_obj.get_service_prov_work_location()
             # Copy aws-creds to the service deploy directory
             cp_cmd = ("cp -r {aws_creds_path} {deploy_dir}/.").format(aws_creds_path=AWS_CREDS_PATH,
                                                                       deploy_dir=self.deploy_dir)
         
-            logging.debug("Copying aws-creds directory..")
-            logging.debug(cp_cmd)
+            fmlogging.debug("Copying aws-creds directory..")
+            fmlogging.debug(cp_cmd)
             os.system(cp_cmd)
 
             if self.task_def.app_data:
@@ -449,7 +452,7 @@ class AWSGenerator(object):
                 # Invoke public interface
                 serv_handler.generate_instance_artifacts()
         else:
-            logging.debug("AWS generator called for app %s" %
+            fmlogging.debug("AWS generator called for app %s" %
                           self.task_def.app_data['app_name'])
 
             app_obj = app.App(self.task_def.app_data)

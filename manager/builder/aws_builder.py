@@ -14,8 +14,11 @@ from common import service
 from common import utils
 from common import docker_lib
 from common import constants
+from common import fm_logger
 
 from manager.service_handler.mysql import aws_handler as awsh
+
+fmlogging = fm_logger.Logging()
 
 class AWSBuilder(object):
 
@@ -42,7 +45,7 @@ class AWSBuilder(object):
         os.chdir(app_dir + "/" + app_name)
 
         cont_name = app_obj.get_cont_name()
-        logging.debug("Container name that will be used in building:%s" % cont_name)
+        fmlogging.debug("Container name that will be used in building:%s" % cont_name)
 
         self.docker_handler.build_container_image(cont_name,
                                                   "Dockerfile.deploy")
@@ -50,7 +53,7 @@ class AWSBuilder(object):
         os.chdir(cwd)
 
     def build_for_logs(self, info):
-        logging.debug("AWS builder called for getting app logs of app:%s" % info['app_name'])
+        fmlogging.debug("AWS builder called for getting app logs of app:%s" % info['app_name'])
 
         app_name = info['app_name']
         app_version = info['app_version']
@@ -87,7 +90,7 @@ class AWSBuilder(object):
                     env_key1 = prts[2].rstrip().lstrip().replace(",","").replace("\"","")
                     if env_key.find("elasticbeanstalk") >= 0 and env_key1.find("environment-name") >= 0:
                         if is_env_name == env_name:
-                            logging.debug("Public IP of EC2 instance:%s" % public_ip)
+                            fmlogging.debug("Public IP of EC2 instance:%s" % public_ip)
                             public_ip_of_ec2_instance = public_ip
                             break
 
@@ -115,7 +118,7 @@ class AWSBuilder(object):
         os.chdir(cwd)
 
     def build_for_delete(self, info):
-        logging.debug("AWS builder called for delete of app:%s" % info['app_name'])
+        fmlogging.debug("AWS builder called for delete of app:%s" % info['app_name'])
 
         app_name = info['app_name']
         app_version = info['app_version']
@@ -129,7 +132,7 @@ class AWSBuilder(object):
 
     def build(self, build_type, build_name):
         if build_type == 'service':
-            logging.debug("AWS builder called for service")
+            fmlogging.debug("AWS builder called for service")
 
             for serv in self.task_def.service_data:
                 serv_handler = self.services[serv['service']['type']]
@@ -138,7 +141,7 @@ class AWSBuilder(object):
                 # Invoke public interface
                 serv_handler.build_instance_artifacts()
         elif build_type == 'app':
-            logging.debug("Local builder called for app %s" %
+            fmlogging.debug("Local builder called for app %s" %
                           self.task_def.app_data['app_name'])
             app_obj = app.App(self.task_def.app_data)
             app_obj.update_app_status("BUILDING")

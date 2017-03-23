@@ -8,9 +8,13 @@
 import logging
 from common import task_definition as td
 from common import constants
+from common import fm_logger
+
 import local_deployer as ld
 import aws_deployer as ad
 import google_deployer as gd
+
+fmlogging = fm_logger.Logging()
 
 class Deployer(object):
     
@@ -30,7 +34,7 @@ class Deployer(object):
             print("(Deployer) Cloud %s not supported" % self.cloud)
 
         if result:
-            logging.debug("Deployment result:%s" % result)
+            fmlogging.debug("Deployment result:%s" % result)
         return result
 
     def deploy_for_delete(self, info):
@@ -45,7 +49,7 @@ class Deployer(object):
             print("(Deployer) Cloud %s not supported" % self.cloud)
 
         if result:
-            logging.debug("Deployment result:%s" % result)
+            fmlogging.debug("Deployment result:%s" % result)
         return result
 
     def get_logs(self, info):
@@ -60,5 +64,5 @@ class Deployer(object):
             print("(Deployer) Cloud %s not supported" % self.cloud)
 
         if result:
-            logging.debug("Deployment result:%s" % result)
+            fmlogging.debug("Deployment result:%s" % result)
         return result

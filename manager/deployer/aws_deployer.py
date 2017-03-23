@@ -16,8 +16,11 @@ from common import service
 from common import utils
 from common import docker_lib
 from common import constants
+from common import fm_logger
 
 from manager.service_handler.mysql import aws_handler as awsh
+
+fmlogging = fm_logger.Logging()
 
 TMP_LOG_FILE = "/tmp/lme-aws-deploy-output.txt"
 
@@ -25,7 +28,7 @@ class AWSDeployer(object):
 
     def __init__(self, task_def):
         self.task_def = task_def
-        self.logger = logging.getLogger(name=self.__class__.__name__)
+        #self.logger = logging.getLogger(name=self.__class__.__name__)
 
         self.services = {}
         self.app_obj = ''
@@ -44,22 +47,22 @@ class AWSDeployer(object):
 
     def _parse_container_id(self, app_cont_name):
         cont_grep_cmd = ("docker ps -a | grep {cont_name} | cut -d ' ' -f 1 ").format(cont_name=app_cont_name)
-        logging.debug("Container grep command:%s" % cont_grep_cmd)
+        fmlogging.debug("Container grep command:%s" % cont_grep_cmd)
         cont_id = subprocess.check_output(cont_grep_cmd, shell=True)
-        logging.debug("Container id:%s" % cont_id)
+        fmlogging.debug("Container id:%s" % cont_id)
         return cont_id
 
     def _process_logs(self, cont_id, app_cont_name, app_obj):
 
-        logging.debug("Fetching logs from AWS deployer container")
+        fmlogging.debug("Fetching logs from AWS deployer container")
         logged_status = []
 
         docker_logs_cmd = ("docker logs {cont_id}").format(cont_id=cont_id)
-        logging.debug("Docker logs command:%s" % docker_logs_cmd)
+        fmlogging.debug("Docker logs command:%s" % docker_logs_cmd)
         cname = "1.2.3.4"
 
         is_env_ok = False
-        logging.debug("Parsing statuses from AWS")
+        fmlogging.debug("Parsing statuses from AWS")
         while not is_env_ok:
             log_lines = subprocess.check_output(docker_logs_cmd, shell=True)
             log_lines = log_lines.split("\n")
@@ -100,12 +103,12 @@ class AWSDeployer(object):
     def _deploy_app_container(self, app_obj):
         app_cont_name = app_obj.get_cont_name()
         
-        logging.debug("Deploying app container:%s" % app_cont_name)
+        fmlogging.debug("Deploying app container:%s" % app_cont_name)
 
         docker_run_cmd = ("docker run -i -t -d {app_container}").format(app_container=app_cont_name)
         cont_id = subprocess.check_output(docker_run_cmd, shell=True)
         cont_id = cont_id.rstrip().lstrip()
-        logging.debug("Running container id:%s" % cont_id)
+        fmlogging.debug("Running container id:%s" % cont_id)
 
         cname = self._process_logs(cont_id, app_cont_name, app_obj)
         return cname
@@ -125,7 +128,7 @@ class AWSDeployer(object):
                                                    "container created to deploy application no longer needed.")
 
     def get_logs(self, info):
-        logging.debug("AWS deployer called for getting app logs of app:%s" % info['app_name'])
+        fmlogging.debug("AWS deployer called for getting app logs of app:%s" % info['app_name'])
 
         app_name = info['app_name']
         app_version = info['app_version']
@@ -159,19 +162,19 @@ class AWSDeployer(object):
         self.docker_handler.remove_container_image(ec2_ip_cont,
                                                    "container created to obtain ec2 ip address no longer needed.")
 
-        logging.debug("Retrieving application runtime logs done. Remove intermediate containers.")
+        fmlogging.debug("Retrieving application runtime logs done. Remove intermediate containers.")
         log_cont_name = ("{app_name}-retrieve-logs").format(app_name=cont_name)
         self.docker_handler.remove_container_image(log_cont_name, "Deleting container image created to obtain logs")
 
         os.chdir(cwd)
 
     def deploy_for_delete(self, info):
-        logging.debug("AWS deployer for called to delete app:%s" % info['app_name'])
+        fmlogging.debug("AWS deployer for called to delete app:%s" % info['app_name'])
         utils.delete(info)
 
     def deploy(self, deploy_type, deploy_name):
         if deploy_type == 'service':
-            logging.debug("AWS deployer called for deploying RDS instance")
+            fmlogging.debug("AWS deployer called for deploying RDS instance")
 
             service_ip_list = []
             for serv in self.task_def.service_data:
@@ -193,13 +196,13 @@ class AWSDeployer(object):
             # TODO(devkulkarni): Add support for returning multiple service IPs
             return service_ip_list[0]
         else:
-            logging.debug("AWS deployer called for app %s" %
+            fmlogging.debug("AWS deployer called for app %s" %
                           self.task_def.app_data['app_name'])
             app_obj = app.App(self.task_def.app_data)
             app_obj.update_app_status(constants.DEPLOYING_APP)
             app_ip_addr = self._deploy_app_container(app_obj)
             app_obj.update_app_status(constants.APP_DEPLOYMENT_COMPLETE)
             app_obj.update_app_ip(app_ip_addr)
-            self.logger.debug("AWS deployment complete.")
-            self.logger.debug("Removing temporary containers created to assist in the deployment.")
+            fmlogging.debug("AWS deployment complete.")
+            fmlogging.debug("Removing temporary containers created to assist in the deployment.")
             self._cleanup(app_obj)
