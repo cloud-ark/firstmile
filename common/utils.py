@@ -371,6 +371,12 @@ def read_service_details(id_file_path, id_file_name, details_file_name,
                                 line['info'] = artifact_info_dict
     return artifact_status_lines
 
+def delete_tar_file(location, app_name):
+    tar_file = location + "/" + app_name + ".tar"
+    if os.path.exists(tar_file):
+        fmlogging.debug("Deleting app tar file")
+        os.remove(tar_file)
+
 # Google-specific commands
 def copy_google_creds(source, dest):
     # Copy google-creds to the app directory
@@ -386,6 +392,13 @@ def copy_google_creds(source, dest):
 
 def generate_google_password():
     return generate_password()
+
+def delete_app_lib_folder(location, app_name):
+    lib_folder = location + "/" + app_name + "/lib"
+    if os.path.exists(lib_folder):
+        fmlogging.debug("Deleting lib folder")
+        shutil.rmtree(lib_folder, ignore_errors=True)
+# Google-specific commands
 
 def delete(info):
     app_name = info['app_name']

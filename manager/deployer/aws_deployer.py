@@ -35,6 +35,8 @@ class AWSDeployer(object):
 
         if self.task_def.app_data:
             self.app_obj = app.App(self.task_def.app_data)
+            self.app_dir = task_def.app_data['app_location']
+            self.app_name = task_def.app_data['app_name']
 
         if task_def.service_data:
             self.service_obj = service.Service(task_def.service_data[0])
@@ -126,6 +128,10 @@ class AWSDeployer(object):
                                              "container created to deploy application no longer needed.")
         self.docker_handler.remove_container_image(app_obj.get_cont_name(),
                                                    "container created to deploy application no longer needed.")
+        # Remove app tar file
+        app_name = self.app_name
+        location = self.app_dir
+        utils.delete_tar_file(location, app_name)
 
     def get_logs(self, info):
         fmlogging.debug("AWS deployer called for getting app logs of app:%s" % info['app_name'])

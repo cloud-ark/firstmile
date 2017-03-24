@@ -30,6 +30,9 @@ class LocalDeployer(object):
 
         if task_def.app_data:
             self.app_port = task_def.app_data['app_port']
+            self.app_dir = task_def.app_data['app_location']
+            self.app_name = task_def.app_data['app_name']
+            self.app_version = task_def.app_data['app_version']
 
         if task_def.service_data:
             self.service_obj = service.Service(task_def.service_data[0])
@@ -110,6 +113,12 @@ class LocalDeployer(object):
         fmlogging.debug("App URL: %s" % app_url)
         return app_url
 
+    def _cleanup(self):
+        # Remove app tar file
+        app_name = self.app_name
+        location = self.app_dir
+        utils.delete_tar_file(location, app_name)
+
     def get_logs(self, info):
         fmlogging.debug("Local deployer called for getting app logs of app:%s" % info['app_name'])
 
@@ -175,4 +184,5 @@ class LocalDeployer(object):
             else:
                 app_obj.update_app_status(constants.DEPLOYMENT_ERROR)
             app_obj.update_app_ip(ip_addr)
+            self._cleanup()
         return ip_addr

@@ -127,6 +127,12 @@ class GoogleDeployer(object):
         self.docker_handler.remove_container("google", "Removing google deployment related container")
         self.docker_handler.remove_container_image("google", "Removing google deployment related container image")
 
+        # Remove app tar file, lib folder
+        app_name = self.app_name
+        location = self.app_dir
+        utils.delete_tar_file(location, app_name)
+        utils.delete_app_lib_folder(location, app_name)
+
     def get_logs(self, info):
         fmlogging.debug("Google deployer called for getting app logs of app:%s" % info['app_name'])
 
