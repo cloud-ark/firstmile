@@ -35,6 +35,7 @@ def verify_cloud(dest):
         improper_inputs = True
         print("Incorrect destination cloud specified %s." % (dest))
         print("Supported options: %s, %s, %s" % (LOCAL_DOCKER, AWS, GOOGLE))
+        exit()
     return improper_inputs
 
 def verify_service(service):
@@ -43,6 +44,7 @@ def verify_service(service):
         improper_inputs = True
         print("Incorrect service specified %s." % service)
         print("Supported options: %s" % MYSQL)
+        exit()
     return improper_inputs
 
 def verify_inputs(service, dest):

@@ -53,6 +53,8 @@ echo "export PATH=`pwd`:$PATH" >> ~/.profile
 echo '### Added by FirstMile' >> ~/.bashrc
 echo "export PATH=`pwd`:$PATH" >> ~/.bashrc
 export PYTHONPATH=$PYTHONPATH:`pwd`
+echo "export PYTHONPATH=`pwd`:$PYTHONPATH" >> ~/.profile
+echo "export PYTHONPATH=`pwd`:$PYTHONPATH" >> ~/.bashrc
 popd
 
 # Create /etc/profile.d/firstmile.sh
