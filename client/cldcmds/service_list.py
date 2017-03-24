@@ -25,7 +25,7 @@ class ServiceList(Command):
         x.field_names = ["Deploy ID", "Service Name", "Service Version", "Cloud"]
 
         if result:
-            pretty_table = common.artifact_list_show(result, x)
+            pretty_table = common.service_list_show(result, x)
 
         self.app.stdout.write("%s\n" % pretty_table)
 

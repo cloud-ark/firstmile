@@ -29,30 +29,30 @@ DEFAULT_APP_PORT = "5000"
 DEFAULT_APP_TYPE = "python"
 
 def verify_cloud(dest):
-    improper_inputs = False
     dest = dest.lower() if dest else ''
-    if dest and dest != GOOGLE and dest != AWS and dest != LOCAL_DOCKER:
-        improper_inputs = True
+    if not dest:
         print("Incorrect destination cloud specified %s." % (dest))
         print("Supported options: %s, %s, %s" % (LOCAL_DOCKER, AWS, GOOGLE))
         exit()
-    return improper_inputs
+    if dest and dest != GOOGLE and dest != AWS and dest != LOCAL_DOCKER:
+        print("Incorrect destination cloud specified %s." % (dest))
+        print("Supported options: %s, %s, %s" % (LOCAL_DOCKER, AWS, GOOGLE))
+        exit()
 
 def verify_service(service):
-    improper_inputs = False
-    if service and service.lower() != MYSQL:
-        improper_inputs = True
+    service = service.lower() if service else ''
+    if not service:
         print("Incorrect service specified %s." % service)
         print("Supported options: %s" % MYSQL)
         exit()
-    return improper_inputs
+    if service and service.lower() != MYSQL:
+        print("Incorrect service specified %s." % service)
+        print("Supported options: %s" % MYSQL)
+        exit()
 
 def verify_inputs(service, dest):
-    improper_inputs = verify_cloud(dest)
-    improper_inputs = improper_inputs and verify_service(service)
-
-    if improper_inputs:
-        exit()
+    verify_cloud(dest)
+    verify_service(service)
 
 def get_google_project_user_details(project_location):
     google_app_details_path = APP_STORE_PATH + "/google-creds/app_details.txt"
@@ -337,6 +337,23 @@ def read_cloud_info():
             cloud_info['user_email'] = user_email
 
     return cloud_info
+
+def service_list_show(result, pretty_table):
+    status_json = json.loads(result)
+    app_status_list = status_json['data']
+
+    logging.debug(app_status_list)
+
+    for line in app_status_list:
+        name = line['name'] if 'name' in line else ''
+        dep_id = line['dep_id'] if 'dep_id' in line else ''
+        version = line['version'] if 'version' in line else ''
+        cloud = line['cloud'] if 'cloud' in line else ''
+
+        row = [dep_id, name, version, cloud]
+        pretty_table.add_row(row)
+
+    return pretty_table
 
 def artifact_list_show(result, pretty_table):
     status_json = json.loads(result)
