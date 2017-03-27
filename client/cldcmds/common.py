@@ -338,23 +338,6 @@ def read_cloud_info():
 
     return cloud_info
 
-def service_list_show(result, pretty_table):
-    status_json = json.loads(result)
-    app_status_list = status_json['data']
-
-    logging.debug(app_status_list)
-
-    for line in app_status_list:
-        name = line['name'] if 'name' in line else ''
-        dep_id = line['dep_id'] if 'dep_id' in line else ''
-        version = line['version'] if 'version' in line else ''
-        cloud = line['cloud'] if 'cloud' in line else ''
-
-        row = [dep_id, name, version, cloud]
-        pretty_table.add_row(row)
-
-    return pretty_table
-
 def artifact_list_show(result, pretty_table):
     status_json = json.loads(result)
     app_status_list = status_json['data']
