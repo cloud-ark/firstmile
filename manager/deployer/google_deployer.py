@@ -61,7 +61,13 @@ class GoogleDeployer(object):
                 log_file_name = self.app_version + constants.DEPLOY_LOG
                 cp_cmd = ("docker cp {cont_id}:{log_path} .").format(cont_id=cont_id,
                                                                     log_path=log_path)
-                os.system(cp_cmd)
+                try:
+                    err, output = utils.execute_shell_cmd(cp_cmd)
+                except Exception as e:
+                    fmlogging.error(e)
+                #os.system(cp_cmd)
+                fmlogging.error(err)
+                fmlogging.debug(output)
                 os.rename(src_log_file_name, log_file_name)
                 return
 
@@ -97,14 +103,18 @@ class GoogleDeployer(object):
                 app_url = ""
 
         cont_id = ''
+        app_name_version = app_cont_name
         try:
-            docker_ps_cmd = ("docker ps -a | grep {app_container} | awk '{{print $1}}'").format(app_container=app_cont_name)
+            docker_ps_cmd = ("docker ps -a | grep ' {app_container}' | awk '{{print $1}}'").format(app_container=app_name_version)
+            fmlogging.debug("Docker cont id cmd:%s" % docker_ps_cmd)
             cont_id = subprocess.check_output(docker_ps_cmd, shell=True)
             cont_id = cont_id.rstrip().lstrip()
+            fmlogging.debug("Docker cont id:%s" % cont_id)
         except Exception as e:
             fmlogging.error(e)
 
-        self._download_logs(cont_id, logged_status)
+        if cont_id:
+            self._download_logs(cont_id, logged_status)
 
         return app_url, done_reason
 
@@ -125,7 +135,7 @@ class GoogleDeployer(object):
         # Remove any stray container
         self.docker_handler.stop_container("google", "Stopping google deployment related container")
         self.docker_handler.remove_container("google", "Removing google deployment related container")
-        self.docker_handler.remove_container_image("google", "Removing google deployment related container image")
+        #self.docker_handler.remove_container_image("google", "Removing google deployment related container image")
 
         # Remove app tar file, lib folder
         app_name = self.app_name

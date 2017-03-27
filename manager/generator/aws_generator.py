@@ -188,17 +188,7 @@ class AWSGenerator(object):
     def _generate_platform_dockerfile(self, service_ip_dict,
                                       service_info):
         fmlogging.debug("Inside _generate_platform_dockerfile")
-        if service_info:
-            app_dir = ("{app_dir}/{app_name}").format(app_dir=self.app_dir,
-                                                      app_name=self.app_name)
-            db_name = constants.DEFAULT_DB_NAME
-            user = constants.DEFAULT_DB_USER
-            password = constants.DEFAULT_DB_PASSWORD
-            instance_dns = service_ip_dict[self.instance_name]
 
-        # Generate runapp.sh
-        df_fp = ''
-        runapp_fp = ''
         env_vars = ''
         export_vars = ''
 

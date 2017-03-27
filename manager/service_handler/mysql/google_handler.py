@@ -226,7 +226,7 @@ class MySQLServiceHandler(object):
         db_user = constants.DEFAULT_DB_USER
         db_password = self.db_info['password']
         db_name = constants.DEFAULT_DB_NAME
-        cmd = (" echo \" create database {db_name} \" | mysql -h{db_ip} --user={db_user} --password={db_password}  ").format(db_ip=db_ip,
+        cmd = (" echo \" create database {db_name} \" | mysql -h{db_ip} --user={db_user} --password='{db_password}'").format(db_ip=db_ip,
                                                                                                                              db_user=db_user,
                                                                                                                              db_password=db_password,
                                                                                                                              db_name=db_name)
@@ -358,7 +358,9 @@ class MySQLServiceHandler(object):
 
     def get_terminate_cmd(self, info):
         app_version = info['app_version']
-        instance_name = ("mysql-{app_version}-db-instance").format(app_version=app_version)
+        app_name = info['app_name']
+        instance_name = ("mysql-{app_name}-{app_version}-db-instance").format(app_name=app_name,
+                                                                              app_version=app_version)
         delete_cmd = ("/google-cloud-sdk/bin/gcloud sql instances delete {instance_name} --quiet").format(instance_name=instance_name)
 
         return delete_cmd

@@ -420,6 +420,7 @@ class Deployments(Resource):
                                                                          version)
         service_data[0]['service_location'] = service_location
         service_data[0]['service_version'] = service_version
+        service_data[0]['service_name'] = service_name
         return service_data, service_version
 
     # Handle service, app, and app+service deployments
@@ -469,11 +470,10 @@ class Deployments(Resource):
                 app_data['app_location'] = app_location
                 app_data['app_version'] = app_version
 
-                service_name = service.Service(service_data[0]).get_service_name() + "-" + app_name
+                service_name = service.Service(service_data[0]).get_service_type() + "-" + app_name
                 service_data, service_version = self._update_service_data(service_data,
                                                                           service_name,
                                                                           app_version)
-
                 task_def = task_definition.TaskDefinition(app_data, cloud_data, service_data)
 
                 service_id = utils.get_id(SERVICE_STORE_PATH, "service_ids.txt", service_name,

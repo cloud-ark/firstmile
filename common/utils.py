@@ -8,6 +8,7 @@
 from common import fm_logger
 import os
 import shutil
+import subprocess
 
 from common import constants
 
@@ -420,7 +421,7 @@ def generate_password():
     all_printable = list(string.printable)
     valid_list = []
     for c in all_printable:
-        if c not in ['/','"','@',' ','\n','\t','\r','\x0b','\x0c', '(', ')', ':']:
+        if c not in ['/','"','@',' ','\n','\t','\r','\x0b','\x0c', '(', ')', ':', '#', '`']:
             valid_list.append(c)
 
     valid_charset = ''.join(valid_list)
@@ -443,6 +444,19 @@ def read_password(path):
             password = parts[1].lstrip().rstrip()
             break
     return password
+
+def execute_shell_cmd(cmd):
+    fmlogging.debug("Command:%s" % cmd)
+
+    try:
+        chanl = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE, shell=True).communicate()
+        err = chanl[1]
+        output = chanl[0]
+    except Exception as e:
+        fmlogging.debug(e)
+        raise e
+    return err, output
 
 ## AWS-specific methods
 def read_environment_name(app_dir):
@@ -468,3 +482,4 @@ def get_aws_region():
 def generate_aws_password():
     #  Can be any printable ASCII character except "/", """, or "@"
     return generate_password()
+## AWS-specific methods

@@ -56,6 +56,7 @@ class Manager(threading.Thread):
             for serv in services:
                 service_obj = service.Service(serv)
                 service_name = service_obj.get_service_name()
+                service_kind = service_obj.get_service_type()
                 utils.update_status(service_obj.get_status_file_location(), "name::" + service_name)
                 utils.update_status(service_obj.get_status_file_location(), "cloud::" + cloud)
 
@@ -63,9 +64,9 @@ class Manager(threading.Thread):
                     gen.Generator(self.task_def).generate('service', service_ip_addresses, services)
                     bld.Builder(self.task_def).build(build_type='service', build_name=service_name)
                     serv_ip_addr = dep.Deployer(self.task_def).deploy(deploy_type='service',
-                                                                      deploy_name=service_name)
+                                                                      deploy_name=service_kind)
                     fmlogging.debug("IP Address of the service:%s" % serv_ip_addr)
-                    service_ip_addresses[service_name] = serv_ip_addr
+                    service_ip_addresses[service_kind] = serv_ip_addr
                 except Exception as e:
                     fmlogging.error(e)
                     return
