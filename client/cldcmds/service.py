@@ -56,12 +56,16 @@ class ServiceShow(Command):
 
     def take_action(self, parsed_args):
         #self.log.info('Service show')
+        service_name = parsed_args.service_name
+        dep_id = parsed_args.deploy_id
+        if not service_name and not dep_id:
+            dep_id = raw_input("Please enter service deploy id>")
 
-        if parsed_args.service_name:
-            self._service_name_show(parsed_args.service_name)
+        if service_name:
+            self._service_name_show(service_name)
 
-        if parsed_args.deploy_id:
-            self._deploy_id_show(parsed_args.deploy_id)
+        if dep_id:
+            self._deploy_id_show(dep_id)
 
 
 class ServiceDeploy(Command):
