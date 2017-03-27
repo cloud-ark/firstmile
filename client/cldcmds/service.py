@@ -55,7 +55,6 @@ class ServiceShow(Command):
         return parser
 
     def take_action(self, parsed_args):
-        #self.log.info('Service show')
         service_name = parsed_args.service_name
         dep_id = parsed_args.deploy_id
         if not service_name and not dep_id:
@@ -76,7 +75,7 @@ class ServiceDeploy(Command):
     def get_parser(self, prog_name):
         parser = super(ServiceDeploy, self).get_parser(prog_name)
 
-        parser.add_argument('--service-name',
+        parser.add_argument('--service',
                                  dest='service_name',
                                  help="Name of the service")
 

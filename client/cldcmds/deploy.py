@@ -24,7 +24,7 @@ class Deploy(Command):
 
     def get_parser(self, prog_name):
         parser = super(Deploy, self).get_parser(prog_name)
-        parser.add_argument('--service-name',
+        parser.add_argument('--service',
                             dest='service',
                             help="Name of the required service (E.g.: mysql)")
         parser.add_argument('--cloud',
