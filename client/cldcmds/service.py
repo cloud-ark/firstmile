@@ -77,11 +77,11 @@ class ServiceDeploy(Command):
 
         parser.add_argument('--service',
                                  dest='service_name',
-                                 help="Name of the service")
+                                 help="Name of the required service (E.g.: mysql)")
 
         parser.add_argument('--cloud',
                             dest='cloud',
-                            help="Destination cloud to deploy to")
+                            help="Destination to deploy application (local-docker, aws, google)")
 
         return parser
     

@@ -18,7 +18,7 @@ class CloudReset(Command):
         parser = super(CloudReset, self).get_parser(prog_name)
         parser.add_argument('--cloud',
                                  dest='cloud',
-                                 help="Name of the cloud (google/aws/local-docker)")
+                                 help="Name of the cloud (google, aws)")
         return parser
 
     def _reset_google(self):
