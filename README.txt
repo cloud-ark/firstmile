@@ -73,7 +73,7 @@ Deployment to Google App Engine:
 3) Deploy sample application greetings-python:
    - Navigate to the application folder (cd ../firstmile-samples/greetings-python)
    - Deploy application: 
-     > cld app deploy --cloud google --service-name mysql
+     > cld app deploy --cloud google --service mysql
 
      +------------------+-----------+--------+
      |     App Name     | Deploy ID | Cloud  |
@@ -128,9 +128,8 @@ App commands:
 
 Service commands:
 ------------------
-1) cld service provision --service-name <service-name>
+1) cld service provision --service <service-name>
 2) cld service show --service-name <service-name>
-3) cld service delete --service-name <service-name>
 
 
 
