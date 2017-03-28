@@ -8,11 +8,6 @@ if (( $EUID == 0 )); then
    exit
 fi
 
-# define installation log file
-truncate -s 0 install.log
-install_log="install.log"
-echo "Installing FirstMile. Installation logs stored in $install_log"
-
 # Check if the platform is one that we support
 declare -a supported_platform_list=("Ubuntu 14.04", "Ubuntu 16.04");
 platform=`uname -a | grep -i Ubuntu`
@@ -22,11 +17,16 @@ if [[ -z "$platform" ]]; then
    exit
 fi
 
+# define installation log file
+truncate -s 0 install.log
+install_log="install.log"
+echo "Installing FirstMile. Installation logs stored in $install_log"
+
 # Install requirements
 sudo apt-get update &>> $install_log && sudo apt-get install -y docker.io python-dev python-pip &>> $install_log
 
-sudo usermod -aG docker $USER &>> $install_log
 # Adding the current user to docker group so docker commands can be run without sudo
+sudo usermod -aG docker $USER &>> $install_log
 sudo gpasswd -a ${USER} docker &>> $install_log
 sudo service docker restart &>> $install_log
 
@@ -44,7 +44,7 @@ export PATH=$PATH:`pwd`
 export PYTHONPATH=$PYTHONPATH:`pwd`
 cd ..
 
-# ?
+# Update .bashrc and .profile so that cld client will be in PATH/PYTHONPATH
 sudo $virtenv/bin/pip install -r requirements.txt &>> $install_log
 pushd $virtenv/bin
 export PATH=$PATH:`pwd`
@@ -92,8 +92,8 @@ has_server_started=`sg docker -c "docker ps -a | grep firstmile"`
 if [[ ! -z "${has_server_started}" ]]; then
     echo "FirstMile successfully installed."
     echo "Next steps:"
-    echo "- Quick try: Run 'cld app list'"
-    echo "- Then try out samples from firstmile-samples directory (available one level above)"
+    echo "- Quick test: Run 'cld app list'"
+    echo "- Try sample programs from firstmile-samples directory (available one level above)"
     echo "Happy coding :-)"
 fi
 
