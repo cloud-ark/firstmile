@@ -41,11 +41,7 @@ def verify_cloud(dest):
 
 def verify_service(service):
     service = service.lower() if service else ''
-    if not service:
-        print("Incorrect service specified %s." % service)
-        print("Supported options: %s" % MYSQL)
-        exit()
-    if service and service.lower() != MYSQL:
+    if service and service != MYSQL:
         print("Incorrect service specified %s." % service)
         print("Supported options: %s" % MYSQL)
         exit()
@@ -399,8 +395,12 @@ def artifact_depid_show(result, pretty_table):
                 artifact_info = artifact_info + key + ": " + value + "\n"
         row = [name, version, cloud, status, artifact_info]
         pretty_table.add_row(row)
-
     return pretty_table
+
+def diskfull_error_response():
+    print("CLD server encountered disk full error. Make space and then try again.")
+    print("You can reclaim space by deleting app and service folders from")
+    print("~/.cld/data/deployments and ~/.cld/data/deployments/services")
 
 def artifact_logs_show(result, pretty_table):
     status_json = json.loads(result)

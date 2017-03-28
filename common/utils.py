@@ -378,6 +378,12 @@ def delete_tar_file(location, app_name):
         fmlogging.debug("Deleting app tar file")
         os.remove(tar_file)
 
+def delete_app_folder(location, app_name):
+    lib_folder = location + "/" + app_name
+    if os.path.exists(lib_folder):
+        fmlogging.debug("Deleting app folder")
+        shutil.rmtree(lib_folder, ignore_errors=True)
+
 # Google-specific commands
 def copy_google_creds(source, dest):
     # Copy google-creds to the app directory

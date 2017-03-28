@@ -5,10 +5,11 @@
  Written by Devdatta Kulkarni <devdattakulkarni@gmail.com>
 '''
 
+import datetime
 import logging
 import os
+import sys
 import tarfile
-import datetime
 import time
 import thread
 
@@ -37,11 +38,22 @@ home_dir = expanduser("~")
 APP_STORE_PATH = ("{home_dir}/.cld/data/deployments").format(home_dir=home_dir)
 SERVICE_STORE_PATH = APP_STORE_PATH + "/services"
 
+
+def exception_handler(exctype, value, traceback):
+    fmlogging.error("Exception:" % exctype)
+    fmlogging.error("-----")
+    fmlogging.error(value)
+    fmlogging.error("-----")
+    fmlogging.error(traceback)
+
+sys.excepthook = exception_handler
+
 def start_thread(delegatethread):
     try:
         delegatethread.run()
     except Exception as e:
         fmlogging.error(e)
+        delegatethread.error_update()
 
 class Cloud(Resource):
 

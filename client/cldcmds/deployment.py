@@ -73,7 +73,7 @@ class Deployment(object):
         response = urllib2.urlopen(req, json.dumps(data, ensure_ascii=True, encoding='ISO-8859-1'))
 
         if response.code == '503':
-            print("CLD server encountered disk full error. Make space and then try again.")
+            common.diskfull_error_response()
             return
 
         track_url = response.headers.get('location')
@@ -108,7 +108,7 @@ class Deployment(object):
         response = urllib2.urlopen(req, json.dumps(data, ensure_ascii=True, encoding='ISO-8859-1'))
 
         if response.code == '503':
-            print("CLD server encountered disk full error. Make space and then try again.")
+            common.diskfull_error_response()
             return
         track_url = response.headers.get('location')
         self.log.debug("Deployment ID:%s" % track_url)
