@@ -420,3 +420,14 @@ def artifact_logs_show(result, pretty_table):
     pretty_table.add_row(row)
 
     return pretty_table
+
+def execute_shell_cmd(cmd):
+
+    try:
+        chanl = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE, shell=True).communicate()
+        err = chanl[1]
+        output = chanl[0]
+    except Exception as e:
+        raise e
+    return err, output

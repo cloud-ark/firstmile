@@ -69,6 +69,9 @@ setup(
             'service list = cldcmds.service_list:ServiceList',
             'cloud reset = cldcmds.cloud_reset:CloudReset',
             'cloud setup = cldcmds.cloud_setup:CloudSetup',
+            'fm logs = cldcmds.fm_actions:FirstMileLogs',
+            'fm restart = cldcmds.fm_actions:FirstMileRestart',
+            'fm cleanup = cldcmds.fm_actions:FirstMileCleanup',
         ],
     },
 
