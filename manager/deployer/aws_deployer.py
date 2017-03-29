@@ -180,7 +180,35 @@ class AWSDeployer(object):
 
     def deploy_for_delete(self, info):
         fmlogging.debug("AWS deployer for called to delete app:%s" % info['app_name'])
+
+        app_name = info['app_name']
+        app_version = info['app_version']
+        app_dir = (constants.APP_STORE_PATH + "/{app_name}/{app_version}/{app_name}").format(app_name=app_name,
+                                                                                             app_version=app_version)
+        cwd = os.getcwd()
+        os.chdir(app_dir)
+
+        if os.path.exists("./Dockerfile.status"):
+            app_name = info['app_name']
+            cont_name = app_name + "-status"
+            cmd = ("docker run {cont_name}").format(cont_name=cont_name)
+            done = False
+            while not done:
+                err, output = utils.execute_shell_cmd(cmd)
+                if err.lower().find("not found") >= 0:
+                    done = True
+                if output.lower().find("not found") >= 0:
+                    done = True
+                time.sleep(2)
+            self.docker_handler.remove_container_image(cont_name, "done deleting database")
+
+        # Deleting the security group by creating container image (and then deleting it)
+        if os.path.exists("./Dockerfile.secgroup"):
+            delete_sec_group_cont = app_name + "-secgroup"
+            self.docker_handler.build_container_image(delete_sec_group_cont, "Dockerfile.secgroup")
+            self.docker_handler.remove_container_image(delete_sec_group_cont, "deleting security group")
         utils.delete(info)
+        os.chdir(cwd)
 
     def deploy(self, deploy_type, deploy_name):
         if deploy_type == 'service':

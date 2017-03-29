@@ -207,22 +207,30 @@ class MySQLServiceHandler(object):
             fp.write("%s::%s, " % (constants.DB_USER_PASSWORD, self._read_password()))
             fp.close()
 
-    def get_terminate_cmd(self, delete_info):
+    def _get_instance_name(self, delete_info):
         app_name = delete_info['app_name']
         app_version = delete_info['app_version']
 
         instance_name = ("{app_name}-{app_version}").format(app_name=app_name,
                                                             app_version=app_version)
+        return instance_name
 
-        delete_secgroup_cmd = ("RUN aws ec2 delete-security-group --group-name {instance_name}\n").format(instance_name=instance_name)
-
+    def get_terminate_cmd(self, delete_info):
+        instance_name = self._get_instance_name(delete_info)
         rds_delete_cmd = ("RUN aws rds delete-db-instance ")
         rds_delete_cmd = rds_delete_cmd + ("--db-instance-identifier {instance_name} ").format(instance_name=instance_name)
         rds_delete_cmd = rds_delete_cmd + ("--skip-final-snapshot")
+        return rds_delete_cmd
 
-        delete_cmd = delete_secgroup_cmd + rds_delete_cmd
+    def get_sec_group_delete_cmd(self, delete_info):
+        instance_name = self._get_instance_name(delete_info)
+        delete_secgroup_cmd = ("RUN aws ec2 delete-security-group --group-name {instance_name}\n").format(instance_name=instance_name)
+        return delete_secgroup_cmd
 
-        return delete_cmd
+    def get_status_check_cmd(self, delete_info):
+        instance_name = self._get_instance_name(delete_info)
+        check_cmd = ("ENTRYPOINT [\"aws\", \"rds\", \"describe-db-instances\", \"--db-instance-identifier\", \"{instance_name}\"] \n").format(instance_name=instance_name)
+        return check_cmd
 
     def get_eb_extensions_contents(self):
         # TODO(devkulkarni): Below setup_cfg is for DynamoDB.

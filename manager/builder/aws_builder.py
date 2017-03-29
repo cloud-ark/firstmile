@@ -127,6 +127,10 @@ class AWSBuilder(object):
         cwd = os.getcwd()
         os.chdir(app_dir)
         self.docker_handler.build_container_image(app_name + "-delete", "Dockerfile.delete")
+
+        if os.path.exists("./Dockerfile.status"):
+            self.docker_handler.build_container_image(app_name + "-status", "Dockerfile.status")
+
         os.chdir(cwd)
         self.docker_handler.remove_container_image(app_name + "-delete", "done deleting the app")
 
