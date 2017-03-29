@@ -392,6 +392,7 @@ class AWSGenerator(object):
 
         env_name = utils.read_environment_name(app_dir)
 
+        delete_keypair_cmd = ("RUN aws ec2 delete-key-pair --key-name {env_name}").format(env_name=env_name)
         eb_terminate_cmd = ("RUN eb terminate {env_name} --force").format(env_name=env_name)
 
         service_name = info['service_name']
@@ -407,9 +408,11 @@ class AWSGenerator(object):
         df = df + ("COPY . /src \n"
               "WORKDIR /src \n"
               "RUN cp -r aws-creds $HOME/.aws \n"
+              "{delete_keypair_cmd}\n"
               "{eb_terminate_cmd}\n"
               "{service_terminate_cmd}"
-            ).format(eb_terminate_cmd=eb_terminate_cmd,
+            ).format(delete_keypair_cmd=delete_keypair_cmd,
+                     eb_terminate_cmd=eb_terminate_cmd,
                      service_terminate_cmd=service_terminate_cmd)
 
         fmlogging.debug("Dockerfile dir:%s" % app_dir)
