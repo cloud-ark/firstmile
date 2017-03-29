@@ -213,11 +213,16 @@ class MySQLServiceHandler(object):
 
         instance_name = ("{app_name}-{app_version}").format(app_name=app_name,
                                                             app_version=app_version)
+
+        delete_secgroup_cmd = ("RUN aws ec2 delete-security-group --group-name {instance_name}\n").format(instance_name=instance_name)
+
         rds_delete_cmd = ("RUN aws rds delete-db-instance ")
         rds_delete_cmd = rds_delete_cmd + ("--db-instance-identifier {instance_name} ").format(instance_name=instance_name)
         rds_delete_cmd = rds_delete_cmd + ("--skip-final-snapshot")
 
-        return rds_delete_cmd
+        delete_cmd = delete_secgroup_cmd + rds_delete_cmd
+
+        return delete_cmd
 
     def get_eb_extensions_contents(self):
         # TODO(devkulkarni): Below setup_cfg is for DynamoDB.

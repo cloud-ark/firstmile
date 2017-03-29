@@ -100,6 +100,10 @@ class AWSDeployer(object):
                                                                                  app_name=self.app_obj.app_name)
         os.system(cp_cmd)
 
+        if not cname:
+            region = utils.get_aws_region()
+            cname = ("http://{env_name}.{region}.elasticbeanstalk.com").format(env_name=env_name, region=region)
+
         return cname
         
     def _deploy_app_container(self, app_obj):
