@@ -14,10 +14,13 @@ from common import docker_lib
 from common import service
 from common import constants
 from common import utils
+from common import fm_logger
 
 RDS_INSTANCE_DEPLOY_DFILE = "Dockerfile.rds-instance-deploy"
 RDS_INSTANCE_STAT_CHECK_DFILE = "Dockerfile.rds-instance-check"
 MAX_WAIT_COUNT = 600
+
+fmlogging = fm_logger.Logging()
 
 class MySQLServiceHandler(object):
 
@@ -74,33 +77,94 @@ class MySQLServiceHandler(object):
             password = utils.read_password(path)
         return password
 
-    def _generate_rds_instance_create_df(self):
-        logging.debug("Generating Dockerfile for RDS instance creation")
-        db_name = constants.DEFAULT_DB_NAME
-        db_id = self.instance_name + "-" + self.instance_version
-        user = constants.DEFAULT_DB_USER
-        password = self.db_info['password']
-        sec_group = ("`aws ec2 create-security-group --group-name {gname} --description \"My security group - SQL\"`").format(gname=db_id)
-        add_rule = ("aws ec2 authorize-security-group-ingress --group-name {gname} --protocol tcp --port 3306 --cidr 0.0.0.0/0").format(gname=db_id)
-        create_instance = ("aws rds create-db-instance --db-name {db_name}"
-                           " --db-instance-identifier {db_id} --engine MySQL "
-                           " --db-instance-class db.t2.medium --master-username {user} "
-                           " --master-user-password '{password}' --allocated-storage 10 "
-                           " --vpc-security-group-ids $sec_group_1 --publicly-accessible").format(db_name=db_name,
-                                                                                                  db_id=db_id,
-                                                                                                  user=user,
-                                                                                                  password=password)
+    def _get_cidr_block(self):
         df = self.docker_handler.get_dockerfile_snippet("aws")
         df = df + ("COPY . /src \n"
               "WORKDIR /src \n"
               "RUN cp -r aws-creds $HOME/.aws \n"
-              "RUN sec_group={sec_group} \ \n"
-              "    && sec_group_1=`echo $sec_group | sed 's/{{//' | sed 's/}}//' | awk '{{print $2}}' | sed 's/\"//'g` \ \n"
-              "    && {add_rule} \ \n"
-              "    && {create_instance}").format(sec_group=sec_group,
-                                              add_rule=add_rule,
-                                              create_instance=create_instance)
-              
+              "RUN aws ec2 describe-vpcs")
+        fp = open(self.deploy_dir + "/Dockerfile.get-cidrblock", "w")
+        fp.write(df)
+        fp.close()
+
+        cwd = os.getcwd()
+        os.chdir(self.deploy_dir)
+        cont_name = self.instance_name + "-cidrblock"
+        err, output = self.docker_handler.build_ct_image(cont_name, "Dockerfile.get-cidrblock")
+
+        cidrblock = ''
+        for line in output.split("\n"):
+            if line.find("CidrBlock") >= 0:
+                parts = line.split(":")
+                cidrblock = parts[1].replace('"','').replace(',','').rstrip().lstrip()
+            if line.find("IsDefault") >= 0:
+                parts = line.split(":")
+                if parts[1].lower() == 'true':
+                    break
+
+        self.docker_handler.remove_container_image(cont_name, "Done getting cidr block")
+        fmlogging.debug("CIDR Block:%s" % cidrblock)
+        os.chdir(cwd)
+        return cidrblock
+
+    def _get_security_group_id(self):
+        df = self.docker_handler.get_dockerfile_snippet("aws")
+        db_id = self.instance_name + "-" + self.instance_version
+        sec_group = ("RUN aws ec2 create-security-group --group-name {gname} --description {desc}").format(gname=db_id,
+                                                                                                           desc=db_id)
+        df = df + ("COPY . /src \n"
+              "WORKDIR /src \n"
+              "RUN cp -r aws-creds $HOME/.aws \n"
+              "{sec_group}").format(sec_group=sec_group)
+        fp = open(self.deploy_dir + "/Dockerfile.security-group", "w")
+        fp.write(df)
+        fp.close()
+
+        cwd = os.getcwd()
+        os.chdir(self.deploy_dir)
+        cont_name = self.instance_name + "-security-group"
+        err, output = self.docker_handler.build_ct_image(cont_name, "Dockerfile.security-group")
+        secgroup_id = ''
+        for line in output.split("\n"):
+            if line.find("GroupId") >= 0:
+                parts = line.split(":")
+                secgroup_id = parts[1].replace('"','').rstrip().lstrip()
+                break
+        # Save secgroup_id
+        fp = open("sec-group", "w")
+        fp.write(secgroup_id)
+        fp.flush()
+        fp.close()
+        os.chdir(cwd)
+        self.docker_handler.remove_container_image(cont_name, "Done getting security_group id")
+        return secgroup_id
+
+    def _generate_rds_instance_create_df(self):
+        fmlogging.debug("Generating Dockerfile for RDS instance creation")
+        db_name = constants.DEFAULT_DB_NAME
+        db_id = self.instance_name + "-" + self.instance_version
+        user = constants.DEFAULT_DB_USER
+        password = self.db_info['password']
+        cidrblock = self._get_cidr_block()
+        sec_group_id = self._get_security_group_id()
+        add_rule = ("aws ec2 authorize-security-group-ingress --group-name {gname} --protocol tcp --port 3306 --cidr {cidrblock}").format(gname=db_id,
+                                                                                                                                          cidrblock=cidrblock)
+        create_instance = ("aws rds create-db-instance --db-name {db_name}"
+                           " --db-instance-identifier {db_id} --engine MySQL "
+                           " --db-instance-class db.t2.medium --master-username {user} "
+                           " --master-user-password '{password}' --allocated-storage 10 "
+                           " --vpc-security-group-ids {sec_group_id}").format(db_name=db_name,
+                                                                              db_id=db_id,
+                                                                              user=user,
+                                                                              password=password,
+                                                                              sec_group_id=sec_group_id)
+        df = self.docker_handler.get_dockerfile_snippet("aws")
+        df = df + ("COPY . /src \n"
+              "WORKDIR /src \n"
+              "RUN cp -r aws-creds $HOME/.aws \ \n"
+              "    &&  {add_rule} \ \n"
+              "    && {create_instance}").format(add_rule=add_rule, create_instance=create_instance)
+
         fp = open(self.deploy_dir + "/" + RDS_INSTANCE_DEPLOY_DFILE, "w")
         fp.write(df)
         fp.close()
@@ -113,7 +177,7 @@ class MySQLServiceHandler(object):
         fp.close()
 
     def _generate_rds_instance_check_df(self):
-        logging.debug("Generating Dockerfile for RDS instance checking")
+        fmlogging.debug("Generating Dockerfile for RDS instance checking")
         db_id = self.instance_name + "-" + self.instance_version
         
         entry_pt = ("ENTRYPOINT [\"aws\", \"rds\", \"describe-db-instances\", "
@@ -129,7 +193,7 @@ class MySQLServiceHandler(object):
         fp.close()
 
     def _build_containers(self):
-        logging.debug("Building RDS instance provisioning containers")
+        fmlogging.debug("Building RDS instance provisioning containers")
         cwd = os.getcwd()
         os.chdir(self.deploy_dir)
         
@@ -163,7 +227,7 @@ class MySQLServiceHandler(object):
             try:
                 output = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                                           stderr=subprocess.PIPE, shell=True).communicate()[0]
-                logging.debug("Output:%s" % output)
+                fmlogging.debug("Output:%s" % output)
                 lines = output.split("\n")
                 print(output)
                 for line in lines:
@@ -274,7 +338,7 @@ class MySQLServiceHandler(object):
         
     def provision_and_setup(self):
         instance_dns = self._get_rds_instance_dns()
-        logging.debug("RDS instance DNS:%s" % instance_dns)
+        fmlogging.debug("RDS instance DNS:%s" % instance_dns)
         self._save_instance_information(instance_dns)
         return instance_dns
         

@@ -281,12 +281,24 @@ class AWSGenerator(object):
         fp.write(env_name)
         fp.flush()
         fp.close()
-        os.chdir(cwd)
 
-        entrypt_cmd = ("ENTRYPOINT [\"eb\", \"create\", \"{env_name}\", \"-c\", "
-                       "\"{cname}\", \"--keyname\", \"{key_name}\", \"--timeout\", \"20\"]  \n").format(env_name=env_name,
-                                                                                                        cname=cname,
-                                                                                                        key_name=key_name)
+        # Read security_group_id, if defined
+        sec_group = ''
+        if os.path.exists("sec-group"):
+            fps = open("sec-group","r")
+            sec_group = fps.readline()
+            sec_group = sec_group.rstrip().lstrip()
+            entrypt_cmd = ("ENTRYPOINT [\"eb\", \"create\", \"{env_name}\", \"-c\", "
+                           "\"{cname}\", \"--vpc.securitygroups\", \"{sec_group}\", "
+                           "\"--keyname\", \"{key_name}\", \"--timeout\", \"20\"]  \n").format(env_name=env_name,
+                                                                                               cname=cname,
+                                                                                               sec_group=sec_group,
+                                                                                               key_name=key_name)
+        else:
+            entrypt_cmd = ("ENTRYPOINT [\"eb\", \"create\", \"{env_name}\", \"-c\", "
+                           "\"{cname}\", \"--keyname\", \"{key_name}\", \"--timeout\", \"20\"]  \n").format(env_name=env_name,
+                                                                                                            cname=cname,
+                                                                                                            key_name=key_name)
 
         dockerfile_maneuver = ("RUN mv Dockerfile.deploy Dockerfile.bak \n"
                                "RUN mv Dockerfile.aws Dockerfile \n")
@@ -297,7 +309,7 @@ class AWSGenerator(object):
         create_keypair_cmd = ("RUN aws ec2 create-key-pair --key-name "
                               "{key_name} --query 'KeyMaterial' --output text > {key_file}.pem\n").format(key_name=key_name,
                                                                                                           key_file=key_name)
-
+        os.chdir(cwd)
         # Generate Dockerfile
         df = self.docker_handler.get_dockerfile_snippet("aws")
         df = df + ("COPY . /src \n"
