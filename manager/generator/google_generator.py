@@ -145,12 +145,15 @@ class GoogleGenerator(object):
             return first_time_app
     
     def _get_region(self):
-        fp = open(GOOGLE_CREDS_PATH + "/app_details.txt", "r")
-        lines = fp.readlines()
-        for line in lines:
-            if line.find("Region") >= 0:
-                parts = line.split(":")
-                region = parts[1].rstrip().lstrip()
+        if os.path.exists(GOOGLE_CREDS_PATH + "/app_details.txt"):
+            fp = open(GOOGLE_CREDS_PATH + "/app_details.txt", "r")
+            lines = fp.readlines()
+            for line in lines:
+                if line.find("Region") >= 0:
+                    parts = line.split(":")
+                    region = parts[1].rstrip().lstrip()
+        if not region:
+            region = 'us-central' #default region
         return region
 
     def _generate_docker_file(self, app_deploy_dir):
@@ -278,13 +281,25 @@ class GoogleGenerator(object):
         docker_file.flush()
         docker_file.close()
 
+    def _sanity_check(self, app_obj):
+        gcloud_path = GOOGLE_CREDS_PATH + "/gcloud"
+        app_details_path = GOOGLE_CREDS_PATH + "/app_details.txt"
+        sanity_check_passed = False
+        if os.path.exists(GOOGLE_CREDS_PATH):
+            if os.path.exists(gcloud_path) and not os.listdir(gcloud_path) == "":
+                if os.path.exists(app_details_path) and os.stat(app_details_path).st_size > 0:
+                    sanity_check_passed = True
+        if not sanity_check_passed:
+            app_obj.update_app_status("DEPLOYMENT_SANITY_CHECK_FAILURE. \n (Do Google cloud setup again.)")
+            raise Exception()
 
     def generate(self, build_type, service_ip_dict, service_info):
+        app_obj = app.App(self.task_def.app_data)
+        # Sanity check for google
+        self._sanity_check(app_obj)
         if build_type == 'service':
             fmlogging.debug("Google generator called for service")
-            
             if self.task_def.app_data:
-                app_obj = app.App(self.task_def.app_data)
                 app_obj.update_app_status("GENERATING Google ARTIFACTS for Cloud SQL instance")
             for serv in self.task_def.service_data:
                 serv_handler = self.services[serv['service']['type']]
@@ -293,7 +308,6 @@ class GoogleGenerator(object):
         else:
             fmlogging.debug("Google generator called for app %s" %
                           self.task_def.app_data['app_name'])
-            app_obj = app.App(self.task_def.app_data)
             app_obj.update_app_status("GENERATING Google ARTIFACTS for App")
             if self.app_type == 'python':
                 self._generate_for_python_app(app_obj, service_ip_dict, service_info)
