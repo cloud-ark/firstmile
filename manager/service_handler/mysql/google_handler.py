@@ -15,6 +15,9 @@ from common import docker_lib
 from common import service
 from common import utils
 from common import constants
+from common import fm_logger
+
+fmlogging = fm_logger.Logging()
 
 
 class MySQLServiceHandler(object):
@@ -78,8 +81,8 @@ class MySQLServiceHandler(object):
                ' https://www.googleapis.com/sql/v1beta4/projects/{project_id}/instances -X POST').format(access_token=access_token,
                                                                                                         db_server=db_server,
                                                                                                         project_id=project_id)
-        logging.debug("Creating Cloud SQL instance")
-        logging.debug(cmd)
+        fmlogging.debug("Creating Cloud SQL instance")
+        fmlogging.debug(cmd)
         try:
             os.system(cmd)
         except Exception as e:
@@ -96,8 +99,8 @@ class MySQLServiceHandler(object):
                ' https://www.googleapis.com/sql/v1beta4/projects/{project_id}/instances/{db_server}/users?host=%25&name={username_val} -X PUT '
                ).format(access_token=access_token, db_server=db_server, project_id=project_id,
                         username_val=username_val, password_val=password_val)
-        logging.debug("Setting Cloud SQL credentials")
-        logging.debug(cmd)
+        fmlogging.debug("Setting Cloud SQL credentials")
+        fmlogging.debug(cmd)
         try:
             output = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                                           stderr=subprocess.PIPE, shell=True).communicate()[0]
@@ -111,14 +114,14 @@ class MySQLServiceHandler(object):
                 parts = line.split(" ")
                 self_link = parts[1].rstrip().lstrip()
                 self_link = self_link.replace(",","").replace("\"","")
-                logging.debug("Link for tracking create user operation:%s" % self_link)
+                fmlogging.debug("Link for tracking create user operation:%s" % self_link)
 
         if self_link:
             user_created = False
             track_usr_cmd = ('curl --header "Authorization: Bearer {access_token}" '
                              ' {track_op} -X GET').format(access_token=access_token, track_op=self_link)
-            logging.debug("Track user create operation cmd:%s" % track_usr_cmd)
-            logging.debug(track_usr_cmd)
+            fmlogging.debug("Track user create operation cmd:%s" % track_usr_cmd)
+            fmlogging.debug(track_usr_cmd)
 
             while not user_created:
                 try:
@@ -135,7 +138,7 @@ class MySQLServiceHandler(object):
                             user_created = True
                 time.sleep(2)
 
-            logging.debug("Creating user done.")
+            fmlogging.debug("Creating user done.")
 
         # Save Cloud SQL instance information
         fp = open(self.service_obj.get_service_details_file_location(), "w")
@@ -148,8 +151,8 @@ class MySQLServiceHandler(object):
                ' https://www.googleapis.com/sql/v1beta4/projects/{project_id}/instances/{db_server} -X GET'
               ).format(access_token=access_token, project_id=project_id, db_server=db_server)
 
-        logging.debug("Track google cloud sql create status")
-        logging.debug("cmd:%s" % cmd)
+        fmlogging.debug("Track google cloud sql create status")
+        fmlogging.debug("cmd:%s" % cmd)
 
         db_instance_up = False
         while not db_instance_up:
@@ -172,8 +175,8 @@ class MySQLServiceHandler(object):
         cmd = ('curl --header "Authorization: Bearer {access_token}" '
                ' https://www.googleapis.com/sql/v1beta4/projects/{project_id}/instances/{db_server} -X GET'
               ).format(access_token=access_token, project_id=project_id, db_server=db_server)
-        logging.debug("Obtaining IP address of the Cloud SQL instance")
-        logging.debug(cmd)
+        fmlogging.debug("Obtaining IP address of the Cloud SQL instance")
+        fmlogging.debug(cmd)
         try:
             output = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                                       stderr=subprocess.PIPE, shell=True).communicate()[0]
@@ -185,7 +188,7 @@ class MySQLServiceHandler(object):
             entity = components[1].lstrip().rstrip()
             entity = entity.replace("\"",'')
             entity = entity.replace(",",'')
-            logging.debug("*** Parsed entity:[%s]" % entity)
+            fmlogging.debug("*** Parsed entity:[%s]" % entity)
             return entity
 
         for line in output.split("\n"):
@@ -208,8 +211,8 @@ class MySQLServiceHandler(object):
                '"Content-Type: application/json" --data \'{{"instance":"{db_server}", "name":"{db_name}", "project":"{project_id}"}}\''
                ' https://www.googleapis.com/sql/v1beta4/projects/{project_id}/instances/{db_server}/databases -X POST'
               ).format(access_token=access_token, project_id=project_id, db_server=db_server, db_name=db_name)
-        logging.debug("Creating database")
-        logging.debug(cmd)
+        fmlogging.debug("Creating database")
+        fmlogging.debug(cmd)
         try:
             output = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                                       stderr=subprocess.PIPE, shell=True).communicate()[0]
@@ -217,7 +220,7 @@ class MySQLServiceHandler(object):
             print(e)
 
     def _create_database(self, db_ip):
-        logging.debug("Creating database")
+        fmlogging.debug("Creating database")
 
         deploy_dir = ("{instance_dir}/{instance_name}").format(instance_dir=self.instance_prov_workdir,
                                                                instance_name=self.instance_name)
@@ -250,17 +253,17 @@ class MySQLServiceHandler(object):
         fp.close()
 
         docker_build_cmd = ("docker build -t {create_db_cont_name} -f Dockerfile.create-db .").format(create_db_cont_name=self.create_db_cont_name)
-        logging.debug("Docker build cmd for database create cont:%s" % docker_build_cmd)
+        fmlogging.debug("Docker build cmd for database create cont:%s" % docker_build_cmd)
         os.system(docker_build_cmd)
 
         docker_run_cmd = ("docker run -i -t -d {create_db_cont_name}").format(create_db_cont_name=self.create_db_cont_name)
-        logging.debug("Docker run cmd for database create cont:%s" % docker_run_cmd)
+        fmlogging.debug("Docker run cmd for database create cont:%s" % docker_run_cmd)
         os.system(docker_run_cmd)
 
         os.chdir(cwd)
 
     def _parse_access_token(self):
-        logging.debug("Parsing Google access token")
+        fmlogging.debug("Parsing Google access token")
 
         deploy_dir = ("{instance_dir}/{instance_name}").format(instance_dir=self.instance_prov_workdir,
                                                                instance_name=self.instance_name)
@@ -268,19 +271,19 @@ class MySQLServiceHandler(object):
         cwd = os.getcwd()
         os.chdir(deploy_dir)
         docker_run_cmd = ("docker run -i -t -d {google_access_token_cont}").format(google_access_token_cont=self.access_token_cont_name)
-        logging.debug(docker_run_cmd)
+        fmlogging.debug(docker_run_cmd)
 
         cont_id = subprocess.check_output(docker_run_cmd, shell=True).rstrip().lstrip()
-        logging.debug("Container id:%s" % cont_id)
+        fmlogging.debug("Container id:%s" % cont_id)
 
         copy_file_cmd = ("docker cp {cont_id}:/src/access_token.txt {access_token_path}").format(cont_id=cont_id,
                                                                                                  access_token_path=deploy_dir+ "/.")
-        logging.debug("Copy command:%s" % copy_file_cmd)
+        fmlogging.debug("Copy command:%s" % copy_file_cmd)
         os.system(copy_file_cmd)
 
         access_token_fp = open(deploy_dir + "/access_token.txt")
         access_token = access_token_fp.read().rstrip().lstrip()
-        logging.debug("Obtained access token:%s" % access_token)
+        fmlogging.debug("Obtained access token:%s" % access_token)
 
         # Stop and remove container generated for obtaining new access_token
         self.docker_handler.stop_container(self.access_token_cont_name, "access token container no longer needed")
@@ -291,7 +294,7 @@ class MySQLServiceHandler(object):
         return access_token
 
     def _generate_docker_file_to_obtain_access_token(self):
-        logging.debug("Generating Docker file that will give new access token.")
+        fmlogging.debug("Generating Docker file that will give new access token.")
         utils.update_status(self.service_obj.get_status_file_location(),
                             "GENERATING Google ARTIFACTS for MySQL service")
 
@@ -313,7 +316,7 @@ class MySQLServiceHandler(object):
         fp.close()
 
     def _build_service_container(self):
-        logging.debug("Building service container")
+        fmlogging.debug("Building service container")
         deploy_dir = ("{instance_dir}/{instance_name}").format(instance_dir=self.instance_prov_workdir,
                                                                instance_name=self.instance_name)
         cwd = os.getcwd()
