@@ -16,11 +16,11 @@ class FirstMileLogs(Command):
     log = logging.getLogger(__name__)
     
     def _extract_logs(self):
-        cmd = "docker ps -a | grep firstmile | head -1 | awk '{print $1}'"
+        cmd = "sudo docker ps -a | grep firstmile | head -1 | awk '{print $1}'"
         err, output = common.execute_shell_cmd(cmd)
         if output:
             output = output.rstrip().lstrip()
-            cp_cmd = ("docker cp {cont_id}:/src/cld.log firstmile.log").format(cont_id=output)
+            cp_cmd = ("sudo docker cp {cont_id}:/src/cld.log firstmile.log").format(cont_id=output)
             err, op = common.execute_shell_cmd(cp_cmd)
             
             if not err:
@@ -36,9 +36,11 @@ class FirstMileRestart(Command):
     log = logging.getLogger(__name__)
     
     def _restart(self):
+        print("===============================================================================================================================")
         print("Go to FirstMile directory and then run following commands:")
-        print("docker build -t firstmile-img .")
-        print("docker run -u ubuntu -p 5002:5002 -v /var/run/docker.sock:/var/run/docker.sock -v $HOME:/home/ubuntu -d firstmile-img")
+        print("sudo docker build -t firstmile-img .")
+        print("sudo docker run -u ubuntu -p 5002:5002 -v /var/run/docker.sock:/var/run/docker.sock -v $HOME:/home/ubuntu -d firstmile-img")
+        print("===============================================================================================================================")
 
     def take_action(self, parsed_args):
         self._restart()
