@@ -190,11 +190,14 @@ class AWSDeployer(object):
 
         if os.path.exists("./Dockerfile.status"):
             app_name = info['app_name']
-            cont_name = app_name + "-status"
+            app_version = info['app_version']
+            cont_name = app_name + "-" + app_version + "-status"
             cmd = ("docker run {cont_name}").format(cont_name=cont_name)
             done = False
             while not done:
                 err, output = utils.execute_shell_cmd(cmd)
+                self.docker_handler.stop_container(cont_name, "Stopping db status check container.")
+                self.docker_handler.remove_container(cont_name, "Removing db status check container.")
                 if err.lower().find("not found") >= 0:
                     done = True
                 if output.lower().find("not found") >= 0:

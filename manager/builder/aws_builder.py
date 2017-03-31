@@ -122,17 +122,18 @@ class AWSBuilder(object):
 
         app_name = info['app_name']
         app_version = info['app_version']
+        cont_name = app_name + "-" + app_version
         app_dir = (constants.APP_STORE_PATH + "/{app_name}/{app_version}/{app_name}").format(app_name=app_name,
                                                                                              app_version=app_version)
         cwd = os.getcwd()
         os.chdir(app_dir)
-        self.docker_handler.build_container_image(app_name + "-delete", "Dockerfile.delete")
+        self.docker_handler.build_container_image(cont_name + "-delete", "Dockerfile.delete")
 
         if os.path.exists("./Dockerfile.status"):
-            self.docker_handler.build_container_image(app_name + "-status", "Dockerfile.status")
+            self.docker_handler.build_container_image(cont_name + "-status", "Dockerfile.status")
 
         os.chdir(cwd)
-        self.docker_handler.remove_container_image(app_name + "-delete", "done deleting the app")
+        self.docker_handler.remove_container_image(cont_name + "-delete", "done deleting the app")
 
     def build(self, build_type, build_name):
         if build_type == 'service':
