@@ -74,6 +74,24 @@ class MySQLServiceHandler(object):
             password = utils.read_password(path)
         return password
 
+    def _restrict_db_access(self, access_token, project_id, db_server, settings_version):
+        cmd = ('curl --header "Authorization: Bearer {access_token}" --header '
+               '"Content-Type: application/json" --data \'{{"name":"{db_server}",'
+               '"region":"us-central", "settings": {{"settingsVersion":"{version}", "tier":"db-n1-standard-1", "activationPolicy":"ALWAYS", "ipConfiguration":{{"authorizedNetworks":[]}}}}}}\' '
+               ' https://www.googleapis.com/sql/v1beta4/projects/{project_id}/instances/{db_server} -X PUT').format(access_token=access_token,
+                                                                                                                    db_server=db_server,
+                                                                                                                    version=settings_version,
+                                                                                                                    project_id=project_id)
+        fmlogging.debug("Restricting access to Cloud SQL instance")
+        fmlogging.debug(cmd)
+        err, output = utils.execute_shell_cmd(cmd)
+
+        if output.lower().find("error") >= 0:
+            fmlogging.error("Error occurred in restricting access to Cloud SQL instance. %s" % output)
+            raise Exception()
+
+        self._wait_for_db_instance_to_get_ready(access_token, project_id, db_server)
+
     def _deploy_instance(self, access_token, project_id, db_server):
         cmd = ('curl --header "Authorization: Bearer {access_token}" --header '
                '"Content-Type: application/json" --data \'{{"name":"{db_server}",'
@@ -88,7 +106,8 @@ class MySQLServiceHandler(object):
         except Exception as e:
             print(e)
 
-        self._wait_for_db_instance_to_get_ready(access_token, project_id, db_server)
+        settings_version = self._wait_for_db_instance_to_get_ready(access_token, project_id, db_server)
+        return settings_version
 
     def _create_user(self, access_token, project_id, db_server):
         # TODO(devkulkarni): Need to read these values from a configuration file
@@ -154,6 +173,7 @@ class MySQLServiceHandler(object):
         fmlogging.debug("Track google cloud sql create status")
         fmlogging.debug("cmd:%s" % cmd)
 
+        settings_version = ''
         db_instance_up = False
         while not db_instance_up:
             try:
@@ -169,9 +189,14 @@ class MySQLServiceHandler(object):
                     status = components[1].lstrip().rstrip()
                     if status.find('RUNNABLE') >= 0:
                         db_instance_up = True
+                if line and line.find("\"settingsVersion\"") >= 0:
+                    components = line.split(":")
+                    settings_version = components[1].replace('"','').replace(',','')
+                    settings_version = settings_version.rstrip().lstrip()
             time.sleep(2)
+        return settings_version
 
-    def _get_ip_address_of_db(self, access_token, project_id, db_server):
+    def _get_connection_endpoints_of_db(self, access_token, project_id, db_server):
         cmd = ('curl --header "Authorization: Bearer {access_token}" '
                ' https://www.googleapis.com/sql/v1beta4/projects/{project_id}/instances/{db_server} -X GET'
               ).format(access_token=access_token, project_id=project_id, db_server=db_server)
@@ -200,10 +225,11 @@ class MySQLServiceHandler(object):
                 self.database_version = _parse_entity(line)
             if line and line.startswith("\"connectionName\""):
                 self.connection_name = _parse_entity(line)
+                self.connection_name = '/cloudsql/' + self.connection_name
             if line and line.startswith("\"tier\""):
                 self.database_tier = _parse_entity(line)
 
-        return ip_address
+        return ip_address, self.connection_name
 
     def _create_database_prev(self, db_ip, access_token, project_id, db_server):
         db_name = constants.DEFAULT_DB_NAME
@@ -349,12 +375,13 @@ class MySQLServiceHandler(object):
         db_server = self.instance_name + "-" + self.instance_version + "-db-instance"
         project_id = self.task_def.cloud_data['project_id']
         access_token = self._parse_access_token()
-        self._deploy_instance(access_token, project_id, db_server)
+        settings_version = self._deploy_instance(access_token, project_id, db_server)
         self._create_user(access_token, project_id, db_server)
-        service_ip = self._get_ip_address_of_db(access_token, project_id, db_server)
+        service_ip, connection_name = self._get_connection_endpoints_of_db(access_token, project_id, db_server)
         self._create_database(service_ip)
         self._save_instance_information(service_ip)
-        return service_ip
+        self._restrict_db_access(access_token, project_id, db_server, settings_version)
+        return connection_name
 
     def generate_instance_artifacts(self):
         self._generate_docker_file_to_obtain_access_token()

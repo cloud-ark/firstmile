@@ -79,7 +79,7 @@ class Manager(threading.Thread):
                     service_ip_addresses[service_kind] = serv_ip_addr
                 except Exception as e:
                     fmlogging.error(e)
-                    return
+                    raise e
 
             # Step 2:
             # - Generate, build, deploy app
@@ -95,7 +95,7 @@ class Manager(threading.Thread):
                     fmlogging.debug("Result:%s" % result)
                 except Exception as e:
                     fmlogging.error(e)
-                    return
+                    raise e
 
     def get_logs(self, info):
         fmlogging.debug("Manager -- logs")

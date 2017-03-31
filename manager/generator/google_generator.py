@@ -54,6 +54,10 @@ class GoogleGenerator(object):
                     "api_version: 1 \n"
                     "threadsafe: true \n"
                     "\n"
+                    "libraries: \n"
+                    "- name: MySQLdb \n"
+                    "  version: \"latest\" \n"
+                    "\n"
                     "handlers: \n"
                     "- url: /static \n"
                     "  static_dir: static \n"
@@ -69,16 +73,6 @@ class GoogleGenerator(object):
         fp.close()
 
     def _generate_app_yaml(self, app_deploy_dir, service_ip_dict):
-        #app_yaml = ("runtime: python27 \n"
-        #            "api_version: 1 \n"
-        #            "threadsafe: true \n"
-        #            "\n"
-        #            "handlers: \n"
-        #            "- url: /static \n"
-        #            "  static_dir: static \n"
-        #            "- url: /.* \n"
-        #            "  script: {app_entry_point}.app \n"
-        #            "\n").format(app_entry_point=self.entry_point)
         app_yaml = self._get_app_yaml()
         app_yaml = app_yaml + ("  script: {app_entry_point}.app \n"
                                "\n").format(app_entry_point=self.entry_point)
