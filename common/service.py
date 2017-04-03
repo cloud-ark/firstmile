@@ -15,7 +15,7 @@ class Service(object):
         return self.service_data['service']['type']    
 
     def get_service_name(self):
-        if hasattr(self.service_data, 'service_name'):
+        if 'service_name' in self.service_data:
             return self.service_data['service_name']
         else:
             return self.get_service_type()
