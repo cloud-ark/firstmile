@@ -73,7 +73,10 @@ class LocalBuilder(object):
         os.chdir(cwd)
 
     def build_for_delete(self, info):
-        fmlogging.debug("Local builder called for delete of app:%s" % info['app_name'])
+        if info['app_name']:
+            fmlogging.debug("Local builder called for delete of app:%s" % info['app_name'])
+        if info['service_name']:
+            fmlogging.debug("Local builder called for delete of service:%s" % info['service_name'])
 
     def build_for_logs(self, info):
         fmlogging.debug("Local builder called for getting app logs of app:%s" % info['app_name'])

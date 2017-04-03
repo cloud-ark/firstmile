@@ -15,7 +15,10 @@ class Service(object):
         return self.service_data['service']['type']    
 
     def get_service_name(self):
-        return self.service_data['service_name']
+        if hasattr(self.service_data, 'service_name'):
+            return self.service_data['service_name']
+        else:
+            return self.get_service_type()
     
     def get_setup_file_content(self):
         if 'setup_script_content' in self.service_data['service']:

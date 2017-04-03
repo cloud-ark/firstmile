@@ -249,6 +249,39 @@ def remove_artifact(dep_id, artifact_id_path, artifact_id_file, artifact_name, a
 
     os.chdir(constants.APP_STORE_PATH)
 
+def get_service_info(id_file_path, id_file_name, dep_id):
+    info = {}
+
+    f = open(id_file_path + "/" + id_file_name)
+    all_lines = f.readlines()
+    for line in all_lines:
+        # line structure
+        # 1 mysql--2017-02-18-12-29-22 local-docker   --{u'type': u'local-docker'}
+        line_contents = line.split(" ")
+        if line_contents[0] == dep_id:
+            name_version = line_contents[1].rstrip().lstrip()
+            k = name_version.rfind("--")
+            version = name_version[k+2:].rstrip().lstrip()
+
+            fmlogging.debug("Service version:%s" % version)
+
+            name = name_version[:k]
+            fmlogging.debug("Service name:%s" % name)
+
+            cloud = line_contents[2].rstrip().lstrip()
+            get_cloud_details = line.split("--")
+            cloud_details = get_cloud_details[-1].rstrip().lstrip()
+
+            info['dep_id'] = dep_id
+            info['app_name'] = ''
+            info['service_name'] = name
+            info['service_version'] = version
+            info['service_id'] = dep_id
+            info['cloud'] = cloud
+            info['cloud_details'] = cloud_details
+
+    return info
+
 def get_app_and_service_info(id_file_path, id_file_name, dep_id):
 
     info = {}

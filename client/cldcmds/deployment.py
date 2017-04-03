@@ -117,6 +117,15 @@ class Deployment(object):
 
         return track_url
 
+    def service_delete(self, dep_id):
+        app_url = "http://localhost:5002/servicesdep/" + dep_id
+        response = requests.delete(app_url)
+        if response.status_code == 404:
+            print("Service with deploy-id %s not found." % dep_id)
+        if response.status_code == 202:
+            print("Request to delete service with deploy-id %s accepted" % dep_id)
+        return response
+
     def delete(self, dep_id):
         app_url = "http://localhost:5002/deployments/" + dep_id
         response = requests.delete(app_url)
@@ -190,7 +199,7 @@ class Deployment(object):
         return service_data
 
     def get_service_info_from_id(self, deploy_id):
-        service_url = "http://localhost:5002/servicesdepshow/" + deploy_id
+        service_url = "http://localhost:5002/servicesdep/" + deploy_id
         req = urllib2.Request(service_url)
         response = urllib2.urlopen(req)
         service_data = response.fp.read()

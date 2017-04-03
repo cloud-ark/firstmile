@@ -94,7 +94,10 @@ class LocalGenerator(object):
         docker_file.close()
 
     def generate_for_delete(self, info):
-        fmlogging.debug("Local generator called for delete for app:%s" % info['app_name'])
+        if info['app_name']:
+            fmlogging.debug("Local generator called for delete for app:%s" % info['app_name'])
+        if info['service_name']:
+            fmlogging.debug("Local generator called for delete for service:%s" % info['service_name'])
 
     def generate_for_logs(self, info):
         fmlogging.debug("Local generator called for getting app logs for app:%s" % info['app_name'])

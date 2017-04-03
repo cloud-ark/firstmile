@@ -149,7 +149,19 @@ class Service(Resource):
         response.status_code = 200
         return response
 
-class ServiceGetDeployID(Resource):
+class ServiceDeployID(Resource):
+
+    def _update_service_status(self, info):
+        service_name = info['service_name']
+        service_version = info['service_version']
+        app_status_file = (SERVICE_STORE_PATH + "/{service_name}/{service_version}/service-status.txt").format(service_name=service_name,
+                                                                                                               service_version=service_version)
+        fp = open(app_status_file, "a")
+        status_line = (", status::{status}").format(status=constants.DELETING)
+        fp.write(status_line)
+        fp.flush()
+        fp.close()
+
     def get(self, dep_id):
         fmlogging.debug("Executing GET for deploy id:%s" % dep_id)
 
@@ -176,6 +188,30 @@ class ServiceGetDeployID(Resource):
         resp_data['data'] = stat_and_details_lines
         response = jsonify(**resp_data)
         response.status_code = 200
+        return response
+
+    def delete(self, dep_id):
+        fmlogging.debug("Executing DELETE for dep id:%s" % dep_id)
+        info = utils.get_service_info(SERVICE_STORE_PATH, "service_ids.txt", dep_id)
+
+        resp_data = {}
+        response = jsonify(**resp_data)
+
+        cloud_data = {}
+        if info:
+            cloud_data['type'] = info['cloud']
+            task_def = task_definition.TaskDefinition('', cloud_data, '')
+
+            # update service status to DELETING
+            self._update_service_status(info)
+
+            # dispatch the handler thread
+            delegatethread = mgr.Manager(task_def=task_def, delete_action=True, delete_info=info)
+            thread.start_new_thread(start_thread, (delegatethread, ))
+
+            response.status_code = 202
+        else:
+            response.status_code = 404
         return response
 
 class App(Resource):
@@ -533,7 +569,7 @@ api.add_resource(Apps, '/apps')
 api.add_resource(App, '/apps/<app_name>')
 api.add_resource(Services, '/services')
 api.add_resource(Service, '/services/<service_name>')
-api.add_resource(ServiceGetDeployID, '/servicesdepshow/<dep_id>')
+api.add_resource(ServiceDeployID, '/servicesdep/<dep_id>')
 api.add_resource(Deployment, '/deployments/<dep_id>')
 api.add_resource(Deployments, '/deployments')
 api.add_resource(Logs, '/logs/<dep_id>')
