@@ -107,17 +107,27 @@ class GoogleBuilder(object):
             raise e
 
     def build_for_delete(self, info):
-        fmlogging.debug("Google builder called for delete of app:%s" % info['app_name'])
-
-        app_name = info['app_name']
-        app_version = info['app_version']
-        app_dir = (constants.APP_STORE_PATH + "/{app_name}/{app_version}/{app_name}").format(app_name=app_name,
-                                                                                             app_version=app_version)
-        cwd = os.getcwd()
-        os.chdir(app_dir)
-
-        cont_name = app_name + "-delete"
         docker_file_name = "Dockerfile.delete"
+        cont_name = ''
+        cwd = os.getcwd()
+        work_dir = ''
+        if info['app_name']:
+            fmlogging.debug("Google builder called for delete of app:%s" % info['app_name'])
+
+            app_name = info['app_name']
+            app_version = info['app_version']
+            work_dir = (constants.APP_STORE_PATH + "/{app_name}/{app_version}/{app_name}").format(app_name=app_name,
+                                                                                                 app_version=app_version)
+            cont_name = app_name + "-delete"
+        if info['service_name']:
+            service_name = info['service_name']
+            service_version = info['service_version']
+            if not work_dir:
+                work_dir = (constants.SERVICE_STORE_PATH + "/{service_name}/{service_version}/{service_name}").format(service_name=service_name,
+                                                                                                                      service_version=service_version)
+            if not cont_name:
+                cont_name = service_name + "-delete"
+        os.chdir(work_dir)
         build_cmd = ("docker build -t {cont_name} -f {docker_file_name} .").format(cont_name=cont_name,
                                                                                    docker_file_name=docker_file_name)
         fmlogging.debug("Build cmd:%s" % build_cmd)

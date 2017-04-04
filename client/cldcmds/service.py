@@ -128,7 +128,7 @@ class ServiceDeploy(Command):
                     common.setup_aws(dest)
                     cloud_info['type'] = common.AWS
                 if dest.lower() == common.GOOGLE:
-                    common.setup_google(dest)
+                    common.setup_google()
                     project_location = os.getcwd()
                     project_id = ''
                     user_email = ''

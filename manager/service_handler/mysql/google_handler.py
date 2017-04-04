@@ -387,10 +387,10 @@ class MySQLServiceHandler(object):
         self._generate_docker_file_to_obtain_access_token()
 
     def get_terminate_cmd(self, info):
-        app_version = info['app_version']
-        app_name = info['app_name']
-        instance_name = ("mysql-{app_name}-{app_version}-db-instance").format(app_name=app_name,
-                                                                              app_version=app_version)
+        service_version = info['service_version']
+        service_name = info['service_name']
+        instance_name = ("{service_name}-{service_version}-db-instance").format(service_name=service_name,
+                                                                                service_version=service_version)
         delete_cmd = ("/google-cloud-sdk/bin/gcloud sql instances delete {instance_name} --quiet").format(instance_name=instance_name)
 
         return delete_cmd

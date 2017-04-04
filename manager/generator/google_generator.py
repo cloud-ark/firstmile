@@ -209,30 +209,36 @@ class GoogleGenerator(object):
         self._generate_docker_file(app_deploy_dir)
 
     def generate_for_delete(self, info):
-        fmlogging.debug("Google generator called for delete for app:%s" % info['app_name'])
-
-        app_name = info['app_name']
-        app_version = info['app_version']
-        app_dir = (constants.APP_STORE_PATH + "/{app_name}/{app_version}/{app_name}").format(app_name=app_name,
-                                                                                             app_version=app_version)
-
-        service_name = info['service_name']
-
-        service_terminate_cmd = ''
-        if service_name:
-            parts = service_name.split("-")
-            if parts[0] == 'mysql':
-                mysql_handler = gh.MySQLServiceHandler(self.task_def)
-                service_terminate_cmd = mysql_handler.get_terminate_cmd(info)
-
+        work_dir = ''
         df = self.docker_handler.get_dockerfile_snippet('google')
         df = df + ("RUN /google-cloud-sdk/bin/gcloud config set account {user_email} \ \n"
               "    && /google-cloud-sdk/bin/gcloud config set project {project_id} \ \n"
-              "    && /google-cloud-sdk/bin/gcloud config set app/use_appengine_api false \ \n"
-              "    && /google-cloud-sdk/bin/gcloud app deploy --quiet "
-              )
-        if service_terminate_cmd:
-            df = df + ("\ \n && {terminate_cmd}")
+              "    && /google-cloud-sdk/bin/gcloud config set app/use_appengine_api false \ \n")
+
+        if info['app_name']:
+            fmlogging.debug("Google generator called for delete for app:%s" % info['app_name'])
+
+            app_name = info['app_name']
+            app_version = info['app_version']
+            work_dir = (constants.APP_STORE_PATH + "/{app_name}/{app_version}/{app_name}").format(app_name=app_name,
+                                                                                                 app_version=app_version)
+            self._generate_app_yaml_delete(work_dir)
+            df = df + ("    && /google-cloud-sdk/bin/gcloud app deploy --quiet \ \n")
+
+        if info['service_name']:
+            service_name = info['service_name']
+            service_version = info['service_version']
+            if not work_dir:
+                work_dir = (constants.SERVICE_STORE_PATH + "/{service_name}/{service_version}/{service_name}").format(service_name=service_name,
+                                                                                                                      service_version=service_version)
+            service_terminate_cmd = ''
+            if service_name:
+                parts = service_name.split("-")
+                if parts[0] == 'mysql':
+                    mysql_handler = gh.MySQLServiceHandler(self.task_def)
+                    service_terminate_cmd = mysql_handler.get_terminate_cmd(info)
+                    df = df + (" && {terminate_cmd}")
+
         cloud_details = ast.literal_eval(info['cloud_details'])
         user_email = cloud_details['user_email']
         project_id = cloud_details['project_id']
@@ -242,12 +248,10 @@ class GoogleGenerator(object):
         else:
             df = df.format(user_email=user_email, project_id=project_id)
 
-        fp = open(app_dir + "/Dockerfile.delete", "w")
+        fp = open(work_dir + "/Dockerfile.delete", "w")
         fp.write(df)
         fp.flush()
         fp.close()
-
-        self._generate_app_yaml_delete(app_dir)
 
     def generate_for_logs(self, info):
         fmlogging.debug("Google generator called for getting app logs for app:%s" % info['app_name'])
@@ -288,12 +292,10 @@ class GoogleGenerator(object):
             raise Exception()
 
     def generate(self, build_type, service_ip_dict, service_info):
-        app_obj = app.App(self.task_def.app_data)
-        # Sanity check for google
-        self._sanity_check(app_obj)
         if build_type == 'service':
             fmlogging.debug("Google generator called for service")
             if self.task_def.app_data:
+                app_obj = app.App(self.task_def.app_data)
                 app_obj.update_app_status("GENERATING Google ARTIFACTS for Cloud SQL instance")
             for serv in self.task_def.service_data:
                 serv_handler = self.services[serv['service']['type']]
@@ -302,6 +304,9 @@ class GoogleGenerator(object):
         else:
             fmlogging.debug("Google generator called for app %s" %
                           self.task_def.app_data['app_name'])
+            app_obj = app.App(self.task_def.app_data)
+            # Sanity check for google
+            self._sanity_check(app_obj)
             app_obj.update_app_status("GENERATING Google ARTIFACTS for App")
             if self.app_type == 'python':
                 self._generate_for_python_app(app_obj, service_ip_dict, service_info)

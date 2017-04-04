@@ -441,26 +441,28 @@ def delete_app_lib_folder(location, app_name):
 # Google-specific commands
 
 def delete(info):
-    app_name = info['app_name']
-    app_version = info['app_version']
-    dep_id = info['dep_id']
-    remove_artifact(dep_id, constants.APP_STORE_PATH, "app_ids.txt", app_name, app_version)
+    if info['app_name']:
+        app_name = info['app_name']
+        app_version = info['app_version']
+        dep_id = info['dep_id']
+        remove_artifact(dep_id, constants.APP_STORE_PATH, "app_ids.txt", app_name, app_version)
 
-    # Remove service directories as well, if a service has been provisioned
-    service_name = info['service_name']
-    service_version = info['service_version']
-    service_id = info['service_id']
+    if info['service_name']:
+        # Remove service directories as well, if a service has been provisioned
+        service_name = info['service_name']
+        service_version = info['service_version']
+        service_id = info['service_id']
 
-    if service_name:
-        remove_artifact(service_id, constants.SERVICE_STORE_PATH,
-                        "service_ids.txt", service_name, service_version)
+        if service_name:
+            remove_artifact(service_id, constants.SERVICE_STORE_PATH,
+                            "service_ids.txt", service_name, service_version)
 
 def generate_password():
     import string, random
     all_printable = list(string.printable)
     valid_list = []
     for c in all_printable:
-        if c not in ['/','"','@',' ','\n','\t','\r','\x0b','\x0c', '(', ')', ':', '#', '`']:
+        if c not in ['/','"','@',' ','\n','\t','\r','\x0b','\x0c', '(', ')', ':', '#', '`', '\'', "'"]:
             valid_list.append(c)
 
     valid_charset = ''.join(valid_list)

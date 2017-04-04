@@ -142,7 +142,10 @@ class GoogleDeployer(object):
         fmlogging.debug("Google deployer called for getting app logs of app:%s" % info['app_name'])
 
     def deploy_for_delete(self, info):
-        fmlogging.debug("Google deployer for called to delete app:%s" % info['app_name'])
+        if info['app_name']:
+            fmlogging.debug("Google deployer for called to delete app:%s" % info['app_name'])
+        elif info['service_name']:
+            fmlogging.debug("Google deployer for called to delete service:%s" % info['service_name'])
         utils.delete(info)
 
     def deploy(self, deploy_type, deploy_name):
