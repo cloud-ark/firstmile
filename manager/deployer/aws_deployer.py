@@ -179,19 +179,30 @@ class AWSDeployer(object):
         os.chdir(cwd)
 
     def deploy_for_delete(self, info):
-        fmlogging.debug("AWS deployer for called to delete app:%s" % info['app_name'])
+        work_dir = ''
+        cont_name = ''
+        artifact_name = ''
+        if info['app_name']:
+            fmlogging.debug("AWS deployer for called to delete app:%s" % info['app_name'])
 
-        app_name = info['app_name']
-        app_version = info['app_version']
-        app_dir = (constants.APP_STORE_PATH + "/{app_name}/{app_version}/{app_name}").format(app_name=app_name,
-                                                                                             app_version=app_version)
-        cwd = os.getcwd()
-        os.chdir(app_dir)
-
-        if os.path.exists("./Dockerfile.status"):
             app_name = info['app_name']
             app_version = info['app_version']
+            work_dir = (constants.APP_STORE_PATH + "/{app_name}/{app_version}/{app_name}").format(app_name=app_name,
+                                                                                                  app_version=app_version)
             cont_name = app_name + "-" + app_version + "-status"
+            artifact_name = app_name
+        if info['service_name']:
+            service_name = info['service_name']
+            service_version = info['service_version']
+            if not cont_name:
+                cont_name = service_name + "-" + service_version + "-status"
+            if not work_dir:
+                work_dir = (constants.SERVICE_STORE_PATH + "/{service_name}/{service_version}/").format(service_name=service_name,
+                                                                                                        service_version=service_version)
+        cwd = os.getcwd()
+        os.chdir(work_dir)
+
+        if os.path.exists("./Dockerfile.status"):
             cmd = ("docker run {cont_name}").format(cont_name=cont_name)
             done = False
             while not done:
@@ -207,7 +218,7 @@ class AWSDeployer(object):
 
         # Deleting the security group by creating container image (and then deleting it)
         if os.path.exists("./Dockerfile.secgroup"):
-            delete_sec_group_cont = app_name + "-secgroup"
+            delete_sec_group_cont = artifact_name + "-secgroup"
             self.docker_handler.build_container_image(delete_sec_group_cont, "Dockerfile.secgroup")
             self.docker_handler.remove_container_image(delete_sec_group_cont, "deleting security group")
         utils.delete(info)

@@ -395,51 +395,59 @@ class AWSGenerator(object):
         os.chdir(cwd)
 
     def generate_for_delete(self, info):
-        fmlogging.debug("AWS generator called for delete for app:%s" % info['app_name'])
-
-        app_name = info['app_name']
-        app_version = info['app_version']
-        app_dir = (constants.APP_STORE_PATH + "/{app_name}/{app_version}/{app_name}").format(app_name=app_name,
-                                                                                             app_version=app_version)
-
-        env_name = utils.read_environment_name(app_dir)
-
-        delete_keypair_cmd = ("RUN aws ec2 delete-key-pair --key-name {env_name}").format(env_name=env_name)
-        eb_terminate_cmd = ("RUN eb terminate {env_name} --force").format(env_name=env_name)
-
-        service_name = info['service_name']
-
         df = self.docker_handler.get_dockerfile_snippet("aws")
-        fmlogging.debug("Dockerfile dir:%s" % app_dir)
-
         service_terminate_cmd = ''
-        if service_name:
-            parts = service_name.split("-")
-            if parts[0] == 'mysql':
-                mysql_handler = awsh.MySQLServiceHandler(self.task_def)
-                service_terminate_cmd = mysql_handler.get_terminate_cmd(info)
+        eb_terminate_cmd = ''
+        delete_keypair_cmd = ''
+        work_dir = ''
+        if info['app_name']:
+            fmlogging.debug("AWS generator called for delete for app:%s" % info['app_name'])
 
-                # Create Dockerfile to check rds delete status
-                status_check_cmd = mysql_handler.get_status_check_cmd(info)
-                df_status = df + ("COPY . /src \n"
-                                  "WORKDIR /src \n"
-                                  "RUN cp -r aws-creds $HOME/.aws \n"
-                                  "{status_check_cmd}\n").format(status_check_cmd=status_check_cmd)
-                docker_file_status = open(app_dir + "/Dockerfile.status", "w")
-                docker_file_status.write(df_status)
-                docker_file_status.flush()
-                docker_file_status.close()
+            app_name = info['app_name']
+            app_version = info['app_version']
+            work_dir = (constants.APP_STORE_PATH + "/{app_name}/{app_version}/{app_name}").format(app_name=app_name,
+                                                                                                  app_version=app_version)
+            fmlogging.debug("Dockerfile dir:%s" % work_dir)
 
-                # Create Dockerfile to delete security_group
-                delete_sec_group = mysql_handler.get_sec_group_delete_cmd(info)
-                df_sec_group = df + ("COPY . /src \n"
-                                     "WORKDIR /src \n"
-                                     "RUN cp -r aws-creds $HOME/.aws \n"
-                                     "{delete_sec_group}\n").format(delete_sec_group=delete_sec_group)
-                docker_file_sec_group = open(app_dir + "/Dockerfile.secgroup", "w")
-                docker_file_sec_group.write(df_sec_group)
-                docker_file_sec_group.flush()
-                docker_file_sec_group.close()
+            env_name = utils.read_environment_name(work_dir)
+
+            delete_keypair_cmd = ("RUN aws ec2 delete-key-pair --key-name {env_name}").format(env_name=env_name)
+            eb_terminate_cmd = ("RUN eb terminate {env_name} --force").format(env_name=env_name)
+
+        if info['service_name']:
+            service_name = info['service_name']
+            service_version = info['service_version']
+
+            if not work_dir:
+                work_dir = (constants.SERVICE_STORE_PATH + "/{service_name}/{service_version}/").format(service_name=service_name,
+                                                                                                        service_version=service_version)
+            if service_name:
+                parts = service_name.split("-")
+                if parts[0] == 'mysql':
+                    mysql_handler = awsh.MySQLServiceHandler(self.task_def)
+                    service_terminate_cmd = mysql_handler.get_terminate_cmd(info)
+
+                    # Create Dockerfile to check rds delete status
+                    status_check_cmd = mysql_handler.get_status_check_cmd(info)
+                    df_status = df + ("COPY . /src \n"
+                                      "WORKDIR /src \n"
+                                      "RUN cp -r aws-creds $HOME/.aws \n"
+                                      "{status_check_cmd}\n").format(status_check_cmd=status_check_cmd)
+                    docker_file_status = open(work_dir + "/Dockerfile.status", "w")
+                    docker_file_status.write(df_status)
+                    docker_file_status.flush()
+                    docker_file_status.close()
+
+                    # Create Dockerfile to delete security_group
+                    delete_sec_group = mysql_handler.get_sec_group_delete_cmd(info)
+                    df_sec_group = df + ("COPY . /src \n"
+                                         "WORKDIR /src \n"
+                                         "RUN cp -r aws-creds $HOME/.aws \n"
+                                         "{delete_sec_group}\n").format(delete_sec_group=delete_sec_group)
+                    docker_file_sec_group = open(work_dir + "/Dockerfile.secgroup", "w")
+                    docker_file_sec_group.write(df_sec_group)
+                    docker_file_sec_group.flush()
+                    docker_file_sec_group.close()
 
         # Create Dockerfile to delete rds instance and terminate application
         df_delete = df + ("COPY . /src \n"
@@ -453,7 +461,7 @@ class AWSGenerator(object):
                                    service_terminate_cmd=service_terminate_cmd)
 
 
-        docker_file_delete = open(app_dir + "/Dockerfile.delete", "w")
+        docker_file_delete = open(work_dir + "/Dockerfile.delete", "w")
         docker_file_delete.write(df_delete)
         docker_file_delete.flush()
         docker_file_delete.close()

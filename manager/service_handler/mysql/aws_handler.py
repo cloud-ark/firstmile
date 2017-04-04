@@ -272,11 +272,17 @@ class MySQLServiceHandler(object):
             fp.close()
 
     def _get_instance_name(self, delete_info):
-        app_name = delete_info['app_name']
-        app_version = delete_info['app_version']
+        if delete_info['app_name']:
+            app_name = delete_info['app_name']
+            app_version = delete_info['app_version']
+            instance_name = ("{app_name}-{app_version}").format(app_name=app_name,
+                                                                app_version=app_version)
+        elif delete_info['service_name']:
+            service_name = delete_info['service_name']
+            service_version = delete_info['service_version']
 
-        instance_name = ("{app_name}-{app_version}").format(app_name=app_name,
-                                                            app_version=app_version)
+            instance_name = ("{service_name}-{service_version}").format(service_name=service_name,
+                                                                        service_version=service_version)
         return instance_name
 
     def get_terminate_cmd(self, delete_info):

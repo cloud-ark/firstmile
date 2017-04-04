@@ -118,15 +118,29 @@ class AWSBuilder(object):
         os.chdir(cwd)
 
     def build_for_delete(self, info):
-        fmlogging.debug("AWS builder called for delete of app:%s" % info['app_name'])
+        cont_name = ''
+        work_dir = ''
+        if info['app_name']:
+            fmlogging.debug("AWS builder called for delete of app:%s" % info['app_name'])
 
-        app_name = info['app_name']
-        app_version = info['app_version']
-        cont_name = app_name + "-" + app_version
-        app_dir = (constants.APP_STORE_PATH + "/{app_name}/{app_version}/{app_name}").format(app_name=app_name,
-                                                                                             app_version=app_version)
+            app_name = info['app_name']
+            app_version = info['app_version']
+            cont_name = app_name + "-" + app_version
+            work_dir = (constants.APP_STORE_PATH + "/{app_name}/{app_version}/{app_name}").format(app_name=app_name,
+                                                                                                  app_version=app_version)
+        if info['service_name']:
+            service_name = info['service_name']
+            service_version = info['service_version']
+            if not cont_name:
+                cont_name = service_name + "-" + service_version
+
+            if not work_dir:
+                work_dir = (constants.SERVICE_STORE_PATH + "/{service_name}/{service_version}/").format(service_name=service_name,
+                                                                                                        service_version=service_version)
+
+
         cwd = os.getcwd()
-        os.chdir(app_dir)
+        os.chdir(work_dir)
         self.docker_handler.build_container_image(cont_name + "-delete", "Dockerfile.delete")
 
         if os.path.exists("./Dockerfile.status"):

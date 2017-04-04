@@ -125,7 +125,7 @@ class ServiceDeploy(Command):
                 if dest.lower() == common.LOCAL_DOCKER:
                     cloud_info['type'] = common.LOCAL_DOCKER
                 if dest.lower() == common.AWS:
-                    common.setup_aws(dest)
+                    common.setup_aws()
                     cloud_info['type'] = common.AWS
                 if dest.lower() == common.GOOGLE:
                     common.setup_google()
