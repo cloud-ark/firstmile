@@ -462,7 +462,7 @@ def generate_password():
     all_printable = list(string.printable)
     valid_list = []
     for c in all_printable:
-        if c not in ['/','"','@',' ','\n','\t','\r','\x0b','\x0c', '(', ')', ':', '#', '`', '\'', "'"]:
+        if c not in ['/','"','@',' ','\n','\t','\r','\x0b','\x0c', '(', ')', ':', '#', '`', '\'', "'", '\\', '|']:
             valid_list.append(c)
 
     valid_charset = ''.join(valid_list)
