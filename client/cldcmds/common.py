@@ -113,6 +113,88 @@ def reset_google():
 
 def setup_google():
     google_creds_path = APP_STORE_PATH + "/google-creds"
+
+    def _get_platform():
+        def _parse_platform(data):
+            lines = data.split("\n")
+            for line in lines:
+                if line and line.lower().find("os x") >= 0:
+                    platform = 'os x'
+                    return platform
+            return ''
+
+        platform = "ubuntu" # default
+        cmd = "system_profiler SPSoftwareDataType"
+
+        out = err = ''
+        try:
+            pipe = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE, shell=True).communicate()
+            out = pipe[0]
+            err = pipe[1]
+        except Exception as e:
+            print(e)
+            return platform
+
+        if out:
+            platform = _parse_platform(out)
+            if not platform and err:
+                platform = _parse_platform(err)
+
+        return platform
+
+    def _execute_on_ubuntu(app_name, google_creds_path):
+        docker_build_cmd = ("sg docker -c \"docker build -t {app_name}_creds .\"").format(app_name=app_name)
+        subprocess.check_output(docker_build_cmd, shell=True)
+
+        docker_run_cmd = ("sg docker -c \"docker run -i -t {app_name}_creds\"").format(app_name=app_name)
+        os.system(docker_run_cmd)
+
+        cont_id_cmd = ("sg docker -c \"docker ps -a | grep {app_name}_creds | cut -d ' ' -f 1 | head -1\"").format(app_name=app_name)
+        cont_id = subprocess.check_output(cont_id_cmd, shell=True).rstrip().lstrip()
+
+        copy_file_cmd = ("sg docker -c \"docker cp {cont_id}:/root/.config/gcloud {google_creds_path}\"").format(cont_id=cont_id,
+                                                                                                                 google_creds_path=google_creds_path)
+        subprocess.check_output(copy_file_cmd, shell=True)
+        os.chdir(cwd)
+
+        # Remove container created to obtain creds
+        cont_name = ("{app_name}_creds").format(app_name=app_name)
+        stop_cmd = ("sg docker -c \"docker ps -a | grep {cont_name} | cut -d ' ' -f 1 | xargs docker stop\"").format(cont_name=cont_name)
+        subprocess.check_output(stop_cmd, shell=True)
+
+        rm_cmd = ("sg docker -c \"docker ps -a | grep {cont_name} | cut -d ' ' -f 1 | xargs docker rm\"").format(cont_name=cont_name)
+        subprocess.check_output(rm_cmd, shell=True)
+
+        rmi_cmd = ("sg docker -c \"docker images -a | grep {cont_name}  | sed s'/ \+/ /g' | cut -d ' ' -f 3 | xargs docker rmi -f\"").format(cont_name=cont_name)
+        subprocess.check_output(rmi_cmd, shell=True)
+
+    def _execute_on_osx(app_name, google_creds_path):
+        docker_build_cmd = ("docker build -t {app_name}_creds .").format(app_name=app_name)
+        subprocess.check_output(docker_build_cmd, shell=True)
+
+        docker_run_cmd = ("docker run -i -t {app_name}_creds").format(app_name=app_name)
+        os.system(docker_run_cmd)
+
+        cont_id_cmd = ("docker ps -a | grep {app_name}_creds | cut -d ' ' -f 1 | head -1").format(app_name=app_name)
+        cont_id = subprocess.check_output(cont_id_cmd, shell=True).rstrip().lstrip()
+
+        copy_file_cmd = ("docker cp {cont_id}:/root/.config/gcloud {google_creds_path}").format(cont_id=cont_id,
+                                                                                                                 google_creds_path=google_creds_path)
+        subprocess.check_output(copy_file_cmd, shell=True)
+        os.chdir(cwd)
+
+        # Remove container created to obtain creds
+        cont_name = ("{app_name}_creds").format(app_name=app_name)
+        stop_cmd = ("docker ps -a | grep {cont_name} | cut -d ' ' -f 1 | xargs docker stop").format(cont_name=cont_name)
+        subprocess.check_output(stop_cmd, shell=True)
+
+        rm_cmd = ("docker ps -a | grep {cont_name} | cut -d ' ' -f 1 | xargs docker rm").format(cont_name=cont_name)
+        subprocess.check_output(rm_cmd, shell=True)
+
+        rmi_cmd = ("docker images -a | grep {cont_name}  | sed s'/ \+/ /g' | cut -d ' ' -f 3 | xargs docker rmi -f").format(cont_name=cont_name)
+        subprocess.check_output(rmi_cmd, shell=True)
+
     if not os.path.exists(google_creds_path):
         os.makedirs(google_creds_path)
 
@@ -140,31 +222,13 @@ def setup_google():
         k = app_name.rfind("/")
         app_name = app_name[k+1:]
 
-        docker_build_cmd = ("sg docker -c \"docker build -t {app_name}_creds .\"").format(app_name=app_name)
+        platform = _get_platform()
 
-        subprocess.check_output(docker_build_cmd, shell=True)
+        if platform.lower() == 'ubuntu':
+            _execute_on_ubuntu(app_name, google_creds_path)
+        elif platform.lower() == 'os x':
+            _execute_on_osx(app_name, google_creds_path)
 
-        docker_run_cmd = ("sg docker -c \"docker run -i -t {app_name}_creds\"").format(app_name=app_name)
-        os.system(docker_run_cmd)
-
-        cont_id_cmd = ("sg docker -c \"docker ps -a | grep {app_name}_creds | cut -d ' ' -f 1 | head -1\"").format(app_name=app_name)
-        cont_id = subprocess.check_output(cont_id_cmd, shell=True).rstrip().lstrip()
-
-        copy_file_cmd = ("sg docker -c \"docker cp {cont_id}:/root/.config/gcloud {google_creds_path}\"").format(cont_id=cont_id,
-                                                                                                                 google_creds_path=google_creds_path)
-        subprocess.check_output(copy_file_cmd, shell=True)
-        os.chdir(cwd)
-
-        # Remove container created to obtain creds
-        cont_name = ("{app_name}_creds").format(app_name=app_name)
-        stop_cmd = ("sg docker -c \"docker ps -a | grep {cont_name} | cut -d ' ' -f 1 | xargs docker stop\"").format(cont_name=cont_name)
-        subprocess.check_output(stop_cmd, shell=True)
-
-        rm_cmd = ("sg docker -c \"docker ps -a | grep {cont_name} | cut -d ' ' -f 1 | xargs docker rm\"").format(cont_name=cont_name)
-        subprocess.check_output(rm_cmd, shell=True)
-
-        rmi_cmd = ("sg docker -c \"docker images -a | grep {cont_name}  | sed s'/ \+/ /g' | cut -d ' ' -f 3 | xargs docker rmi -f\"").format(cont_name=cont_name)
-        subprocess.check_output(rmi_cmd, shell=True)
 
 def reset_aws():
     aws_creds_path = APP_STORE_PATH + "/aws-creds"
