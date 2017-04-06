@@ -22,9 +22,9 @@ host_platform=`uname -a | awk '{print $4}'`
 if [ "$host_platform" = "Darwin" ]; then
    echo "Host OS: Mac OS X"
    source lib/install-mac.sh
-fi
-
-if [ "$host_platform" == *Ubuntu* ]; then
+elif [[ "$host_platform" =~ "Ubuntu" ]]; then
    echo "Host OS: Ubuntu"
    source lib/install-ubuntu.sh
+else:
+   echo "Unknown platform"
 fi
