@@ -41,7 +41,7 @@ class LocalDeployer(object):
 
         self.docker_handler = docker_lib.DockerLib()
 
-    def _deploy_app_container(self, app_obj):
+    def _deploy_app_container_prev(self, app_obj):
         app_cont_name = app_obj.get_cont_name()
         self.docker_client.import_image(image=app_cont_name)
         port_list = []
@@ -81,14 +81,33 @@ class LocalDeployer(object):
                     parts = line.split(":")
                     addr = parts[1].replace('"',"").replace(',','')
                     addr = addr.lstrip().rstrip()
-                    if addr:
-                        return addr
+                    if addr and addr != 'null':
+                        break
         except Exception as e:
             fmlogging.error(e)
 
         return addr
 
-    def _deploy_app_container_new(self, app_obj):
+    def _parse_app_port(self, cont_id):
+        inspect_cmd = ("docker inspect {cont_id}").format(cont_id=cont_id)
+
+        port = ''
+        try:
+            out = subprocess.Popen(inspect_cmd, stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE, shell=True).communicate()[0]
+            all_lines = out.split("\n")
+            for line in all_lines:
+                if line.find("HostPort") >= 0:
+                    parts = line.split(":")
+                    port = parts[1].replace('"',"").rstrip().lstrip()
+                    if port and port != 'null':
+                        break
+        except Exception as e:
+            fmlogging.error(e)
+
+        return port
+
+    def _deploy_app_container(self, app_obj):
         app_cont_name = app_obj.get_cont_name()
 
         run_cmd = ("docker run -i -d --publish-all=true {cont_name}").format(cont_name=app_cont_name)
@@ -103,7 +122,8 @@ class LocalDeployer(object):
             fp.flush()
             fp.close()
 
-            app_ip_addr = self._parse_app_ip(cont_id)
+            app_ip_addr = 'localhost'
+            app_port = self._parse_app_port(cont_id)
 
         except Exception as e:
             fmlogging.error(e)
