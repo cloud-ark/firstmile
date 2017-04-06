@@ -41,7 +41,7 @@ class LocalDeployer(object):
 
         self.docker_handler = docker_lib.DockerLib()
 
-    def _deploy_app_container_prev(self, app_obj):
+    def _deploy_app_container(self, app_obj):
         app_cont_name = app_obj.get_cont_name()
         self.docker_client.import_image(image=app_cont_name)
         port_list = []
@@ -55,14 +55,15 @@ class LocalDeployer(object):
         cont_data = self.docker_client.inspect_container(app_cont)
         
         app_ip_addr = cont_data['NetworkSettings']['IPAddress']
-        
+        localhost = 'localhost'
+
         # get host port
-        # app_port_list = cont_data['NetworkSettings']['Ports']
-        # port_list = app_port_list["5000/tcp"]
-        # app_host_port = port_list[0]["HostPort"]
+        app_port_list = cont_data['NetworkSettings']['Ports']
+        port_list = app_port_list[self.app_port + "/tcp"]
+        app_host_port = port_list[0]["HostPort"]
         
-        app_url = ("{app_ip_addr}:{app_port}").format(app_ip_addr=app_ip_addr,
-                                                      app_port=self.app_port)
+        app_url = ("{app_ip_addr}:{app_port}").format(app_ip_addr=localhost,
+                                                      app_port=app_host_port)
         
         fmlogging.debug("App URL: %s" % app_url)
         return app_url
@@ -87,7 +88,7 @@ class LocalDeployer(object):
 
         return addr
 
-    def _deploy_app_container(self, app_obj):
+    def _deploy_app_container_new(self, app_obj):
         app_cont_name = app_obj.get_cont_name()
 
         run_cmd = ("docker run -i -d --publish-all=true {cont_name}").format(cont_name=app_cont_name)
