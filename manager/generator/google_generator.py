@@ -225,13 +225,13 @@ class GoogleGenerator(object):
             self._generate_app_yaml_delete(work_dir)
             df = df + ("    && /google-cloud-sdk/bin/gcloud app deploy --quiet \ \n")
 
+        service_terminate_cmd = ''
         if info['service_name']:
             service_name = info['service_name']
             service_version = info['service_version']
             if not work_dir:
                 work_dir = (constants.SERVICE_STORE_PATH + "/{service_name}/{service_version}/{service_name}").format(service_name=service_name,
                                                                                                                       service_version=service_version)
-            service_terminate_cmd = ''
             if service_name:
                 parts = service_name.split("-")
                 if parts[0] == 'mysql':
