@@ -141,6 +141,32 @@ class GoogleDeployer(object):
     def get_logs(self, info):
         fmlogging.debug("Google deployer called for getting app logs of app:%s" % info['app_name'])
 
+        app_name = info['app_name']
+        app_version = info['app_version']
+        app_dir = (constants.APP_STORE_PATH + "/{app_name}/{app_version}/{app_name}").format(app_name=app_name,
+                                                                                             app_version=app_version)
+        cwd = os.getcwd()
+        os.chdir(app_dir)
+
+        cont_name = app_name + "-get-logs"
+
+        runtime_log_file = ("../{app_version}{runtime_log}").format(app_version=app_version,
+                                                                    runtime_log=constants.RUNTIME_LOG)
+        fp = open(runtime_log_file, "w")
+
+        docker_run_cmd = ("docker run {cont_name}").format(cont_name=cont_name)
+
+        out = subprocess.Popen(docker_run_cmd, stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE, shell=True).communicate()[0]
+        fp.write(out)
+        fp.flush()
+        fp.close()
+
+        self.docker_handler.remove_container_image(cont_name, "Deleting container image created to obtain logs")
+
+        os.chdir(cwd)
+
+
     def deploy_for_delete(self, info):
         if info['app_name']:
             fmlogging.debug("Google deployer for called to delete app:%s" % info['app_name'])

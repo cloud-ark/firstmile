@@ -264,8 +264,9 @@ class GoogleGenerator(object):
         df = self.docker_handler.get_dockerfile_snippet('google')
         df = df + ("RUN /google-cloud-sdk/bin/gcloud config set account {user_email} \ \n"
               "    && /google-cloud-sdk/bin/gcloud config set project {project_id} \ \n"
-              "    && /google-cloud-sdk/bin/gcloud config set app/use_appengine_api false \ \n"
-              "    && /google-cloud-sdk/bin/gcloud beta logging read request_log\n")
+              "    && /google-cloud-sdk/bin/gcloud config set app/use_appengine_api false \n")
+
+        df = df + ("ENTRYPOINT [\"/google-cloud-sdk/bin/gcloud\", \"beta\", \"logging\", \"read\", \"request_log\"] \n")
 
         cloud_details = ast.literal_eval(info['cloud_details'])
 

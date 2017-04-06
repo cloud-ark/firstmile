@@ -272,8 +272,9 @@ class Logs(Resource):
                     fmlogging.debug("Inside get_logs - prefix value for log file path:%s" % prefix)
                 dep_log_file = prefix + "/" + info['app_name'] + "/"
                 dep_log_file = dep_log_file + info['app_version'] + "/" + dep_log_file_name
-                if not os.path.exists(dep_log_file):
-                    dep_log_file = ""
+                if prefix == constants.APP_STORE_PATH:
+                    if not os.path.exists(dep_log_file):
+                        dep_log_file = ""
                 status_data['dep_log_location'] = dep_log_file
 
                 # Get runtime log
@@ -285,8 +286,9 @@ class Logs(Resource):
                 app_log_file_name = info['app_version'] + constants.RUNTIME_LOG
                 app_log_file = prefix + "/" + info['app_name'] + "/"
                 app_log_file = app_log_file + info['app_version'] + "/" + app_log_file_name
-                if not os.path.exists(app_log_file):
-                    app_log_file = ""
+                if prefix == constants.APP_STORE_PATH:
+                    if not os.path.exists(app_log_file):
+                        app_log_file = ""
                 status_data['run_log_location'] = app_log_file
 
                 resp_data = {}

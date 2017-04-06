@@ -149,15 +149,16 @@ class GoogleBuilder(object):
 
         cont_name = app_name + "-get-logs"
         docker_file_name = "Dockerfile.logs"
-        build_cmd = ("docker build -t {cont_name} -f {docker_file_name} . &> ../{app_version}{runtime_log}").format(cont_name=cont_name,
-                                                                                                                 docker_file_name=docker_file_name,
-                                                                                                                 app_version=app_version,
-                                                                                                                 runtime_log=constants.RUNTIME_LOG)
+        #build_cmd = ("docker build -t {cont_name} -f {docker_file_name} . &> ../{app_version}{runtime_log}").format(cont_name=cont_name,
+        #                                                                                                         docker_file_name=docker_file_name,
+        #                                                                                                         app_version=app_version,
+        #                                                                                                         runtime_log=constants.RUNTIME_LOG)
+        build_cmd = ("docker build -t {cont_name} -f {docker_file_name} . ").format(cont_name=cont_name,
+                                                                                    docker_file_name=docker_file_name)
+
         fmlogging.debug("Build cmd:%s" % build_cmd)
 
         os.system(build_cmd)
-
-        self.docker_handler.remove_container_image(cont_name, "Deleting container image created to obtain logs")
 
         os.chdir(cwd)
 
