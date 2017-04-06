@@ -129,7 +129,7 @@ class LocalDeployer(object):
             fmlogging.error(e)
 
         app_url = ("{app_ip_addr}:{app_port}").format(app_ip_addr=app_ip_addr,
-                                                      app_port=self.app_port)
+                                                      app_port=app_port)
 
         fmlogging.debug("App URL: %s" % app_url)
         return app_url
