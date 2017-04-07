@@ -85,15 +85,17 @@ class DockerLib(object):
             fmlogging.debug("rmi command:%s" % rmi_cmd)
             os.system(rmi_cmd)
 
-    def build_container_image(self, cont_name, docker_file_name):
-        docker_build_cmd = ("docker build -t {cont_name} -f {docker_file_name} .").format(cont_name=cont_name,
-                                                                                          docker_file_name=docker_file_name)
+    def build_container_image(self, cont_name, docker_file_name, df_context=''):
+        docker_build_cmd = ("docker build -t {cont_name} -f {docker_file_name} {df_context}").format(cont_name=cont_name,
+                                                                                                     docker_file_name=docker_file_name,
+                                                                                                     df_context=df_context)
         fmlogging.debug("Docker build cmd:%s" % docker_build_cmd)
         os.system(docker_build_cmd)
 
-    def build_ct_image(self, cont_name, docker_file_name):
-        build_cmd = ("docker build -t {cont_name} -f {docker_file_name} .").format(cont_name=cont_name,
-                                                                                   docker_file_name=docker_file_name)
+    def build_ct_image(self, cont_name, docker_file_name, df_context=''):
+        build_cmd = ("docker build -t {cont_name} -f {docker_file_name} {df_context}").format(cont_name=cont_name,
+                                                                                              docker_file_name=docker_file_name,
+                                                                                              df_context=df_context)
         fmlogging.debug("Docker build cmd:%s" % build_cmd)
 
         try:

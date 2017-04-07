@@ -92,18 +92,20 @@ class AWSDeployer(object):
             time.sleep(1)
 
         # Copy out .pem file
-        app_dir = os.getcwd() + "/" + self.app_obj.app_name
+        app_dir = self.app_dir + "/" + self.app_name
+        fmlogging.debug("AWS - Done reading deploy logs. App dir:%s" % app_dir)
         env_name = utils.read_environment_name(app_dir)
         cont_id = cont_id.rstrip().lstrip()
-        cp_cmd = ("docker cp {cont_id}:/src/{env_name}.pem {app_name}/.").format(cont_id=cont_id,
-                                                                                 env_name=env_name,
-                                                                                 app_name=self.app_obj.app_name)
+        cp_cmd = ("docker cp {cont_id}:/src/{env_name}.pem {app_dir}/.").format(cont_id=cont_id,
+                                                                                env_name=env_name,
+                                                                                app_dir=app_dir)
         os.system(cp_cmd)
 
         if not cname:
             region = utils.get_aws_region()
             cname = ("http://{env_name}.{region}.elasticbeanstalk.com").format(env_name=env_name, region=region)
 
+        fmlogging.debug("AWS - CNAME:%s" % cname)
         return cname
         
     def _deploy_app_container(self, app_obj):
@@ -144,8 +146,10 @@ class AWSDeployer(object):
         app_version = info['app_version']
         app_dir = (constants.APP_STORE_PATH + "/{app_name}/{app_version}/{app_name}").format(app_name=app_name,
                                                                                              app_version=app_version)
-        cwd = os.getcwd()
-        os.chdir(app_dir)
+        app_version_dir = (constants.APP_STORE_PATH + "/{app_name}/{app_version}").format(app_name=app_name,
+                                                                                          app_version=app_version)
+        #cwd = os.getcwd()
+        #os.chdir(app_dir)
 
         cont_name = app_name + "-" + app_version + "-retrieve-logs"
         cmd = ("docker run {cont_name}").format(cont_name=cont_name)
@@ -158,8 +162,9 @@ class AWSDeployer(object):
 
         # Copy out the log file
         log_file = app_version + constants.RUNTIME_LOG
-        cp_cmd = ("docker cp {cont_id}:/src/{log_file} ../.").format(cont_id=cont_id,
-                                                                     log_file=log_file)
+        cp_cmd = ("docker cp {cont_id}:/src/{log_file} {app_version_dir}/.").format(cont_id=cont_id,
+                                                                                    log_file=log_file,
+                                                                                    app_version_dir=app_version_dir)
 
         os.system(cp_cmd)
 
@@ -176,7 +181,7 @@ class AWSDeployer(object):
         log_cont_name = ("{app_name}-retrieve-logs").format(app_name=cont_name)
         self.docker_handler.remove_container_image(log_cont_name, "Deleting container image created to obtain logs")
 
-        os.chdir(cwd)
+        #os.chdir(cwd)
 
     def deploy_for_delete(self, info):
         work_dir = ''
@@ -199,10 +204,10 @@ class AWSDeployer(object):
             if not work_dir:
                 work_dir = (constants.SERVICE_STORE_PATH + "/{service_name}/{service_version}/").format(service_name=service_name,
                                                                                                         service_version=service_version)
-        cwd = os.getcwd()
-        os.chdir(work_dir)
+        #cwd = os.getcwd()
+        #os.chdir(work_dir)
 
-        if os.path.exists("./Dockerfile.status"):
+        if os.path.exists(work_dir + "/Dockerfile.status"):
             cmd = ("docker run {cont_name}").format(cont_name=cont_name)
             done = False
             while not done:
@@ -217,12 +222,12 @@ class AWSDeployer(object):
             self.docker_handler.remove_container_image(cont_name, "done deleting database")
 
         # Deleting the security group by creating container image (and then deleting it)
-        if os.path.exists("./Dockerfile.secgroup"):
+        if os.path.exists(work_dir + "/Dockerfile.secgroup"):
             delete_sec_group_cont = artifact_name + "-secgroup"
-            self.docker_handler.build_container_image(delete_sec_group_cont, "Dockerfile.secgroup")
+            self.docker_handler.build_container_image(delete_sec_group_cont, work_dir + "/Dockerfile.secgroup", df_context=work_dir)
             self.docker_handler.remove_container_image(delete_sec_group_cont, "deleting security group")
         utils.delete(info)
-        os.chdir(cwd)
+        #os.chdir(cwd)
 
     def deploy(self, deploy_type, deploy_name):
         if deploy_type == 'service':

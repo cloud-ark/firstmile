@@ -10,7 +10,7 @@ class App(object):
     def __init__(self, app_data):
         self.app_data = app_data
         self.app_name = app_data['app_name']
-        self.app_location = app_data['app_location']
+        self.app_location = app_data['app_location'] # APP_STORE_PATH/<app_name>/<version>/
         
         self.service_app_varlist = {}
         self.mysql_app_vars = ["db_var", "host_var", "user_var", "password_var"]

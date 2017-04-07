@@ -255,7 +255,7 @@ class AWSGenerator(object):
 
         # Copy aws-creds to the app directory
         cp_cmd = ("cp -r {aws_creds_path} {app_deploy_dir}/.").format(aws_creds_path=AWS_CREDS_PATH,
-                                                                    app_deploy_dir=app_deploy_dir)
+                                                                      app_deploy_dir=app_deploy_dir)
         
         fmlogging.debug("Copying aws-creds directory..")
         fmlogging.debug(cp_cmd)
@@ -275,17 +275,17 @@ class AWSGenerator(object):
         fmlogging.debug("CNAME:%s" % cname)
 
         # Save environment name
-        cwd = os.getcwd()
-        os.chdir(app_deploy_dir)
-        fp = open("env-name", "w")
+        #cwd = os.getcwd()
+        #os.chdir(app_deploy_dir)
+        fp = open(app_deploy_dir + "/env-name", "w")
         fp.write(env_name)
         fp.flush()
         fp.close()
 
         # Read security_group_id, if defined
         sec_group = ''
-        if os.path.exists("sec-group"):
-            fps = open("sec-group","r")
+        if os.path.exists(app_deploy_dir + "/sec-group"):
+            fps = open(app_deploy_dir + "/sec-group","r")
             sec_group = fps.readline()
             sec_group = sec_group.rstrip().lstrip()
             entrypt_cmd = ("ENTRYPOINT [\"eb\", \"create\", \"{env_name}\", \"-c\", "
@@ -309,7 +309,7 @@ class AWSGenerator(object):
         create_keypair_cmd = ("RUN aws ec2 create-key-pair --key-name "
                               "{key_name} --query 'KeyMaterial' --output text > {key_file}.pem\n").format(key_name=key_name,
                                                                                                           key_file=key_name)
-        os.chdir(cwd)
+        #os.chdir(cwd)
         # Generate Dockerfile
         df = self.docker_handler.get_dockerfile_snippet("aws")
         df = df + ("COPY . /src \n"
@@ -341,12 +341,12 @@ class AWSGenerator(object):
         app_version = info['app_version']
         app_dir = (constants.APP_STORE_PATH + "/{app_name}/{app_version}/{app_name}").format(app_name=app_name,
                                                                                              app_version=app_version)
-        cwd = os.getcwd()
-        os.chdir(app_dir)
+        #cwd = os.getcwd()
+        #os.chdir(app_dir)
 
-        def _generate_retrieve_log_script():
-            if not os.path.exists(constants.RETRIEVE_LOG_PATH):
-                fp = open(constants.RETRIEVE_LOG_PATH, "w")
+        def _generate_retrieve_log_script(app_dir):
+            if not os.path.exists(app_dir + "/" + constants.RETRIEVE_LOG_PATH):
+                fp = open(app_dir + "/" + constants.RETRIEVE_LOG_PATH, "w")
                 file_content = ("#!/bin/bash \n "
                                 "cont_id=`sudo docker ps | awk '{print $1}' | tail -1` \n"
                                 "sudo docker cp $cont_id:/var/log/uwsgi/uwsgi.log . \n"
@@ -357,19 +357,19 @@ class AWSGenerator(object):
                 fp.flush()
                 fp.close()
 
-        def _generate_df_toget_ec2_instance_ip():
+        def _generate_df_toget_ec2_instance_ip(app_dir):
             # Generate Dockerfile
             df = self.docker_handler.get_dockerfile_snippet("aws")
             df = df + ("COPY . /src \n"
                        "WORKDIR /src \n"
                        "RUN cp -r aws-creds $HOME/.aws \ \n"
                             " && aws ec2 describe-instances")
-            fp = open("Dockerfile.get-instance-ip", "w")
+            fp = open(app_dir + "/Dockerfile.get-instance-ip", "w")
             fp.write(df)
             fp.flush()
             fp.close()
 
-        def _generate_partial_df_to_retrieve_logs(pem_file_name):
+        def _generate_partial_df_to_retrieve_logs(app_dir, pem_file_name):
             # Generate Dockerfile
             df = self.docker_handler.get_dockerfile_snippet("aws")
             df = df + ("COPY . /src \n"
@@ -379,20 +379,20 @@ class AWSGenerator(object):
                        " && cp /src/{pem_file_name}.pem ~/.ssh/. \ \n"
                        " && chmod 400 ~/.ssh/{pem_file_name}.pem \ \n"
                        ).format(pem_file_name=pem_file_name)
-            fp = open("Dockerfile.retrieve-logs", "w")
+            fp = open(app_dir + "/Dockerfile.retrieve-logs", "w")
             fp.write(df)
             fp.flush()
             fp.close()
 
-        _generate_retrieve_log_script()
-        _generate_df_toget_ec2_instance_ip()
+        _generate_retrieve_log_script(app_dir)
+        _generate_df_toget_ec2_instance_ip(app_dir)
 
-        app_dir = os.getcwd()
+        #app_dir = os.getcwd()
         pem_file_name = utils.read_environment_name(app_dir)
 
-        _generate_partial_df_to_retrieve_logs(pem_file_name)
+        _generate_partial_df_to_retrieve_logs(app_dir, pem_file_name)
 
-        os.chdir(cwd)
+        #os.chdir(cwd)
 
     def generate_for_delete(self, info):
         df = self.docker_handler.get_dockerfile_snippet("aws")

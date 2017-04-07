@@ -87,10 +87,11 @@ class MySQLServiceHandler(object):
         fp.write(df)
         fp.close()
 
-        cwd = os.getcwd()
-        os.chdir(self.deploy_dir)
+        #cwd = os.getcwd()
+        #os.chdir(self.deploy_dir)
+        df_loc = self.deploy_dir
         cont_name = self.instance_name + "-cidrblock"
-        err, output = self.docker_handler.build_ct_image(cont_name, "Dockerfile.get-cidrblock")
+        err, output = self.docker_handler.build_ct_image(cont_name, df_loc + "/Dockerfile.get-cidrblock", df_context=df_loc)
 
         cidrblock = ''
         for line in output.split("\n"):
@@ -104,7 +105,7 @@ class MySQLServiceHandler(object):
 
         self.docker_handler.remove_container_image(cont_name, "Done getting cidr block")
         fmlogging.debug("CIDR Block:%s" % cidrblock)
-        os.chdir(cwd)
+        #os.chdir(cwd)
         return cidrblock
 
     def _get_security_group_id(self):
@@ -120,10 +121,11 @@ class MySQLServiceHandler(object):
         fp.write(df)
         fp.close()
 
-        cwd = os.getcwd()
-        os.chdir(self.deploy_dir)
+        #cwd = os.getcwd()
+        #os.chdir(self.deploy_dir)
+        df_loc = self.deploy_dir
         cont_name = self.instance_name + "-security-group"
-        err, output = self.docker_handler.build_ct_image(cont_name, "Dockerfile.security-group")
+        err, output = self.docker_handler.build_ct_image(cont_name, df_loc + "/Dockerfile.security-group", df_context=df_loc)
         secgroup_id = ''
         for line in output.split("\n"):
             if line.find("GroupId") >= 0:
@@ -135,7 +137,7 @@ class MySQLServiceHandler(object):
         fp.write(secgroup_id)
         fp.flush()
         fp.close()
-        os.chdir(cwd)
+        #os.chdir(cwd)
         self.docker_handler.remove_container_image(cont_name, "Done getting security_group id")
         return secgroup_id
 
@@ -194,16 +196,18 @@ class MySQLServiceHandler(object):
 
     def _build_containers(self):
         fmlogging.debug("Building RDS instance provisioning containers")
-        cwd = os.getcwd()
-        os.chdir(self.deploy_dir)
-        
+        #cwd = os.getcwd()
+        #os.chdir(self.deploy_dir)
+        deploy_dir = self.deploy_dir
         cont_name = self.instance_name + "--" + self.instance_version + "--deploy-rds" 
-        self.docker_handler.build_container_image(cont_name, RDS_INSTANCE_DEPLOY_DFILE)
+        self.docker_handler.build_container_image(cont_name, deploy_dir + "/" + RDS_INSTANCE_DEPLOY_DFILE,
+                                                  df_context=deploy_dir)
         
         cont_name = self.instance_name + "--" + self.instance_version + "--check-rds" 
-        self.docker_handler.build_container_image(cont_name, RDS_INSTANCE_STAT_CHECK_DFILE)
+        self.docker_handler.build_container_image(cont_name, deploy_dir + "/" + RDS_INSTANCE_STAT_CHECK_DFILE,
+                                                  df_context=deploy_dir)
         
-        os.chdir(cwd)
+        #os.chdir(cwd)
 
     def _generate_docker_files(self):
         self._generate_rds_instance_create_df()

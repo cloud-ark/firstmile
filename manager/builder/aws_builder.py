@@ -39,18 +39,19 @@ class AWSBuilder(object):
         self.docker_handler = docker_lib.DockerLib()
 
     def _build_app_container(self, app_obj):
-        cwd = os.getcwd()
+        #cwd = os.getcwd()
         app_dir = self.task_def.app_data['app_location']
         app_name = self.task_def.app_data['app_name']
-        os.chdir(app_dir + "/" + app_name)
+        docker_file_loc = app_dir + "/" + app_name
+        #os.chdir(app_dir + "/" + app_name)
 
         cont_name = app_obj.get_cont_name()
         fmlogging.debug("Container name that will be used in building:%s" % cont_name)
 
         self.docker_handler.build_container_image(cont_name,
-                                                  "Dockerfile.deploy")
+                                                  docker_file_loc + "/Dockerfile.deploy", df_context=docker_file_loc)
 
-        os.chdir(cwd)
+        #os.chdir(cwd)
 
     def build_for_logs(self, info):
         fmlogging.debug("AWS builder called for getting app logs of app:%s" % info['app_name'])
@@ -59,13 +60,14 @@ class AWSBuilder(object):
         app_version = info['app_version']
         app_dir = (constants.APP_STORE_PATH + "/{app_name}/{app_version}/{app_name}").format(app_name=app_name,
                                                                                              app_version=app_version)
-        cwd = os.getcwd()
-        os.chdir(app_dir)
+        #cwd = os.getcwd()
+        #os.chdir(app_dir)
         output = ''
 
         try:
             cont_name = app_name + "-" + app_version
-            cmd = ("docker build -t {app_name}-getec2-ip -f Dockerfile.get-instance-ip .").format(app_name=cont_name)
+            cmd = ("docker build -t {app_name}-getec2-ip -f {app_dir}/Dockerfile.get-instance-ip {app_dir}").format(app_name=cont_name,
+                                                                                                                    app_dir=app_dir)
             output = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                                       stderr=subprocess.PIPE, shell=True).communicate()[0]
         except Exception as e:
@@ -96,7 +98,7 @@ class AWSBuilder(object):
 
         # Plug the public_ip in Dockerfile.retrieve-logs
         pem_file = env_name + ".pem"
-        fp = open("Dockerfile.retrieve-logs", "a")
+        fp = open(app_dir + "/Dockerfile.retrieve-logs", "a")
         ssh_cmd = (" && ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no "
                    "-i ~/.ssh/{pem_file} ec2-user@{public_ip} 'bash -s' < {ret_log_sh} \ \n "
                    ).format(pem_file=pem_file, public_ip=public_ip_of_ec2_instance, ret_log_sh=constants.RETRIEVE_LOG_PATH)
@@ -112,10 +114,11 @@ class AWSBuilder(object):
         fp.close()
 
         log_cont_name = ("{app_name}-retrieve-logs").format(app_name=cont_name)
-        cmd = ("docker build -t {log_cont_name} -f Dockerfile.retrieve-logs .").format(log_cont_name=log_cont_name)
+        cmd = ("docker build -t {log_cont_name} -f {app_dir}/Dockerfile.retrieve-logs {app_dir}").format(log_cont_name=log_cont_name,
+                                                                                                         app_dir=app_dir)
         os.system(cmd)
 
-        os.chdir(cwd)
+        #os.chdir(cwd)
 
     def build_for_delete(self, info):
         cont_name = ''
@@ -139,14 +142,14 @@ class AWSBuilder(object):
                                                                                                         service_version=service_version)
 
 
-        cwd = os.getcwd()
-        os.chdir(work_dir)
-        self.docker_handler.build_container_image(cont_name + "-delete", "Dockerfile.delete")
+        #cwd = os.getcwd()
+        #os.chdir(work_dir)
+        self.docker_handler.build_container_image(cont_name + "-delete", work_dir + "/Dockerfile.delete", df_context=work_dir)
 
-        if os.path.exists("./Dockerfile.status"):
-            self.docker_handler.build_container_image(cont_name + "-status", "Dockerfile.status")
+        if os.path.exists(work_dir + "/Dockerfile.status"):
+            self.docker_handler.build_container_image(cont_name + "-status", work_dir + "/Dockerfile.status", df_context=work_dir)
 
-        os.chdir(cwd)
+        #os.chdir(cwd)
         self.docker_handler.remove_container_image(cont_name + "-delete", "done deleting the app")
 
     def build(self, build_type, build_name):
