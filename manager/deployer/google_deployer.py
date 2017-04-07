@@ -145,13 +145,18 @@ class GoogleDeployer(object):
         app_version = info['app_version']
         app_dir = (constants.APP_STORE_PATH + "/{app_name}/{app_version}/{app_name}").format(app_name=app_name,
                                                                                              app_version=app_version)
-        cwd = os.getcwd()
-        os.chdir(app_dir)
+
+        app_version_dir = (constants.APP_STORE_PATH + "/{app_name}/{app_version}").format(app_name=app_name,
+                                                                                          app_version=app_version)
+
+        #cwd = os.getcwd()
+        #os.chdir(app_dir)
 
         cont_name = app_name + "-get-logs"
 
-        runtime_log_file = ("../{app_version}{runtime_log}").format(app_version=app_version,
-                                                                    runtime_log=constants.RUNTIME_LOG)
+        runtime_log_file = ("{app_version_dir}/{app_version}{runtime_log}").format(app_version_dir=app_version_dir,
+                                                                                   app_version=app_version,
+                                                                                   runtime_log=constants.RUNTIME_LOG)
         fp = open(runtime_log_file, "w")
 
         docker_run_cmd = ("docker run {cont_name}").format(cont_name=cont_name)
@@ -164,7 +169,7 @@ class GoogleDeployer(object):
 
         self.docker_handler.remove_container_image(cont_name, "Deleting container image created to obtain logs")
 
-        os.chdir(cwd)
+        #os.chdir(cwd)
 
 
     def deploy_for_delete(self, info):

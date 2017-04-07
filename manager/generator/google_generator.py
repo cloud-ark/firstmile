@@ -104,12 +104,12 @@ class GoogleGenerator(object):
 
     def _generate_lib_dir(self, app_deploy_dir):
         if os.path.exists(app_deploy_dir + "/requirements.txt"):
-            cwd = os.getcwd()
-            os.chdir(app_deploy_dir)
-            generate_lib_cmd = ("pip install -t lib -r requirements.txt")
+            #cwd = os.getcwd()
+            #os.chdir(app_deploy_dir)
+            generate_lib_cmd = ("pip install -t {app_deploy_dir}/lib -r {app_deploy_dir}/requirements.txt").format(app_deploy_dir=app_deploy_dir)
             fmlogging.debug("Generating Python application libs:%s" % generate_lib_cmd)
             os.system(generate_lib_cmd)
-            os.chdir(cwd)
+            #os.chdir(cwd)
 
     def _generate_appengine_config(self, app_deploy_dir):
         if os.path.exists(app_deploy_dir + "/requirements.txt"):

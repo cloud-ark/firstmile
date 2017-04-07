@@ -266,8 +266,8 @@ class MySQLServiceHandler(object):
         perm = stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
         os.chmod(deploy_dir + "/create-db.sh", perm)
 
-        cwd = os.getcwd()
-        os.chdir(deploy_dir)
+        #cwd = os.getcwd()
+        #os.chdir(deploy_dir)
 
         # Create Dockerfile to execute the script that creates the database
         df = ("FROM lmecld/clis:mysql-client-5.5 \n"
@@ -278,7 +278,8 @@ class MySQLServiceHandler(object):
         fp.write(df)
         fp.close()
 
-        docker_build_cmd = ("docker build -t {create_db_cont_name} -f Dockerfile.create-db .").format(create_db_cont_name=self.create_db_cont_name)
+        docker_build_cmd = ("docker build -t {create_db_cont_name} -f {deploy_dir}/Dockerfile.create-db {deploy_dir}").format(create_db_cont_name=self.create_db_cont_name,
+                                                                                                                              deploy_dir=deploy_dir)
         fmlogging.debug("Docker build cmd for database create cont:%s" % docker_build_cmd)
         os.system(docker_build_cmd)
 
@@ -286,7 +287,7 @@ class MySQLServiceHandler(object):
         fmlogging.debug("Docker run cmd for database create cont:%s" % docker_run_cmd)
         os.system(docker_run_cmd)
 
-        os.chdir(cwd)
+        #os.chdir(cwd)
 
     def _parse_access_token(self):
         fmlogging.debug("Parsing Google access token")
@@ -294,8 +295,9 @@ class MySQLServiceHandler(object):
         deploy_dir = ("{instance_dir}/{instance_name}").format(instance_dir=self.instance_prov_workdir,
                                                                instance_name=self.instance_name)
         # Run the container
-        cwd = os.getcwd()
-        os.chdir(deploy_dir)
+        #cwd = os.getcwd()
+        #os.chdir(deploy_dir)
+
         docker_run_cmd = ("docker run -i -t -d {google_access_token_cont}").format(google_access_token_cont=self.access_token_cont_name)
         fmlogging.debug(docker_run_cmd)
 
@@ -316,7 +318,7 @@ class MySQLServiceHandler(object):
         self.docker_handler.remove_container(self.access_token_cont_name, "access token container no longer needed")
         self.docker_handler.remove_container_image(self.access_token_cont_name, "access token container no longer needed")
 
-        os.chdir(cwd)
+        #os.chdir(cwd)
         return access_token
 
     def _generate_docker_file_to_obtain_access_token(self):
@@ -345,14 +347,15 @@ class MySQLServiceHandler(object):
         fmlogging.debug("Building service container")
         deploy_dir = ("{instance_dir}/{instance_name}").format(instance_dir=self.instance_prov_workdir,
                                                                instance_name=self.instance_name)
-        cwd = os.getcwd()
-        os.chdir(deploy_dir)
-        cmd = ("docker build -t {google_access_token_cont} -f Dockerfile.access_token . ").format(google_access_token_cont=self.access_token_cont_name)
+        #cwd = os.getcwd()
+        #os.chdir(deploy_dir)
+        cmd = ("docker build -t {google_access_token_cont} -f {deploy_dir}/Dockerfile.access_token {deploy_dir} ").format(google_access_token_cont=self.access_token_cont_name,
+                                                                                                                          deploy_dir=deploy_dir)
         try:
             os.system(cmd)
         except Exception as e:
             print(e)
-        os.chdir(cwd)
+        #os.chdir(cwd)
 
     def _save_instance_information(self, instance_ip):
 
