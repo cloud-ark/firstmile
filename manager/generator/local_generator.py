@@ -5,7 +5,6 @@
  Written by Devdatta Kulkarni <devdattakulkarni@gmail.com>, October 26, 2016
 '''
 
-import logging
 from common import service
 from common import app
 from common import utils
