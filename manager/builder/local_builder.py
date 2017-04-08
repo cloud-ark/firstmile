@@ -57,10 +57,12 @@ class LocalBuilder(object):
         fmlogging.debug(parsed_lines)
 
     def _build_app_container(self, app_obj):
-        cwd = os.getcwd()
+        #cwd = os.getcwd()
         app_dir = self.task_def.app_data['app_location']
         app_name = self.task_def.app_data['app_name']
-        os.chdir(app_dir + "/" + app_name)
+        #os.chdir(app_dir + "/" + app_name)
+
+        df_dir = app_dir + "/" + app_name
 
         cont_name = app_obj.get_cont_name()
         fmlogging.debug("Container name that will be used in building:%s" % cont_name)
@@ -68,9 +70,9 @@ class LocalBuilder(object):
         # Following is not working, so continuing to use 'docker build'
         # self._do_docker_build(cont_name)
 
-        self.docker_handler.build_container_image(cont_name, "Dockerfile")
+        self.docker_handler.build_container_image(cont_name, df_dir + "/Dockerfile", df_context=df_dir)
 
-        os.chdir(cwd)
+        #os.chdir(cwd)
 
     def build_for_delete(self, info):
         if info['app_name']:
@@ -85,19 +87,20 @@ class LocalBuilder(object):
         app_version = info['app_version']
         app_dir = (constants.APP_STORE_PATH + "/{app_name}/{app_version}/").format(app_name=app_name,
                                                                                    app_version=app_version)
-        cwd = os.getcwd()
-        os.chdir(app_dir)
+        #cwd = os.getcwd()
+        #os.chdir(app_dir)
 
-        if os.path.exists("./container_id.txt"):
-            fp = open("container_id.txt")
+        if os.path.exists(app_dir + "/container_id.txt"):
+            fp = open(app_dir + "/container_id.txt")
             all_lines = fp.readlines()
             # Should be only one line
             cont_id = all_lines[0].rstrip().lstrip()
-            logs_cmd = ("docker logs {cont_id} >& {app_version}{runtime_log}").format(cont_id=cont_id,
-                                                                                         app_version=app_version,
-                                                                                         runtime_log=constants.RUNTIME_LOG)
+            logs_cmd = ("docker logs {cont_id} >& {app_dir}/{app_version}{runtime_log}").format(cont_id=cont_id,
+                                                                                                app_dir=app_dir,
+                                                                                                app_version=app_version,
+                                                                                                runtime_log=constants.RUNTIME_LOG)
             os.system(logs_cmd)
-            os.chdir(cwd)
+            #os.chdir(cwd)
 
     def build(self, build_type, build_name):
         if build_type == 'service':

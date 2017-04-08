@@ -109,6 +109,7 @@ class LocalDeployer(object):
 
     def _deploy_app_container(self, app_obj):
         app_cont_name = app_obj.get_cont_name()
+        app_dir = app_obj.app_location
 
         run_cmd = ("docker run -i -d --publish-all=true {cont_name}").format(cont_name=app_cont_name)
 
@@ -117,7 +118,7 @@ class LocalDeployer(object):
                                        stderr=subprocess.PIPE, shell=True).communicate()[0]
 
             # Save cont_id as it is needed for obtaining logs
-            fp = open("container_id.txt", "w")
+            fp = open(app_dir + "/container_id.txt", "w")
             fp.write(cont_id)
             fp.flush()
             fp.close()
