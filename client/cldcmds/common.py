@@ -478,7 +478,14 @@ def artifact_logs_show(result, pretty_table):
     dep_log_loc = app_status['dep_log_location']
     run_log_loc = app_status['run_log_location']
 
-    log_loc = dep_log_loc + "\n" + run_log_loc
+    log_loc = ''
+    if os.path.exists(dep_log_loc):
+        log_loc = dep_log_loc + "\n"
+
+    if os.path.exists(run_log_loc):
+        log_loc = log_loc + run_log_loc
+
+    #log_loc = dep_log_loc + "\n" + run_log_loc
 
     row = [name, version, cloud, log_loc]
     pretty_table.add_row(row)
