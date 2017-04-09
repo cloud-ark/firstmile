@@ -25,6 +25,6 @@ if [ "$host_platform" = "Darwin" ]; then
 elif [[ "$host_platform" =~ "Ubuntu" ]]; then
    echo "Host OS: Ubuntu"
    source lib/install-ubuntu.sh
-else:
+else
    echo "Unknown platform"
 fi
