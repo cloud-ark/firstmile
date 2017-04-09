@@ -8,6 +8,7 @@
 import json
 import os
 import re
+import subprocess
 
 from io import BytesIO
 from docker import Client
@@ -87,11 +88,24 @@ class LocalBuilder(object):
             all_lines = fp.readlines()
             # Should be only one line
             cont_id = all_lines[0].rstrip().lstrip()
-            logs_cmd = ("docker logs {cont_id} >& {app_dir}/{app_version}{runtime_log}").format(cont_id=cont_id,
-                                                                                                app_dir=app_dir,
-                                                                                                app_version=app_version,
-                                                                                                runtime_log=constants.RUNTIME_LOG)
-            os.system(logs_cmd)
+            logs_cmd = ("docker logs {cont_id}").format(cont_id=cont_id)
+
+            fmlogging.debug("Logs cmd:%s" % logs_cmd)
+            logs_file = ("{app_dir}{app_version}{runtime_log}").format(app_dir=app_dir,
+                                                                       app_version=app_version,
+                                                                       runtime_log=constants.RUNTIME_LOG)
+            fp1 = open(logs_file, "w")
+
+            ppe = subprocess.Popen(logs_cmd, stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE, shell=True).communicate()
+            out = ppe[0]
+            err = ppe[1]
+            fp1.write(out)
+            fp1.write("\n----\n")
+            fp1.write(err)
+            fp1.flush()
+            fp1.close()
+            fp.close()
 
     def build(self, build_type, build_name):
         if build_type == 'service':
