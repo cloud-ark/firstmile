@@ -437,6 +437,7 @@ class Deployments(Resource):
         if setup_file_content:
             setup_file = open(versioned_service_path + "/setup.sh", "w")
             setup_file.write(setup_file_content.encode("ISO-8859-1"))
+            setup_file.flush()
             setup_file.close()
         return versioned_service_path, service_version
 
@@ -457,6 +458,8 @@ class Deployments(Resource):
                                                                       app_tar_name=app_tar_name)
         app_file = open(app_tar_file, "w")
         app_file.write(content.encode("ISO-8859-1"))
+        app_file.flush()
+        app_file.close()
 
         # expand the directory
         self._untar_the_app(app_tar_file, versioned_app_path)
