@@ -131,6 +131,8 @@ class Deployment(object):
         response = requests.put(app_url)
         if response.status_code == 404:
             print("Service with deploy-id %s not found." % dep_id)
+        if response.status_code == 405:
+            print("Request to secure service with deploy-id %s not supported as it is a local service." % dep_id)
         if response.status_code == 202:
             print("Request to secure service with deploy-id %s accepted" % dep_id)
         return response

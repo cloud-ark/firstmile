@@ -162,16 +162,19 @@ class ServiceDeployID(Resource):
         cloud_data = {}
         if info:
             cloud_data['type'] = info['cloud']
-            task_def = task_definition.TaskDefinition('', cloud_data, '')
+            if cloud_data['type'] != 'local-docker':
+                task_def = task_definition.TaskDefinition('', cloud_data, '')
 
-            # update service status to SECURING
-            utils.update_service_status(info, constants.SECURING)
+                # update service status to SECURING
+                utils.update_service_status(info, constants.SECURING)
 
-            # dispatch the handler thread
-            delegatethread = mgr.Manager(task_def=task_def, action="secure", info=info)
-            thread.start_new_thread(start_thread, (delegatethread, ))
+                # dispatch the handler thread
+                delegatethread = mgr.Manager(task_def=task_def, action="secure", info=info)
+                thread.start_new_thread(start_thread, (delegatethread, ))
 
-            response.status_code = 202
+                response.status_code = 202
+            else:
+                response.status_code = 405
         else:
             response.status_code = 404
         return response
