@@ -92,6 +92,13 @@ class MySQLServiceHandler(object):
 
         self._wait_for_db_instance_to_get_ready(access_token, project_id, db_server)
 
+    def _store_settings_version(self, settings_version):
+        # Save settings_version
+        fp = open(self.instance_prov_workdir + "/settings_version.txt", "w")
+        fp.write(settings_version)
+        fp.flush()
+        fp.close()
+
     def _deploy_instance(self, access_token, project_id, db_server):
         cmd = ('curl --header "Authorization: Bearer {access_token}" --header '
                '"Content-Type: application/json" --data \'{{"name":"{db_server}",'
@@ -107,6 +114,14 @@ class MySQLServiceHandler(object):
             print(e)
 
         settings_version = self._wait_for_db_instance_to_get_ready(access_token, project_id, db_server)
+        self._store_settings_version(settings_version)
+        return settings_version
+
+    def _get_settings_version(self, instance_name, instance_version):
+        service_dir_path = constants.SERVICE_STORE_PATH + "/" + instance_name + "/" + instance_version
+        fp = open(service_dir_path + "/settings_version.txt", "r")
+        settings_version = fp.read()
+        settings_version = settings_version.rstrip().lstrip()
         return settings_version
 
     def _create_user(self, access_token, project_id, db_server):
@@ -323,8 +338,9 @@ class MySQLServiceHandler(object):
 
     def _generate_docker_file_to_obtain_access_token(self):
         fmlogging.debug("Generating Docker file that will give new access token.")
-        utils.update_status(self.service_obj.get_status_file_location(),
-                            "GENERATING Google ARTIFACTS for MySQL service")
+        if self.service_obj:
+            utils.update_status(self.service_obj.get_status_file_location(),
+                                "GENERATING Google ARTIFACTS for MySQL service")
 
         deploy_dir = ("{instance_dir}/{instance_name}").format(instance_dir=self.instance_prov_workdir,
                                                                instance_name=self.instance_name)
@@ -343,7 +359,7 @@ class MySQLServiceHandler(object):
         fp.write(df)
         fp.close()
 
-    def _build_service_container(self):
+    def _build_access_token_container(self):
         fmlogging.debug("Building service container")
         deploy_dir = ("{instance_dir}/{instance_name}").format(instance_dir=self.instance_prov_workdir,
                                                                instance_name=self.instance_name)
@@ -383,8 +399,26 @@ class MySQLServiceHandler(object):
         service_ip, connection_name = self._get_connection_endpoints_of_db(access_token, project_id, db_server)
         self._create_database(service_ip)
         self._save_instance_information(service_ip)
+        if self.task_def.service_data[0]['lock'] == 'true':
+            self._restrict_db_access(access_token, project_id, db_server, settings_version)
+            return connection_name
+        else:
+            return service_ip
+
+    def make_secure(self, project_id, info):
+        service_name = info['service_name']
+        service_version = info['service_version']
+        fmlogging.debug("Making instance %s-%s secure" % (service_name, service_version))
+        db_server = service_name + "-" + service_version + "-db-instance"
+        self.instance_name = service_name
+        self.instance_prov_workdir = constants.SERVICE_STORE_PATH + "/" + service_name + "/" + service_version
+        self.access_token_cont_name = "google-access-token-cont-" + self.instance_name + "-" + service_version
+        self._build_access_token_container()
+        access_token = self._parse_access_token()
+        settings_version = self._get_settings_version(service_name, service_version)
         self._restrict_db_access(access_token, project_id, db_server, settings_version)
-        return connection_name
+        settings_version = self._wait_for_db_instance_to_get_ready(access_token, project_id, db_server)
+        self._store_settings_version(settings_version)
 
     def generate_instance_artifacts(self):
         self._generate_docker_file_to_obtain_access_token()
@@ -399,7 +433,7 @@ class MySQLServiceHandler(object):
         return delete_cmd
 
     def build_instance_artifacts(self):
-        self._build_service_container()
+        self._build_access_token_container()
 
     def cleanup(self):
         # Stop and remove container generated for creating the database

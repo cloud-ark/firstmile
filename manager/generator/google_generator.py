@@ -280,6 +280,9 @@ class GoogleGenerator(object):
         docker_file.flush()
         docker_file.close()
 
+    def generate_to_secure(self, info):
+        fmlogging.debug("Google generator called for securing service:%s" % info['service_name'])
+
     def _sanity_check(self, app_obj):
         gcloud_path = GOOGLE_CREDS_PATH + "/gcloud"
         app_details_path = GOOGLE_CREDS_PATH + "/app_details.txt"

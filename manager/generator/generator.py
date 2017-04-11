@@ -46,3 +46,13 @@ class Generator(object):
             gg.GoogleGenerator(self.task_def).generate_for_logs(info)
         else:
             print("Cloud %s not supported" % self.cloud)
+
+    def generate_to_secure(self, info):
+        if self.cloud == constants.LOCAL_DOCKER:
+            lg.LocalGenerator(self.task_def).generate_to_secure(info)
+        elif self.cloud == constants.AWS:
+            ag.AWSGenerator(self.task_def).generate_to_secure(info)
+        elif self.cloud == constants.GOOGLE:
+            gg.GoogleGenerator(self.task_def).generate_to_secure(info)
+        else:
+            print("Cloud %s not supported" % self.cloud)

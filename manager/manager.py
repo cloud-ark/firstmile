@@ -23,12 +23,12 @@ fmlogging = fm_logger.Logging()
 
 class Manager(threading.Thread):
 
-    def __init__(self, name='', task_def='', delete_action=False, delete_info=''):
+    def __init__(self, name='', task_def='', action='', info=''):
         threading.Thread.__init__(self)
         self.name = name
         self.task_def = task_def
-        self.delete_action = delete_action
-        self.delete_info = delete_info
+        self.action = action
+        self.info = info
         
     def error_update(self):
         if self.task_def.app_data:
@@ -42,11 +42,16 @@ class Manager(threading.Thread):
     def run(self):
         fmlogging.debug("Starting build/deploy for %s" % self.name)
 
-        if self.delete_action:
+        if self.action == "delete":
             fmlogging.debug("Manager -- delete")
-            gen.Generator(self.task_def).generate_for_delete(self.delete_info)
-            bld.Builder(self.task_def).build_for_delete(self.delete_info)
-            dep.Deployer(self.task_def).deploy_for_delete(self.delete_info)
+            gen.Generator(self.task_def).generate_for_delete(self.info)
+            bld.Builder(self.task_def).build_for_delete(self.info)
+            dep.Deployer(self.task_def).deploy_for_delete(self.info)
+        elif self.action == "secure":
+            fmlogging.debug("Manager -- secure")
+            gen.Generator(self.task_def).generate_to_secure(self.info)
+            bld.Builder(self.task_def).build_to_secure(self.info)
+            dep.Deployer(self.task_def).deploy_to_secure(self.info)
         else:
             if self.task_def.app_data:
                 app_obj = app.App(self.task_def.app_data)

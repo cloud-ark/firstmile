@@ -266,6 +266,17 @@ def remove_artifact(dep_id, artifact_id_path, artifact_id_file, artifact_name, a
     finally:
         lock.release()
 
+def update_service_status(info, status):
+    service_name = info['service_name']
+    service_version = info['service_version']
+    app_status_file = (constants.SERVICE_STORE_PATH + "/{service_name}/{service_version}/service-status.txt").format(service_name=service_name,
+                                                                                                                     service_version=service_version)
+    fp = open(app_status_file, "a")
+    status_line = (", status::{status}").format(status=status)
+    fp.write(status_line)
+    fp.flush()
+    fp.close()
+
 def get_service_info(id_file_path, id_file_name, dep_id):
     info = {}
 

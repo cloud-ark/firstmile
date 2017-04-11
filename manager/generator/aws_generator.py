@@ -394,6 +394,9 @@ class AWSGenerator(object):
 
         #os.chdir(cwd)
 
+    def generate_to_secure(self, info):
+        fmlogging.debug("AWS generator called for securing service:%s" % info['service_name'])
+
     def generate_for_delete(self, info):
         df = self.docker_handler.get_dockerfile_snippet("aws")
         service_terminate_cmd = ''

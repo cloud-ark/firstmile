@@ -182,6 +182,9 @@ class LocalDeployer(object):
                 self.docker_handler.remove_container_image(constants.MYSQL_IMAGE_NAME,
                                                            "Removing app cont img " + constants.MYSQL_IMAGE_NAME)
 
+    def deploy_to_secure(self, info):
+        fmlogging.debug("Local deployer called for securing service:%s" % info['service_name'])
+
     def deploy(self, deploy_type, deploy_name):
         if deploy_type == 'service':
             fmlogging.debug("Local deployer called for service %s" % deploy_name)

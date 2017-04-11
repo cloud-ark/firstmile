@@ -126,6 +126,16 @@ class Deployment(object):
             print("Request to delete service with deploy-id %s accepted" % dep_id)
         return response
 
+    def service_secure(self, dep_id):
+        app_url = "http://localhost:5002/servicesdep/" + dep_id
+        response = requests.put(app_url)
+        if response.status_code == 404:
+            print("Service with deploy-id %s not found." % dep_id)
+        if response.status_code == 202:
+            print("Request to secure service with deploy-id %s accepted" % dep_id)
+        return response
+
+
     def delete(self, dep_id):
         app_url = "http://localhost:5002/deployments/" + dep_id
         response = requests.delete(app_url)

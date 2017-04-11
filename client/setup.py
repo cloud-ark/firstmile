@@ -66,6 +66,7 @@ setup(
             'app logs = cldcmds.app_logs:AppLogs',
             'service provision = cldcmds.service:ServiceDeploy',
             'service delete = cldcmds.service_delete:ServiceDelete',
+            'service secure = cldcmds.service_secure:ServiceSecure',
             'service show = cldcmds.service:ServiceShow',
             'service list = cldcmds.service_list:ServiceList',
             'cloud reset = cldcmds.cloud_reset:CloudReset',

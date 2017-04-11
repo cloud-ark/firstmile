@@ -107,6 +107,9 @@ class LocalBuilder(object):
             fp1.close()
             fp.close()
 
+    def build_to_secure(self, info):
+        fmlogging.debug("Local builder called for securing service:%s" % info['service_name'])
+
     def build(self, build_type, build_name):
         if build_type == 'service':
             fmlogging.debug("Local builder called for service %s" % build_name)

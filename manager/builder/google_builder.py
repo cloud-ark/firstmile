@@ -164,7 +164,8 @@ class GoogleBuilder(object):
 
         os.system(build_cmd)
 
-        #os.chdir(cwd)
+    def build_to_secure(self, info):
+        fmlogging.debug("Google builder called for securing service:%s" % info['service_name'])
 
     def build(self, build_type, build_name):
         if build_type == 'service':

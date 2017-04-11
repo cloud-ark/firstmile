@@ -152,6 +152,9 @@ class AWSBuilder(object):
         #os.chdir(cwd)
         self.docker_handler.remove_container_image(cont_name + "-delete", "done deleting the app")
 
+    def build_to_secure(self, info):
+        fmlogging.debug("AWS builder called for securing service:%s" % info['service_name'])
+
     def build(self, build_type, build_name):
         if build_type == 'service':
             fmlogging.debug("AWS builder called for service")

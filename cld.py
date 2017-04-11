@@ -151,16 +151,30 @@ class Service(Resource):
 
 class ServiceDeployID(Resource):
 
-    def _update_service_status(self, info):
-        service_name = info['service_name']
-        service_version = info['service_version']
-        app_status_file = (SERVICE_STORE_PATH + "/{service_name}/{service_version}/service-status.txt").format(service_name=service_name,
-                                                                                                               service_version=service_version)
-        fp = open(app_status_file, "a")
-        status_line = (", status::{status}").format(status=constants.DELETING)
-        fp.write(status_line)
-        fp.flush()
-        fp.close()
+    def put(self, dep_id):
+        fmlogging.debug("Executing PUT to secure service with deploy id:%s" % dep_id)
+
+        info = utils.get_service_info(SERVICE_STORE_PATH, "service_ids.txt", dep_id)
+
+        resp_data = {}
+        response = jsonify(**resp_data)
+
+        cloud_data = {}
+        if info:
+            cloud_data['type'] = info['cloud']
+            task_def = task_definition.TaskDefinition('', cloud_data, '')
+
+            # update service status to SECURING
+            utils.update_service_status(info, constants.SECURING)
+
+            # dispatch the handler thread
+            delegatethread = mgr.Manager(task_def=task_def, action="secure", info=info)
+            thread.start_new_thread(start_thread, (delegatethread, ))
+
+            response.status_code = 202
+        else:
+            response.status_code = 404
+        return response
 
     def get(self, dep_id):
         fmlogging.debug("Executing GET for deploy id:%s" % dep_id)
@@ -203,10 +217,10 @@ class ServiceDeployID(Resource):
             task_def = task_definition.TaskDefinition('', cloud_data, '')
 
             # update service status to DELETING
-            self._update_service_status(info)
+            utils.update_service_status(info, constants.DELETING)
 
             # dispatch the handler thread
-            delegatethread = mgr.Manager(task_def=task_def, delete_action=True, delete_info=info)
+            delegatethread = mgr.Manager(task_def=task_def, action="delete", info=info)
             thread.start_new_thread(start_thread, (delegatethread, ))
 
             response.status_code = 202
@@ -330,7 +344,7 @@ class Deployment(Resource):
             self._update_app_status(info)
 
             # dispatch the handler thread
-            delegatethread = mgr.Manager(task_def=task_def, delete_action=True, delete_info=info)
+            delegatethread = mgr.Manager(task_def=task_def, action="delete", info=info)
             thread.start_new_thread(start_thread, (delegatethread, ))
 
             response.status_code = 202
@@ -493,6 +507,7 @@ class Deployments(Resource):
                 cloud_data = args['cloud']
                 cloud = cloud_data['type']
                 service_data = args['service']
+                service_data[0]['lock'] = "false"
 
                 # Currently supporting single service
                 service_obj = service.Service(service_data[0])
@@ -513,6 +528,7 @@ class Deployments(Resource):
                 app_data = args['app']
                 cloud_data = args['cloud']
                 service_data = args['service']
+                service_data[0]['lock'] = "true"
 
                 task_name = app_name = app_data['app_name']
                 app_tar_name = app_data['app_tar_name']

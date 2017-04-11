@@ -183,6 +183,9 @@ class AWSDeployer(object):
 
         #os.chdir(cwd)
 
+    def deploy_to_secure(self, info):
+        fmlogging.debug("AWS deployer called for securing service:%s" % info['service_name'])
+
     def deploy_for_delete(self, info):
         work_dir = ''
         cont_name = ''

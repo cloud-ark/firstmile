@@ -4,7 +4,7 @@
  Proprietary and confidential
  Written by Devdatta Kulkarni <devdattakulkarni@gmail.com>, December 13, 2016
 '''
-
+import ast
 import logging
 import logging.handlers as lh
 import os
@@ -170,7 +170,29 @@ class GoogleDeployer(object):
         self.docker_handler.remove_container_image(cont_name, "Deleting container image created to obtain logs")
 
         #os.chdir(cwd)
+    def deploy_to_secure(self, info):
+        fmlogging.debug("Google deployer called for securing service:%s" % info['service_name'])
 
+        work_dir = ''
+
+        cloud_details = ast.literal_eval(info['cloud_details'])
+        user_email = cloud_details['user_email']
+        project_id = cloud_details['project_id']
+
+        if info['service_name']:
+            service_name = info['service_name']
+            service_version = info['service_version']
+            if not work_dir:
+                work_dir = (constants.SERVICE_STORE_PATH + "/{service_name}/{service_version}/{service_name}").format(service_name=service_name,
+                                                                                                                      service_version=service_version)
+            if service_name:
+                parts = service_name.split("-")
+                if parts[0] == 'mysql':
+                    mysql_handler = gh.MySQLServiceHandler(self.task_def)
+                    mysql_handler.make_secure(project_id, info)
+
+        # update service status to SECURING
+        utils.update_service_status(info, constants.SECURING_COMPLETE)
 
     def deploy_for_delete(self, info):
         if info['app_name']:
