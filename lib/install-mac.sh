@@ -8,6 +8,15 @@ if (( $EUID == 0 )); then
    exit
 fi
 
+# Check if Docker is installed
+docker_version=`docker --version`
+
+if [[ "$docker_version" =~ "command not found" ]]; then
+   echo "Looks like Docker is not installed. Please install Docker."
+   echo "Refer: https://docs.docker.com/docker-for-mac/"
+   exit
+fi
+
 # define installation log file
 rm -rf install.log
 touch install.log
