@@ -581,4 +581,13 @@ def get_aws_region():
 def generate_aws_password():
     #  Can be any printable ASCII character except "/", """, or "@"
     return generate_password()
+
+def check_if_available(line):
+    instance_available = ''
+    if line.find("DBInstanceStatus") >= 0:
+        parts = line.split(":")
+        status = parts[1].rstrip().lstrip().replace("\"", "").replace(",", "")
+        if status == 'available':
+            instance_available = True
+    return instance_available
 ## AWS-specific methods

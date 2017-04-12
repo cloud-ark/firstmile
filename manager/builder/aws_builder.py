@@ -155,6 +155,25 @@ class AWSBuilder(object):
     def build_to_secure(self, info):
         fmlogging.debug("AWS builder called for securing service:%s" % info['service_name'])
 
+        cont_name = ''
+        work_dir = ''
+        if info['service_name']:
+            service_name = info['service_name']
+            service_version = info['service_version']
+            if not cont_name:
+                cont_name = service_name + "-" + service_version
+                modify_cont = cont_name + "-modify"
+                status_cont = cont_name + "-status"
+
+            if not work_dir:
+                work_dir = (constants.SERVICE_STORE_PATH + "/{service_name}/{service_version}/").format(service_name=service_name,
+                                                                                                        service_version=service_version)
+
+        self.docker_handler.build_container_image(modify_cont, work_dir + "/Dockerfile.modify", df_context=work_dir)
+
+        if os.path.exists(work_dir + "/Dockerfile.status"):
+            self.docker_handler.build_container_image(status_cont, work_dir + "/Dockerfile.status", df_context=work_dir)
+
     def build(self, build_type, build_name):
         if build_type == 'service':
             fmlogging.debug("AWS builder called for service")

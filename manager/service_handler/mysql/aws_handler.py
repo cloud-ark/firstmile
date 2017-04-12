@@ -147,25 +147,47 @@ class MySQLServiceHandler(object):
         db_id = self.instance_name + "-" + self.instance_version
         user = constants.DEFAULT_DB_USER
         password = self.db_info['password']
-        cidrblock = self._get_cidr_block()
-        sec_group_id = self._get_security_group_id()
-        add_rule = ("aws ec2 authorize-security-group-ingress --group-name {gname} --protocol tcp --port 3306 --cidr {cidrblock}").format(gname=db_id,
-                                                                                                                                          cidrblock=cidrblock)
-        create_instance = ("aws rds create-db-instance --db-name {db_name}"
-                           " --db-instance-identifier {db_id} --engine MySQL "
-                           " --db-instance-class db.t2.medium --master-username {user} "
-                           " --master-user-password '{password}' --allocated-storage 10 "
-                           " --vpc-security-group-ids {sec_group_id}").format(db_name=db_name,
-                                                                              db_id=db_id,
-                                                                              user=user,
-                                                                              password=password,
-                                                                              sec_group_id=sec_group_id)
+
         df = self.docker_handler.get_dockerfile_snippet("aws")
         df = df + ("COPY . /src \n"
               "WORKDIR /src \n"
-              "RUN cp -r aws-creds $HOME/.aws \ \n"
-              "    &&  {add_rule} \ \n"
-              "    && {create_instance}").format(add_rule=add_rule, create_instance=create_instance)
+              "RUN cp -r aws-creds $HOME/.aws \ \n")
+
+        add_rule = ''
+        sec_group_id = self._get_security_group_id()
+        cidrblock = ''
+        create_instance = ''
+        if self.task_def.service_data[0]['lock'] == 'true':
+            cidrblock = self._get_cidr_block()
+            add_rule = ("aws ec2 authorize-security-group-ingress --group-name {gname} --protocol tcp --port 3306 --cidr {cidrblock}").format(gname=db_id,
+                                                                                                                                              cidrblock=cidrblock)
+            create_instance = ("aws rds create-db-instance --db-name {db_name}"
+                               " --db-instance-identifier {db_id} --engine MySQL "
+                               " --db-instance-class db.t2.medium --master-username {user} "
+                               " --master-user-password '{password}' --allocated-storage 10 "
+                               " --vpc-security-group-ids {sec_group_id}").format(db_name=db_name,
+                                                                                  db_id=db_id,
+                                                                                  user=user,
+                                                                                  password=password,
+                                                                                  sec_group_id=sec_group_id)
+            df = df + ("    &&  {add_rule} \ \n"
+                       "    && {create_instance}").format(add_rule=add_rule, create_instance=create_instance)
+        else:
+            cidrblock = '0.0.0.0/0'
+            add_rule = ("aws ec2 authorize-security-group-ingress --group-name {gname} --protocol tcp --port 3306 --cidr {cidrblock}").format(gname=db_id,
+                                                                                                                                              cidrblock=cidrblock)
+            create_instance = ("aws rds create-db-instance --db-name {db_name}"
+                               " --db-instance-identifier {db_id} --engine MySQL "
+                               " --db-instance-class db.t2.medium --master-username {user} "
+                               " --master-user-password '{password}' --allocated-storage 10 "
+                               " --vpc-security-group-ids {sec_group_id} --publicly-accessible").format(db_name=db_name,
+                                                                                                        db_id=db_id,
+                                                                                                        user=user,
+                                                                                                        password=password,
+                                                                                                        sec_group_id=sec_group_id)
+            df = df + ("    &&  {add_rule} \ \n"
+                       "    && {create_instance}").format(add_rule=add_rule, create_instance=create_instance)
+            #df = df + ("    && {create_instance}").format(create_instance=create_instance)
 
         fp = open(self.deploy_dir + "/" + RDS_INSTANCE_DEPLOY_DFILE, "w")
         fp.write(df)
@@ -240,6 +262,7 @@ class MySQLServiceHandler(object):
                         status = parts[1].rstrip().lstrip().replace("\"", "").replace(",", "")
                         if status == 'available':
                             instance_available = True
+                    #instance_available = utils.check_if_available(line)
                     if instance_available:
                         if line.find("Address") >= 0:
                             parts = line.split(":")
@@ -295,6 +318,13 @@ class MySQLServiceHandler(object):
         rds_delete_cmd = rds_delete_cmd + ("--db-instance-identifier {instance_name} ").format(instance_name=instance_name)
         rds_delete_cmd = rds_delete_cmd + ("--skip-final-snapshot")
         return rds_delete_cmd
+
+    def get_makesecure_cmd(self, delete_info):
+        instance_name = self._get_instance_name(delete_info)
+        rds_modify_cmd = ("RUN aws rds modify-db-instance ")
+        rds_modify_cmd = rds_modify_cmd + ("--db-instance-identifier {instance_name} ").format(instance_name=instance_name)
+        rds_modify_cmd = rds_modify_cmd + ("--no-publicly-accessible")
+        return rds_modify_cmd
 
     def get_sec_group_delete_cmd(self, delete_info):
         instance_name = self._get_instance_name(delete_info)

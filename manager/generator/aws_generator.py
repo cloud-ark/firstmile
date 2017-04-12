@@ -396,6 +396,44 @@ class AWSGenerator(object):
 
     def generate_to_secure(self, info):
         fmlogging.debug("AWS generator called for securing service:%s" % info['service_name'])
+        df = self.docker_handler.get_dockerfile_snippet("aws")
+
+        work_dir = ''
+        if info['service_name']:
+            service_name = info['service_name']
+            service_version = info['service_version']
+
+            if not work_dir:
+                work_dir = (constants.SERVICE_STORE_PATH + "/{service_name}/{service_version}/").format(service_name=service_name,
+                                                                                                        service_version=service_version)
+            if service_name:
+                parts = service_name.split("-")
+                if parts[0] == 'mysql':
+                    mysql_handler = awsh.MySQLServiceHandler(self.task_def)
+                    service_modify_cmd = mysql_handler.get_makesecure_cmd(info)
+
+                    # Create Dockerfile to check rds delete status
+                    df_status = df + ("COPY . /src \n"
+                                      "WORKDIR /src \n"
+                                      "RUN cp -r aws-creds $HOME/.aws \n"
+                                      "{service_modify_cmd}\n").format(service_modify_cmd=service_modify_cmd)
+                    docker_file_status = open(work_dir + "/Dockerfile.modify", "w")
+                    docker_file_status.write(df_status)
+                    docker_file_status.flush()
+                    docker_file_status.close()
+
+                    # Create Dockerfile to check rds delete status
+                    status_check_cmd = mysql_handler.get_status_check_cmd(info)
+                    df_status = df + ("COPY . /src \n"
+                                      "WORKDIR /src \n"
+                                      "RUN cp -r aws-creds $HOME/.aws \n"
+                                      "{status_check_cmd}\n").format(status_check_cmd=status_check_cmd)
+                    docker_file_status = open(work_dir + "/Dockerfile.status", "w")
+                    docker_file_status.write(df_status)
+                    docker_file_status.flush()
+                    docker_file_status.close()
+
+
 
     def generate_for_delete(self, info):
         df = self.docker_handler.get_dockerfile_snippet("aws")

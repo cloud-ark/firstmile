@@ -186,6 +186,38 @@ class AWSDeployer(object):
     def deploy_to_secure(self, info):
         fmlogging.debug("AWS deployer called for securing service:%s" % info['service_name'])
 
+        work_dir = ''
+        cont_name = ''
+
+        if info['service_name']:
+            service_name = info['service_name']
+            service_version = info['service_version']
+            if not cont_name:
+                cont_name = service_name + "-" + service_version + "-status"
+            if not work_dir:
+                work_dir = (constants.SERVICE_STORE_PATH + "/{service_name}/{service_version}/").format(service_name=service_name,
+                                                                                                        service_version=service_version)
+        if os.path.exists(work_dir + "/Dockerfile.modify"):
+            cmd = ("docker run {cont_name}").format(cont_name=cont_name)
+            done = False
+            time.sleep(10) # wait for the modification action to kick-in and then check
+            while not done:
+                err, output = utils.execute_shell_cmd(cmd)
+                self.docker_handler.stop_container(cont_name, "Stopping db status check container.")
+                self.docker_handler.remove_container(cont_name, "Removing db status check container.")
+
+                lines = output.split("\n")
+                print(output)
+                for line in lines:
+                    instance_available = utils.check_if_available(line)
+                    if instance_available:
+                        done = True
+                        time.sleep(2)
+            self.docker_handler.remove_container_image(cont_name, "done modifying RDS instance")
+
+        # update service status to SECURING
+        utils.update_service_status(info, constants.SECURING_COMPLETE)
+
     def deploy_for_delete(self, info):
         work_dir = ''
         cont_name = ''
