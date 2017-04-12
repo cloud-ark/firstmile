@@ -6,7 +6,14 @@ install_log="install.log"
 echo "Installing FirstMile. Installation logs stored in $install_log"
 
 # Install requirements
-sudo apt-get update &>> $install_log && sudo apt-get install -y docker.io python-dev python-pip &>> $install_log
+sudo apt-get update &>> $install_log && sudo apt-get install -y python-dev python-pip &>> $install_log
+
+# Check if Docker is installed
+docker_version=`docker --version`
+if [[ "$docker_version" =~ "command not found" ]]; then
+   echo "Installing Docker"
+   sudo apt-get install -y docker.io &>> $install_log
+fi
 
 # Adding the current user to docker group so docker commands can be run without sudo
 sudo usermod -aG docker $USER &>> $install_log
