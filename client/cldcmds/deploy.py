@@ -117,6 +117,7 @@ class Deploy(Command):
         service = parsed_args.service
         dest = parsed_args.cloud
         common.verify_inputs(service, dest)
+        common.verify_yaml_file()
 
         project_location = os.getcwd()
         self.log.debug("App directory:%s" % project_location)

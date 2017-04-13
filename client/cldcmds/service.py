@@ -103,6 +103,7 @@ class ServiceDeploy(Command):
         dest = parsed_args.cloud
 
         common.verify_inputs(service, dest)
+        common.verify_yaml_file()
 
         service_info = common.read_service_info()
         if not service_info:
@@ -114,34 +115,45 @@ class ServiceDeploy(Command):
             service_list.append(service_info)
             service_info = service_list
 
+        common.verify_service(service_details['type'])
+
         self._read_service_setup_script(service_info)
 
         cloud_info = common.read_cloud_info()
-        
+
         if not cloud_info:
             cloud_info = {}
             dest = parsed_args.cloud
-            if dest:
-                if dest.lower() == common.LOCAL_DOCKER:
-                    cloud_info['type'] = common.LOCAL_DOCKER
-                if dest.lower() == common.AWS:
-                    common.setup_aws()
-                    cloud_info['type'] = common.AWS
-                if dest.lower() == common.GOOGLE:
-                    common.setup_google()
-                    project_location = os.getcwd()
-                    project_id = ''
-                    user_email = ''
-                    project_id, user_email = common.get_google_project_user_details(project_location)
-                    print("Using project_id:%s" % project_id)
-                    print("Using user email:%s" % user_email)
-                    cloud_info['type'] = common.GOOGLE
-                    cloud_info['project_id'] = project_id
-                    cloud_info['user_email'] = user_email
+            if not dest:
+                dest = raw_input("Please enter Cloud deployment target>")
+            common.verify_cloud(dest)
+            if dest.lower() == common.LOCAL_DOCKER:
+                cloud_info['type'] = common.LOCAL_DOCKER
+            if dest.lower() == common.AWS:
+                common.setup_aws()
+                cloud_info['type'] = common.AWS
+            if dest.lower() == common.GOOGLE:
+                common.setup_google()
+                project_location = os.getcwd()
+                project_id = ''
+                user_email = ''
+                project_id, user_email = common.get_google_project_user_details(project_location)
+                print("Using project_id:%s" % project_id)
+                print("Using user email:%s" % user_email)
+                cloud_info['type'] = common.GOOGLE
+                cloud_info['project_id'] = project_id
+                cloud_info['user_email'] = user_email
         else:
-            if dest and cloud_info['type'] != dest:
-                print("Looks like there is cld.yaml present in the directory and the value of the cloud flag differs between command line and cld.yaml.")
-                print("Using values in cld.yaml.")
+            if dest:
+                if cloud_info['type'].lower() != dest.lower():
+                    print("Looks like there is cld.yaml present in the directory and the value of the cloud flag differs between command line and cld.yaml.")
+                    print("Using values in cld.yaml.")
+            else:
+                dest = raw_input("Please enter destination cloud>")
+
+        import pdb; pdb.set_trace()
+
+        print("Deploying instance of %s on %s" % (service_details['type'], dest))
 
         self.dep_track_url = dp.Deployment().create_service_instance(service_info, cloud_info)
         self.log.debug("Service deployment tracking url:%s" % self.dep_track_url)

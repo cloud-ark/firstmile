@@ -28,6 +28,67 @@ MYSQL = "mysql"
 DEFAULT_APP_PORT = "5000"
 DEFAULT_APP_TYPE = "python"
 
+def verify_yaml_file():
+    cwd = os.getcwd()
+    lmefile = cwd + "/cld.yaml"
+
+    if os.path.exists(lmefile):
+        fp = open(lmefile, "r")
+    else:
+        return
+
+    lme_obj = ''
+    try:
+        lme_obj = yaml.load(fp.read())
+    except Exception as exp:
+        print("Error parsing cld.yaml")
+        print(exp)
+        exit()
+
+    try:
+        if 'application' in lme_obj:
+            application_obj = lme_obj['application']
+        if 'type' not in application_obj:
+            print("Application type missing in cld.yaml. Supported types: ('python')")
+            exit()
+        if application_obj['type'].lower() != 'python':
+            print("Application type %s not supported yet. Supported types:('python')" % application_obj['type'])
+            exit()
+        if 'entry_point' not in application_obj or not application_obj['entry_point']:
+            print("Name of application's main file missing in cld.yaml. Specify it using 'entry_point' attribute inside application section.")
+            exit()
+        else:
+            if not os.path.exists(application_obj['entry_point']):
+                print("Application's main file %s specified as entry_point in cld.yaml not found." % application_obj['entry_point'])
+                exit()
+    except Exception as exp:
+        print(exp)
+        print("Check if cld.yaml is correctly defined.")
+        exit()
+
+    try:
+        if 'cloud' in lme_obj:
+            cloud_obj = lme_obj['cloud']
+            if not cloud_obj:
+                print("Empty cloud section in cld.yaml. At least 'type' is required.")
+                exit()
+
+        if 'type' not in cloud_obj or not cloud_obj['type']:
+            print("Cloud type missing in cld.yaml. Supported types: (local-docker, aws, google)")
+            exit()
+        verify_cloud(cloud_obj['type'])
+        if cloud_obj['type'] == GOOGLE:
+            if not cloud_obj['project_id']:
+                print("project_id required for cloud %s" % cloud_obj['type'])
+                sys.exit(0)
+            if not cloud_obj['user_email']:
+                print("user_email required for cloud %s" % cloud_obj['type'])
+                sys.exit(0)
+    except Exception as exp:
+        print(exp)
+        print("Check if cld.yaml is correctly defined.")
+
+
 def verify_cloud(dest):
     dest = dest.lower() if dest else ''
     #if not dest:
@@ -350,7 +411,7 @@ def read_app_info():
             app_info['app_variables'] = app_var_obj
 
         app_port = DEFAULT_APP_PORT
-        if application_obj['app_port']:
+        if 'app_port' in application_obj:
             app_port = application_obj['app_port']
         app_info['app_port'] = app_port
     except Exception as exp:
