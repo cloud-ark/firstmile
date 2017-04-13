@@ -28,8 +28,20 @@ class CloudReset(Command):
         common.reset_aws()
 
     def take_action(self, parsed_args):
+        dest = parsed_args.cloud
+        if dest:
+            dest = dest.lower()
+            self.log.debug("Destination:%s" % dest)
+        else:
+            dest = raw_input("Please enter Cloud deployment target>")
+            dest = dest.rstrip().lstrip().lower()
+
+        common.verify_cloud(dest)
+
         if parsed_args.cloud == 'google':
             self._reset_google()
         if parsed_args.cloud == 'aws':
             self._reset_aws()
-    
+        if dest == 'local-docker':
+            print("No reset required for local-docker")
+            exit()
