@@ -12,7 +12,7 @@ import deployment as dp
 
 
 class ServiceSecure(Command):
-    "Secure service instance"
+    "Restrict access to a service instance"
 
     log = logging.getLogger(__name__)
 

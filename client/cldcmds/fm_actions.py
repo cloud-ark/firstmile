@@ -11,7 +11,7 @@ from cliff.command import Command
 
 
 class FirstMileLogs(Command):
-    "Retrieve FirstMile server logs"
+    "Retrieve FirstMile sandbox logs"
 
     log = logging.getLogger(__name__)
     
@@ -31,13 +31,13 @@ class FirstMileLogs(Command):
 
 
 class FirstMileRestart(Command):
-    "Restart FirstMile server"
+    "Display steps to restart FirstMile sandbox"
 
     log = logging.getLogger(__name__)
     
     def _restart(self):
         print("===============================================================================================================================")
-        print("Go to FirstMile directory and then run following commands:")
+        print("Go to the directory where you downloaded firstmile and then run following commands:")
         print("sudo docker build -t firstmile-img .")
         print("sudo docker run -u ubuntu -p 5002:5002 -v /var/run/docker.sock:/var/run/docker.sock -v $HOME:/home/ubuntu -d firstmile-img")
         print("===============================================================================================================================")
@@ -47,7 +47,7 @@ class FirstMileRestart(Command):
 
 
 class FirstMileCleanup(Command):
-    "Cleanup FirstMile workspace"
+    "Display steps to cleanup FirstMile workspace"
     
     def _cleanup(self):
         print("===============================================================================================================================")
@@ -55,7 +55,7 @@ class FirstMileCleanup(Command):
         print("- Any application that is deployed using FirstMile is stored in a directory inside this folder.")
         print("- Services provisioned using FirstMile are stored in services folder inside this folder.")
         print("You can delete application folders or service folders to cleanup the workspace.")
-        print("You can also delete the entire workspace (note that you will have to then run 'cld cloud setup' to do cloud-specific setup.)")
+        print("You can also delete the entire workspace. If you do that you will have to then run 'cld cloud setup' to get your cloud-specific setup.")
         print("===============================================================================================================================")
 
     def take_action(self, parsed_args):

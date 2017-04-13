@@ -27,7 +27,7 @@ setup(
     long_description=long_description,
 
     author='Devdatta Kulkarni',
-    author_email='kulkarni.devdatta@gmail.com',
+    author_email='devdattakulkarni@gmail.com',
 
     url='',
     download_url='',
@@ -66,7 +66,7 @@ setup(
             'app logs = cldcmds.app_logs:AppLogs',
             'service provision = cldcmds.service:ServiceDeploy',
             'service delete = cldcmds.service_delete:ServiceDelete',
-            'service secure = cldcmds.service_secure:ServiceSecure',
+            'service restrict-access = cldcmds.service_secure:ServiceSecure',
             'service show = cldcmds.service:ServiceShow',
             'service list = cldcmds.service_list:ServiceList',
             'cloud reset = cldcmds.cloud_reset:CloudReset',

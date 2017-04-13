@@ -68,7 +68,7 @@ class ServiceShow(Command):
 
 
 class ServiceDeploy(Command):
-    "Provision a service instance"
+    "Provision service instance"
 
     log = logging.getLogger(__name__)
 

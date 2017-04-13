@@ -12,7 +12,7 @@ from cliff.command import Command
 import common
 
 class CloudReset(Command):
-    "Reset cloud setup"
+    "Reset cloud setup in FirstMile sandbox"
 
     def get_parser(self, prog_name):
         parser = super(CloudReset, self).get_parser(prog_name)

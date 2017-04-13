@@ -13,7 +13,7 @@ import deployment as dp
 
 
 class AppDelete(Command):
-    "Delete an application"
+    "Delete application"
 
     log = logging.getLogger(__name__)
 

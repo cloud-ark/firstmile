@@ -10,7 +10,7 @@ from cliff.command import Command
 import common
 
 class CloudSetup(Command):
-    "Setup cloud"
+    "Setup FirstMile sandbox for a particular cloud"
 
     def get_parser(self, prog_name):
         parser = super(CloudSetup, self).get_parser(prog_name)

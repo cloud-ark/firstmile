@@ -17,7 +17,7 @@ from cliff.command import Command
 
 
 class Deploy(Command):
-    "Build and deploy an application"
+    "Build and deploy application"
 
     log = logging.getLogger(__name__)
     log.setLevel(logging.INFO)

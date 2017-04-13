@@ -15,7 +15,7 @@ import deployment as dp
 
 
 class AppLogs(Command):
-    "Obtain logs for an application"
+    "Retrieve application deployment and runtime logs"
 
     log = logging.getLogger(__name__)
 
