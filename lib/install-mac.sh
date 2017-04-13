@@ -9,10 +9,9 @@ if (( $EUID == 0 )); then
 fi
 
 # Check if Docker is installed
-docker_version=`docker --version`
-
-if [[ "$docker_version" =~ "command not found" ]]; then
-   echo "Looks like Docker is not installed. Please install Docker."
+docker_version=`ls -l /Applications | grep -i docker`
+if [[ -z "$docker_version" ]]; then
+   echo "Looks like Docker is not installed. Please install Docker as it is required for FirstMile."
    echo "Refer: https://docs.docker.com/docker-for-mac/"
    exit
 fi

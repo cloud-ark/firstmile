@@ -200,7 +200,7 @@ class AWSDeployer(object):
         if os.path.exists(work_dir + "/Dockerfile.modify"):
             cmd = ("docker run {cont_name}").format(cont_name=cont_name)
             done = False
-            time.sleep(10) # wait for the modification action to kick-in and then check
+            time.sleep(60) # wait for the modification action to kick-in and then check
             while not done:
                 err, output = utils.execute_shell_cmd(cmd)
                 self.docker_handler.stop_container(cont_name, "Stopping db status check container.")

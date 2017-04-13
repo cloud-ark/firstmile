@@ -123,7 +123,7 @@ class Deployment(object):
         if response.status_code == 404:
             print("Service with deploy-id %s not found." % dep_id)
         if response.status_code == 202:
-            print("Request to delete service with deploy-id %s accepted" % dep_id)
+            print("Request to delete service with deploy-id %s accepted." % dep_id)
         return response
 
     def service_secure(self, dep_id):
@@ -134,7 +134,7 @@ class Deployment(object):
         if response.status_code == 405:
             print("Request to secure service with deploy-id %s not supported as it is a local service." % dep_id)
         if response.status_code == 202:
-            print("Request to secure service with deploy-id %s accepted" % dep_id)
+            print("Request to secure service with deploy-id %s accepted." % dep_id)
         return response
 
 
@@ -144,7 +144,7 @@ class Deployment(object):
         if response.status_code == 404:
             print("Application with deploy-id %s not found." % dep_id)
         if response.status_code == 202:
-            print("Request to delete application with deploy-id %s accepted" % dep_id)
+            print("Request to delete application with deploy-id %s accepted." % dep_id)
         return response
 
     def logs(self, dep_id):

@@ -29,7 +29,6 @@ class CloudSetup(Command):
         dest = parsed_args.cloud
         if dest:
             dest = dest.lower()
-            self.log.debug("Destination:%s" % dest)
         else:
             dest = raw_input("Please enter Cloud deployment target>")
             dest = dest.rstrip().lstrip().lower()

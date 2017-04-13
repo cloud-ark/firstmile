@@ -10,7 +10,7 @@
 PROJECT = 'cld'
 
 # Change docs/sphinx/conf.py too!
-VERSION = '1.0.0.rc1'
+VERSION = '1.0.0.rc2'
 
 from setuptools import setup, find_packages
 

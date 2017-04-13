@@ -9,8 +9,8 @@ echo "Installing FirstMile. Installation logs stored in $install_log"
 sudo apt-get update &>> $install_log && sudo apt-get install -y python-dev python-pip &>> $install_log
 
 # Check if Docker is installed
-docker_version=`docker --version`
-if [[ "$docker_version" =~ "command not found" ]]; then
+docker_version=`dpkg -l | grep docker`
+if [[ -z "$docker_version" ]]; then
    echo "Installing Docker"
    sudo apt-get install -y docker.io &>> $install_log
 fi

@@ -87,6 +87,7 @@ def verify_yaml_file():
     except Exception as exp:
         print(exp)
         print("Check if cld.yaml is correctly defined.")
+        exit()
 
 
 def verify_cloud(dest):
@@ -292,6 +293,7 @@ def setup_google():
 
 
 def reset_aws():
+    print("Removing aws-creds directory from %s" % APP_STORE_PATH)
     aws_creds_path = APP_STORE_PATH + "/aws-creds"
     shutil.rmtree(aws_creds_path, ignore_errors=True)
 

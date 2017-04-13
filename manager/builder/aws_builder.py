@@ -188,5 +188,5 @@ class AWSBuilder(object):
             fmlogging.debug("Local builder called for app %s" %
                           self.task_def.app_data['app_name'])
             app_obj = app.App(self.task_def.app_data)
-            app_obj.update_app_status("BUILDING")
+            app_obj.update_app_status(constants.BUILDING_APP)
             self._build_app_container(app_obj)

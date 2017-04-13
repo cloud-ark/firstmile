@@ -16,7 +16,7 @@ class CLDApp(App):
     def __init__(self):
         super(CLDApp, self).__init__(
             description='Multi-cloud application orchestration and service provisioning CLI.',
-            version='0.1',
+            version='1.0.0.rc2',
             command_manager=CommandManager('cld.cmds'),
             deferred_help=True,
             )

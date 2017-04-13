@@ -38,9 +38,9 @@ class CloudReset(Command):
 
         common.verify_cloud(dest)
 
-        if parsed_args.cloud == 'google':
+        if dest == 'google':
             self._reset_google()
-        if parsed_args.cloud == 'aws':
+        if dest == 'aws':
             self._reset_aws()
         if dest == 'local-docker':
             print("No reset required for local-docker")

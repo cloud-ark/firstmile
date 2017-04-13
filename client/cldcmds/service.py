@@ -151,8 +151,6 @@ class ServiceDeploy(Command):
             else:
                 dest = raw_input("Please enter destination cloud>")
 
-        import pdb; pdb.set_trace()
-
         print("Deploying instance of %s on %s" % (service_details['type'], dest))
 
         self.dep_track_url = dp.Deployment().create_service_instance(service_info, cloud_info)
