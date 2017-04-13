@@ -137,6 +137,10 @@ Deploying using YAML file
 --------------------------
 FirstMile supports YAML file for deployments.
 
+The yaml file provides the mechanism to provide all the inputs to FirstMile CLI
+in a single place instead of using command line flags. In order to use this you
+will need to put cld.yaml in your application's code directory.
+
 
 Structure of YAML file:
 -----------------------

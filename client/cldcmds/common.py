@@ -77,13 +77,13 @@ def verify_yaml_file():
             print("Cloud type missing in cld.yaml. Supported types: (local-docker, aws, google)")
             exit()
         verify_cloud(cloud_obj['type'])
-        if cloud_obj['type'] == GOOGLE:
-            if not cloud_obj['project_id']:
-                print("project_id required for cloud %s" % cloud_obj['type'])
-                sys.exit(0)
-            if not cloud_obj['user_email']:
-                print("user_email required for cloud %s" % cloud_obj['type'])
-                sys.exit(0)
+        #if cloud_obj['type'] == GOOGLE:
+        #    if not cloud_obj['project_id']:
+        #        print("project_id required for cloud %s" % cloud_obj['type'])
+        #        sys.exit(0)
+        #    if not cloud_obj['user_email']:
+        #        print("user_email required for cloud %s" % cloud_obj['type'])
+        #        sys.exit(0)
     except Exception as exp:
         print(exp)
         print("Check if cld.yaml is correctly defined.")
