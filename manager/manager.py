@@ -34,8 +34,8 @@ class Manager(threading.Thread):
         if self.task_def.app_data:
             app_name = self.task_def.app_data['app_name']
             location = self.task_def.app_data['app_location']
-            utils.delete_tar_file(location, app_name)
-            utils.delete_app_folder(location, app_name)
+            #utils.delete_tar_file(location, app_name)
+            #utils.delete_app_folder(location, app_name)
             app_obj = app.App(self.task_def.app_data)
             app_obj.update_app_status(constants.DEPLOYMENT_ERROR)
 

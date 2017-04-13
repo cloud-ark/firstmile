@@ -138,6 +138,10 @@ class ServiceDeploy(Command):
                     cloud_info['type'] = common.GOOGLE
                     cloud_info['project_id'] = project_id
                     cloud_info['user_email'] = user_email
+        else:
+            if dest and cloud_info['type'] != dest:
+                print("Looks like there is cld.yaml present in the directory and the value of the cloud flag differs between command line and cld.yaml.")
+                print("Using values in cld.yaml.")
 
         self.dep_track_url = dp.Deployment().create_service_instance(service_info, cloud_info)
         self.log.debug("Service deployment tracking url:%s" % self.dep_track_url)

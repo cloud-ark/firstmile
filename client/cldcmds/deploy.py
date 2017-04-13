@@ -142,6 +142,10 @@ class Deploy(Command):
             if dest.lower() == common.LOCAL_DOCKER:
                 cloud_info['type'] = common.LOCAL_DOCKER
                 cloud_info['app_port'] = '5000'
+        else:
+            if dest and cloud_info['type'] != dest:
+                print("Looks like there is cld.yaml present in the directory and the value of the cloud flag differs between command line and cld.yaml.")
+                print("Using values in cld.yaml.")
 
         app_info = common.read_app_info()
         if not app_info:

@@ -30,10 +30,10 @@ DEFAULT_APP_TYPE = "python"
 
 def verify_cloud(dest):
     dest = dest.lower() if dest else ''
-    if not dest:
-        print("Incorrect destination cloud specified %s." % (dest))
-        print("Supported options: %s, %s, %s" % (LOCAL_DOCKER, AWS, GOOGLE))
-        exit()
+    #if not dest:
+    #    print("Incorrect destination cloud specified %s." % (dest))
+    #    print("Supported options: %s, %s, %s" % (LOCAL_DOCKER, AWS, GOOGLE))
+    #    exit()
     if dest and dest != GOOGLE and dest != AWS and dest != LOCAL_DOCKER:
         print("Incorrect destination cloud specified %s." % (dest))
         print("Supported options: %s, %s, %s" % (LOCAL_DOCKER, AWS, GOOGLE))
@@ -320,10 +320,8 @@ def read_app_info():
     fp = open(lmefile, "r")
     lme_obj = yaml.load(fp.read())
 
-    for ob in lme_obj:
-        if 'application' in ob:
-            application_obj = ob['application']
-            break
+    if 'application' in lme_obj:
+        application_obj = lme_obj['application']
 
     app_type = application_obj['type']
     entry_point = application_obj['entry_point']
@@ -376,10 +374,8 @@ def read_cloud_info():
     fp = open(lmefile, "r")
     lme_obj = yaml.load(fp.read())
 
-    for ob in lme_obj:
-        if 'cloud' in ob:
-            cloud_obj = ob['cloud']
-            break
+    if 'cloud' in lme_obj:
+        cloud_obj = lme_obj['cloud']
 
     cloud_info['type'] = cloud_obj['type']
     if cloud_obj['type'] == GOOGLE:
