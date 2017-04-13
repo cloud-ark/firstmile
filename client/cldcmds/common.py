@@ -318,33 +318,45 @@ def read_app_info():
         return app_info
 
     fp = open(lmefile, "r")
-    lme_obj = yaml.load(fp.read())
 
-    if 'application' in lme_obj:
-        application_obj = lme_obj['application']
+    lme_obj = ''
+    try:
+        lme_obj = yaml.load(fp.read())
+    except Exception as exp:
+        print("Error parsing cld.yaml")
+        print(exp)
+        exit()
 
-    app_type = application_obj['type']
-    entry_point = application_obj['entry_point']
+    try:
+        if 'application' in lme_obj:
+            application_obj = lme_obj['application']
 
-    app_info['app_type'] = app_type
-    app_info['entry_point'] = entry_point
+        app_type = application_obj['type']
+        entry_point = application_obj['entry_point']
 
-    app_name = cwd[cwd.rfind("/")+1:]
+        app_info['app_type'] = app_type
+        app_info['entry_point'] = entry_point
 
-    app_info['app_name'] = app_name
+        app_name = cwd[cwd.rfind("/")+1:]
 
-    if 'env_variables' in application_obj:
-        env_var_obj = application_obj['env_variables']
-        app_info['env_variables'] = env_var_obj
+        app_info['app_name'] = app_name
 
-    if 'app_variables' in application_obj:
-        app_var_obj = application_obj['app_variables']
-        app_info['app_variables'] = app_var_obj
+        if 'env_variables' in application_obj:
+            env_var_obj = application_obj['env_variables']
+            app_info['env_variables'] = env_var_obj
 
-    app_port = DEFAULT_APP_PORT
-    if application_obj['app_port']:
-        app_port = application_obj['app_port']
-    app_info['app_port'] = app_port
+        if 'app_variables' in application_obj:
+            app_var_obj = application_obj['app_variables']
+            app_info['app_variables'] = app_var_obj
+
+        app_port = DEFAULT_APP_PORT
+        if application_obj['app_port']:
+            app_port = application_obj['app_port']
+        app_info['app_port'] = app_port
+    except Exception as exp:
+        print(exp)
+        print("Check if cld.yaml is correctly defined.")
+        exit()
 
     return app_info
 
@@ -356,12 +368,22 @@ def read_service_info():
         return service_info
 
     fp = open(lmefile, "r")
-    lme_obj = yaml.load(fp.read())
+    lme_obj = ''
+    try:
+        lme_obj = yaml.load(fp.read())
+    except Exception as exp:
+        print("Error parsing cld.yaml")
+        print(exp)
+        exit()
 
-    for ob in lme_obj:
-        if 'services' in ob:
-            service_info = ob['services']
-            break
+    try:
+        for ob in lme_obj:
+            if 'services' in ob:
+                service_info = ob['services']
+                break
+    except Exception as exp:
+        print(exp)
+        print("Check if cld.yaml is correctly defined.")
     return service_info
 
 def read_cloud_info():
@@ -372,25 +394,35 @@ def read_cloud_info():
         return cloud_info
 
     fp = open(lmefile, "r")
-    lme_obj = yaml.load(fp.read())
+    lme_obj = ''
+    try:
+        lme_obj = yaml.load(fp.read())
+    except Exception as exp:
+        print("Error parsing cld.yaml")
+        print(exp)
+        exit()
 
-    if 'cloud' in lme_obj:
-        cloud_obj = lme_obj['cloud']
+    try:
+        if 'cloud' in lme_obj:
+            cloud_obj = lme_obj['cloud']
 
-    cloud_info['type'] = cloud_obj['type']
-    if cloud_obj['type'] == GOOGLE:
-        if not cloud_obj['project_id']:
-            print("project_id required for cloud %s" % cloud_obj['type'])
-            sys.exit(0)
-        else:
-            project_id = cloud_obj['project_id']
-            cloud_info['project_id'] = project_id
-        if not cloud_obj['user_email']:
-            print("user_email required for cloud %s" % cloud_obj['type'])
-            sys.exit(0)
-        else:
-            user_email = cloud_obj['user_email']
-            cloud_info['user_email'] = user_email
+        cloud_info['type'] = cloud_obj['type']
+        if cloud_obj['type'] == GOOGLE:
+            if not cloud_obj['project_id']:
+                print("project_id required for cloud %s" % cloud_obj['type'])
+                sys.exit(0)
+            else:
+                project_id = cloud_obj['project_id']
+                cloud_info['project_id'] = project_id
+            if not cloud_obj['user_email']:
+                print("user_email required for cloud %s" % cloud_obj['type'])
+                sys.exit(0)
+            else:
+                user_email = cloud_obj['user_email']
+                cloud_info['user_email'] = user_email
+    except Exception as exp:
+        print(exp)
+        print("Check if cld.yaml is correctly defined.")
 
     return cloud_info
 

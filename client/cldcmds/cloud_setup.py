@@ -26,8 +26,20 @@ class CloudSetup(Command):
         common.setup_aws()
 
     def take_action(self, parsed_args):
-        if parsed_args.cloud == 'google':
+        dest = parsed_args.cloud
+        if dest:
+            dest = dest.lower()
+            self.log.debug("Destination:%s" % dest)
+        else:
+            dest = raw_input("Please enter Cloud deployment target>")
+            dest = dest.rstrip().lstrip().lower()
+
+        common.verify_cloud(dest)
+        if dest == 'google':
             self._setup_google()
-        if parsed_args.cloud == 'aws':
+        if dest == 'aws':
             self._setup_aws()
+        if dest == 'local-docker':
+            print("No setup required for local-docker")
+            exit()
     
