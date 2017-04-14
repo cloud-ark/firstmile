@@ -401,6 +401,8 @@ class MySQLServiceHandler(object):
         self._save_instance_information(service_ip)
         if self.task_def.service_data[0]['lock'] == 'true':
             self._restrict_db_access(access_token, project_id, db_server, settings_version)
+            settings_version = self._wait_for_db_instance_to_get_ready(access_token, project_id, db_server)
+            self._store_settings_version(settings_version)
             return connection_name
         else:
             return service_ip
