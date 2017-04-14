@@ -130,6 +130,9 @@ Service commands:
 ------------------
 1) cld service provision --service <service-name>
 2) cld service show --service-name <service-name>
+3) cld service list
+4) cld service delete --deploy-id <deploy-id>
+5) cld service restrict-access --deploy-id <deploy-id>
 
 
 
@@ -137,9 +140,10 @@ Deploying using YAML file
 --------------------------
 FirstMile supports YAML file for deployments.
 
-The yaml file provides the mechanism to provide all the inputs to FirstMile CLI
-in a single place instead of using command line flags. In order to use this you
-will need to put cld.yaml in your application's code directory.
+The yaml file needs to be named 'cld.yaml' and it needs to be placed in the application directory.
+
+cld.yaml allows providing of all the inputs to FirstMile CLI
+in one step instead of using different command line flags.
 
 
 Structure of YAML file:
