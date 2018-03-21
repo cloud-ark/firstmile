@@ -1,9 +1,13 @@
 FirstMile CLI 
 ------------------
+FirstMile is a cloud developer's sandbox. 
 FirstMile supports building and deploying Python Flask web applications to target clouds (Google and Amazon)
 without requiring you to make any changes to application code.
 You can also test applications locally by deploying them in FirstMile's Docker-based sandbox.
 FirstMile also supports provisioning service instances (such as MySQL, Google Cloud SQL, Amazon RDS).
+
+
+FirstMile has been tested on following platforms: Ubuntu 14.04, Ubuntu 16.04, Mac OS X (El Capitan, Darwin 15.4.0)
 
 
 Installation
@@ -14,7 +18,7 @@ Run ./install.sh
 Deployment to local Docker sandbox:
 ----------------------------------------
 1) Deploy hello-world sample application:
-   - Navigate to the application folder (cd ../firstmile-samples/hello-world)
+   - Navigate to the application folder (cd ./examples/hello-world)
    - Deploy application:
      > cld app deploy --cloud local-docker
      
@@ -27,11 +31,11 @@ Deployment to local Docker sandbox:
 2) Check deployment status
    > cld app show --deploy-id 1
    
-   +------------------+-----------+---------------------+--------------+---------------------------------------+
-   |     App Name     | Deploy ID |        Status       | Cloud        |                App URL                |
-   +------------------+-----------+---------------------+--------------+---------------------------------------+
-   | hello-world      |    1      | DEPLOYMENT_COMPLETE | local-docker | http://172.0.0.1                      |
-   +------------------+-----------+---------------------+--------------+---------------------------------------+
+   +------------------+-----------+---------------------+--------------+--------------------------+
+   |     App Name     | Deploy ID |        Status       | Cloud        |                App URL   |
+   +------------------+-----------+---------------------+--------------+--------------------------+
+   | hello-world      |    1      | DEPLOYMENT_COMPLETE | local-docker | http://172.0.0.1         |
+   +------------------+-----------+---------------------+--------------+--------------------------+
 
 
 Deployment to Amazon Elastic Beanstalk:
@@ -44,7 +48,7 @@ Deployment to Amazon Elastic Beanstalk:
 3) Note down SECRET_ACCESS_KEY and ACCESS_KEY_ID for this user. Provide these values when asked by cld.
 
 4) Deploy hello-world sample application:
-   - Navigate to the application folder (cd ../firstmile-samples/hello-world)
+   - Navigate to the application folder (cd ./examples/hello-world)
    - Deploy application:
      > cld app deploy --cloud aws
      
@@ -57,11 +61,11 @@ Deployment to Amazon Elastic Beanstalk:
 5) Check deployment status
    > cld app show --deploy-id 2
    
-   +------------------+-----------+---------------------+--------------+---------------------------------------+
-   |     App Name     | Deploy ID |        Status       |     Cloud    |                App URL                |
-   +------------------+-----------+---------------------+--------------+---------------------------------------+
-   | hello-world      |    2      | DEPLOYMENT_COMPLETE |      aws     | <App URL on AWS>                      |
-   +------------------+-----------+---------------------+--------------+---------------------------------------+
+   +------------------+-----------+---------------------+--------------+---------------------------+
+   |     App Name     | Deploy ID |        Status       |     Cloud    |                App URL    |
+   +------------------+-----------+---------------------+--------------+---------------------------+
+   | hello-world      |    2      | DEPLOYMENT_COMPLETE |      aws     | <App URL on AWS>          |
+   +------------------+-----------+---------------------+--------------+---------------------------+
 
 
 Deployment to Google App Engine:

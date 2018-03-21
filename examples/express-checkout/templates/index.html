@@ -1,0 +1,34 @@
+<html>
+<head>
+<style>
+.bodycenter {
+    margin: auto;
+    width: 60%;
+    padding: 10px;
+}
+
+.footer{
+    text-align: center;
+    border: 1px solid #73AD21;
+}
+</style>
+</head>
+<body>
+  <div class="bodycenter">
+  
+    <h1>Express checkout. Vacation Inn.</h1>
+ 
+    <form action="add_to_db" method="post">
+      Name of occupant: <input type="text" name="name"><br>
+      Room number: <input type="text" name="room_number"><br>
+      <input type="submit" value="Submit">
+    </form>
+
+    {% for entry in entries %}
+        <div>
+            <div>{{ entry.greeting }}</div>
+        </div>
+    {% endfor %}    
+  </div>
+</body>
+</html>
