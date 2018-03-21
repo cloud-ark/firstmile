@@ -1,0 +1,9 @@
+tmp
+*~
+tar
+*.tar
+*.pyc
+*.log
+build
+dist
+*egg*

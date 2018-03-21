@@ -1,0 +1,30 @@
+<html>
+<head>
+<style>
+.bodycenter {
+    margin: auto;
+    width: 60%;
+    padding: 10px;
+}
+
+.footer{
+    text-align: center;
+    border: 1px solid #73AD21;
+}
+</style>
+</head>
+<body>
+  <div class="bodycenter">
+  
+    <h1>Express checkout. Vacation Inn.</h1>
+    <h2>Charges for Room number: {{ entries[0].room }}</h2>
+        
+    {% for entry in entries %}
+    	    <div>
+            	<div>{{ entry.item }} &nbsp; &nbsp; <td>{{entry.amount}} </div>
+        	</div>
+    {% endfor %}
+    
+  </div>
+</body>
+</html>

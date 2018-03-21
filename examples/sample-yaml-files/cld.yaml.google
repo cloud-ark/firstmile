@@ -1,0 +1,10 @@
+application:
+  type: python
+  entry_point: application.py
+  env_variables:
+    DB: testdb
+    HOST: 104.154.138.229
+    USER: testuser
+    PASSWORD: testpass123!@#
+cloud:
+  type: google

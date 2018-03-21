@@ -1,0 +1,11 @@
+application:
+  type: python
+  entry_point: application.py
+  env_variables:
+    DB: testdb
+    HOST: greetings-python-2017-01-06-15-02-28.cq2diiktczpm.us-west-2.rds.amazonaws.com
+    USER: testuser
+    PASSWORD: testpass123!#$
+cloud:
+  type: aws
+
