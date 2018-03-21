@@ -29,7 +29,7 @@ sudo virtualenv $virtenv &>> $install_log
 source $virtenv/bin/activate &>> $install_log
 
 cd client
-sudo ../$virtenv/bin/python setup.pyc install &>> $install_log
+sudo ../$virtenv/bin/python setup.py install &>> $install_log
 export PATH=$PATH:`pwd`
 export PYTHONPATH=$PYTHONPATH:`pwd`
 cd ..
@@ -69,7 +69,7 @@ echo "RUN sudo pip install -r requirements.txt" >> Dockerfile
 echo "EXPOSE 5002" >> Dockerfile
 HOST_HOME="$HOME/.cld/data/deployments"
 echo "ENV HOST_HOME $HOST_HOME" >> Dockerfile
-echo "CMD [\"python\", \"/src/cld.pyc\"]" >> Dockerfile
+echo "CMD [\"python\", \"/src/cld.py\"]" >> Dockerfile
 
 # Start the firstmile server container
 #set -x
@@ -83,8 +83,7 @@ if [[ ! -z "${has_server_started}" ]]; then
     echo "FirstMile successfully installed."
     echo "Next steps:"
     echo "- Quick test: Run 'cld app list'"
-    echo "- Try sample programs from firstmile-samples directory (available one level above)"
-    echo "Happy coding :-)"
+    echo "- Try sample programs from examples directory"
 fi
 
 # Activate the virtual environment in which we have installed the FirstMile client.
@@ -98,6 +97,6 @@ fi
 
 #ps -eaf | grep 'python cld.py' | awk '{print $2}' | xargs kill
 #pip install -r requirements.txt
-#nohup python cld.pyc 1>>cld-server.log 2>&1 &
+#nohup python cld.py 1>>cld-server.log 2>&1 &
 
 #exec -c "source $virtenv/bin/activate"
