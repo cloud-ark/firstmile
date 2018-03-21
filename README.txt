@@ -2,18 +2,19 @@ FirstMile CLI
 ------------------
 FirstMile is a cloud developer's sandbox. 
 
-FirstMile supports building and deploying Python Flask web applications to AWS Elastic Beanstalk or Google App Engine
+FirstMile supports building and deploying web applications to AWS Elastic Beanstalk or Google App Engine
 without requiring you to make any changes to application code.
 You can also test applications locally by deploying them in FirstMile's Docker-based sandbox.
 FirstMile also supports provisioning service instances (such as MySQL, Google Cloud SQL, Amazon RDS).
 
-
-FirstMile has been tested on: Ubuntu 14.04, Ubuntu 16.04, Mac OS X (El Capitan, Darwin 15.4.0)
+Currently FirstMile supports Python Flask based web applications.
 
 
 Installation
 --------------
-Run ./install.sh
+- FirstMile has been tested on: Ubuntu 14.04, Ubuntu 16.04, Mac OS X (El Capitan, Darwin 15.4.0)
+
+- Run ./install.sh
 
 
 Available Commands
@@ -51,8 +52,6 @@ Commands:
   service show   Display service instance information
 
 
-
-
 Deployment to local Docker sandbox:
 ----------------------------------------
 1) Deploy hello-world sample application:
@@ -83,9 +82,12 @@ Deployment to Amazon Elastic Beanstalk:
    - Create a IAM User (choose any name)
    - Grant following permission to the user: "AWSElasticBeanstalkFullAccess - AWS Managed Policy" by
      clicking the "Add permissions" button on the user panel.
-3) Note down SECRET_ACCESS_KEY and ACCESS_KEY_ID for this user. Provide these values when asked by cld.
+3) Note down SECRET_ACCESS_KEY and ACCESS_KEY_ID for this user. 
+4) Setup FirstMile to work with AWS
+   - cld cloud setup aws
+     > Provide values when asked by cld.
 
-4) Deploy hello-world sample application:
+5) Deploy hello-world sample application:
    - Navigate to the application folder (cd ./examples/hello-world)
    - Deploy application:
      > cld app deploy --cloud aws
@@ -96,7 +98,7 @@ Deployment to Amazon Elastic Beanstalk:
      | hello-world      |    2      |     aws    |
      +------------------+-----------+------------+
 
-5) Check deployment status
+6) Check deployment status
    > cld app show --deploy-id 2
    
    +------------------+-----------+---------------------+--------------+------------------------+
@@ -112,7 +114,11 @@ Deployment to Google App Engine:
 2) In order to deploy an application on Google App Engine, you will need to first
    create a Google App Engine project from the GAE Console.
    - Create a project and note down the Project ID (Note that it is important to use Project ID and not the Project name).
-3) Deploy sample application greetings-python:
+3) Setup FirstMile to work with Google 
+   - cld cloud setup google
+     > Provide values when asked by cld.
+
+4) Deploy sample application greetings-python:
    - Navigate to the application folder (cd ../firstmile-samples/greetings-python)
    - Deploy application: 
      > cld app deploy --cloud google --service mysql
@@ -123,7 +129,7 @@ Deployment to Google App Engine:
      | greetings-python |    3      | google |
      +------------------+-----------+--------+
 
-4) Check deployment status
+5) Check deployment status
    > cld app show --deploy-id 1
 
    +------------------+-----------+---------------------+--------+---------------------------------------+
