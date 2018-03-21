@@ -1,18 +1,56 @@
 FirstMile CLI 
 ------------------
 FirstMile is a cloud developer's sandbox. 
-FirstMile supports building and deploying Python Flask web applications to target clouds (Google and Amazon)
+
+FirstMile supports building and deploying Python Flask web applications to AWS Elastic Beanstalk or Google App Engine
 without requiring you to make any changes to application code.
 You can also test applications locally by deploying them in FirstMile's Docker-based sandbox.
 FirstMile also supports provisioning service instances (such as MySQL, Google Cloud SQL, Amazon RDS).
 
 
-FirstMile has been tested on following platforms: Ubuntu 14.04, Ubuntu 16.04, Mac OS X (El Capitan, Darwin 15.4.0)
+FirstMile has been tested on: Ubuntu 14.04, Ubuntu 16.04, Mac OS X (El Capitan, Darwin 15.4.0)
 
 
 Installation
 --------------
 Run ./install.sh
+
+
+Available Commands
+-------------------
+
+usage: cld [--version] [-v | -q] [--log-file LOG_FILE] [-h] [--debug]
+
+Multi-cloud application orchestration and service provisioning CLI.
+
+optional arguments:
+  --version            show program's version number and exit
+  -v, --verbose        Increase verbosity of output. Can be repeated.
+  -q, --quiet          Suppress output except warnings and errors.
+  --log-file LOG_FILE  Specify a file to log output. Disabled by default.
+  -h, --help           Show help message and exit.
+  --debug              Show tracebacks on errors.
+
+Commands:
+  app delete     Delete application
+  app deploy     Build and deploy application
+  app list       List applications
+  app logs       Retrieve application deployment and runtime logs
+  app show       Display application information
+  cloud reset    Reset cloud setup in FirstMile sandbox
+  cloud setup    Setup FirstMile sandbox for a particular cloud
+  complete       print bash completion command (cliff)
+  fm cleanup     Display steps to cleanup FirstMile workspace
+  fm logs        Retrieve FirstMile sandbox logs
+  fm restart     Display steps to restart FirstMile sandbox
+  help           print detailed help for another command (cliff)
+  service delete  Delete service instance
+  service list   List service instances
+  service provision  Provision service instance
+  service restrict-access  Restrict access to a service instance
+  service show   Display service instance information
+
+
 
 
 Deployment to local Docker sandbox:
@@ -31,11 +69,11 @@ Deployment to local Docker sandbox:
 2) Check deployment status
    > cld app show --deploy-id 1
    
-   +------------------+-----------+---------------------+--------------+--------------------------+
-   |     App Name     | Deploy ID |        Status       | Cloud        |                App URL   |
-   +------------------+-----------+---------------------+--------------+--------------------------+
-   | hello-world      |    1      | DEPLOYMENT_COMPLETE | local-docker | http://172.0.0.1         |
-   +------------------+-----------+---------------------+--------------+--------------------------+
+   +------------------+-----------+---------------------+--------------+------------------------+
+   |     App Name     | Deploy ID |        Status       | Cloud        |      App URL           |
+   +------------------+-----------+---------------------+--------------+------------------------+
+   | hello-world      |    1      | DEPLOYMENT_COMPLETE | local-docker | http://172.0.0.1       |
+   +------------------+-----------+---------------------+--------------+------------------------+
 
 
 Deployment to Amazon Elastic Beanstalk:
@@ -61,11 +99,11 @@ Deployment to Amazon Elastic Beanstalk:
 5) Check deployment status
    > cld app show --deploy-id 2
    
-   +------------------+-----------+---------------------+--------------+---------------------------+
-   |     App Name     | Deploy ID |        Status       |     Cloud    |                App URL    |
-   +------------------+-----------+---------------------+--------------+---------------------------+
-   | hello-world      |    2      | DEPLOYMENT_COMPLETE |      aws     | <App URL on AWS>          |
-   +------------------+-----------+---------------------+--------------+---------------------------+
+   +------------------+-----------+---------------------+--------------+------------------------+
+   |     App Name     | Deploy ID |        Status       |     Cloud    |        App URL         |
+   +------------------+-----------+---------------------+--------------+------------------------+
+   | hello-world      |    2      | DEPLOYMENT_COMPLETE |      aws     | <App URL on AWS>       |
+   +------------------+-----------+---------------------+--------------+------------------------+
 
 
 Deployment to Google App Engine:
