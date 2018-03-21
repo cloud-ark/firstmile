@@ -1,10 +1,3 @@
-'''
- Copyright (C) Devcentric, Inc - All Rights Reserved
- Unauthorized copying of this file, via any medium is strictly prohibited
- Proprietary and confidential
- Written by Devdatta Kulkarni <devdattakulkarni@gmail.com>, March 23 2017
-'''
-
 import logging
 import inspect
 from common import constants

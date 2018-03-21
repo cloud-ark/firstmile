@@ -1,12 +1,3 @@
-'''
- Copyright (C) Devcentric, Inc - All Rights Reserved
- Unauthorized copying of this file, via any medium is strictly prohibited
- Proprietary and confidential
- Written by Devdatta Kulkarni <devdattakulkarni@gmail.com> January 23, 2017
-
-@author: devdatta
-'''
-
 from cliff.command import Command
 
 import common

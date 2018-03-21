@@ -1,10 +1,3 @@
-'''
- Copyright (C) Devcentric, Inc - All Rights Reserved
- Unauthorized copying of this file, via any medium is strictly prohibited
- Proprietary and confidential
- Written by Devdatta Kulkarni <devdattakulkarni@gmail.com> October 26, 2016
-'''
-
 from common import task_definition as td
 import local_builder as lb
 import google_builder as gb
