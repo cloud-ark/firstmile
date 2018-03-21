@@ -1,10 +1,3 @@
-'''
- Copyright (C) Devcentric, Inc - All Rights Reserved
- Unauthorized copying of this file, via any medium is strictly prohibited
- Proprietary and confidential
- Written by Devdatta Kulkarni <devdattakulkarni@gmail.com> December 24 2016
-'''
-
 class Service(object):
     "Helper class that knows how to obtain service information"
 

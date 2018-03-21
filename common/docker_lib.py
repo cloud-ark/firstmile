@@ -1,10 +1,3 @@
-'''
- Copyright (C) Devcentric, Inc - All Rights Reserved
- Unauthorized copying of this file, via any medium is strictly prohibited
- Proprietary and confidential
- Written by Devdatta Kulkarni <devdattakulkarni@gmail.com> December 19 2016
-'''
-
 import os
 import subprocess
 from common import fm_logger
