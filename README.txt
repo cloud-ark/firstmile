@@ -2,14 +2,13 @@ FirstMile
 ----------
 FirstMile is a cloud developer's sandbox. 
 
-FirstMile simplifies the process of developing and deploying web applications on 
-Amazon Elastic Beanstalk and Google App Engine PaaSes. 
-FirstMile is unique in that you don't need to make any changes to your application code in order to deploy it on Beanstalk or GAE.
-FirstMile also supports testing your applications locally by deploying them in FirstMile's Docker-based sandbox.
-Additionally, FirstMile supports provisioning of relational database instances (MySQL container locally, Google Cloud SQL instance or 
-Amazon RDS instance in the cloud) and securely binds them with your web applications.
+FirstMile simplifies the process of developing and deploying web applications to Amazon Elastic Beanstalk 
+and Google App Engine (GAE). FirstMile is unique in that you don't need to make any changes to your application code 
+in order to deploy it on Beanstalk or GAE. FirstMile supports testing your applications locally by deploying 
+them in FirstMile's Docker-based sandbox. Additionally, FirstMile supports provisioning of relational database instances 
+and their secure binding with your web applications.
 
-FirstMile currently supports Python Flask based web applications.
+Currently FirstMile supports Python Flask based web applications.
 
 
 Installation
@@ -21,6 +20,9 @@ Installation
 
 Available Commands
 -------------------
+
+$ cld --help
+
 
 usage: cld [--version] [-v | -q] [--log-file LOG_FILE] [-h] [--debug]
 
