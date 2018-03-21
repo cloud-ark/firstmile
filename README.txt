@@ -1,20 +1,22 @@
-FirstMile CLI 
-------------------
+FirstMile
+----------
 FirstMile is a cloud developer's sandbox. 
 
-FirstMile supports building and deploying web applications to AWS Elastic Beanstalk or Google App Engine
-without requiring you to make any changes to application code.
-You can also test applications locally by deploying them in FirstMile's Docker-based sandbox.
-FirstMile also supports provisioning service instances (such as MySQL, Google Cloud SQL, Amazon RDS).
+FirstMile simplifies the process of developing and deploying web applications on 
+Amazon Elastic Beanstalk and Google App Engine PaaSes. 
+FirstMile is unique in that you don't need to make any changes to your application code in order to deploy it on Beanstalk or GAE.
+FirstMile also supports testing your applications locally by deploying them in FirstMile's Docker-based sandbox.
+Additionally, FirstMile supports provisioning of relational database instances (MySQL container locally, Google Cloud SQL instance or 
+Amazon RDS instance in the cloud) and securely binds them with your web applications.
 
-Currently FirstMile supports Python Flask based web applications.
+FirstMile currently supports Python Flask based web applications.
 
 
 Installation
 --------------
-- FirstMile has been tested on: Ubuntu 14.04, Ubuntu 16.04, Mac OS X (El Capitan, Darwin 15.4.0)
-
 - Run ./install.sh
+
+  - FirstMile has been tested on: Ubuntu 14.04, Ubuntu 16.04, Mac OS X (El Capitan, Darwin 15.4.0)
 
 
 Available Commands
@@ -119,7 +121,7 @@ Deployment to Google App Engine:
      > Provide values when asked by cld.
 
 4) Deploy sample application greetings-python:
-   - Navigate to the application folder (cd ../firstmile-samples/greetings-python)
+   - Navigate to the application folder (cd ./examples/greetings-python)
    - Deploy application: 
      > cld app deploy --cloud google --service mysql
 
