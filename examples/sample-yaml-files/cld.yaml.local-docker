@@ -1,0 +1,10 @@
+application:
+  type: python
+  entry_point: application.py
+  env_variables:
+    DB: testdb
+    HOST: 172.17.0.4
+    USER: testuser
+    PASSWORD: testpass123!#$
+cloud:
+  type: local-docker
