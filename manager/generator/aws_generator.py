@@ -283,15 +283,15 @@ class AWSGenerator(object):
             sec_group = sec_group.rstrip().lstrip()
             entrypt_cmd = ("ENTRYPOINT [\"eb\", \"create\", \"{env_name}\", \"-c\", "
                            "\"{cname}\", \"--vpc.securitygroups\", \"{sec_group}\", "
-                           "\"--keyname\", \"{key_name}\", \"--timeout\", \"20\"]  \n").format(env_name=env_name,
-                                                                                               cname=cname,
-                                                                                               sec_group=sec_group,
-                                                                                               key_name=key_name)
+                           "\"--keyname\", \"{key_name}\", \"--timeout\", \"20\", \"--i\", \"t2.micro\"]  \n").format(env_name=env_name,
+                                                                                                                      cname=cname,
+                                                                                                                      sec_group=sec_group,
+                                                                                                                      key_name=key_name)
         else:
             entrypt_cmd = ("ENTRYPOINT [\"eb\", \"create\", \"{env_name}\", \"-c\", "
-                           "\"{cname}\", \"--keyname\", \"{key_name}\", \"--timeout\", \"20\"]  \n").format(env_name=env_name,
-                                                                                                            cname=cname,
-                                                                                                            key_name=key_name)
+                           "\"{cname}\", \"--keyname\", \"{key_name}\", \"--timeout\", \"20\", \"--i\", \"t2.micro\"]  \n").format(env_name=env_name,
+                                                                                                                                   cname=cname,
+                                                                                                                                   key_name=key_name)
 
         dockerfile_maneuver = ("RUN mv Dockerfile.deploy Dockerfile.bak \n"
                                "RUN mv Dockerfile.aws Dockerfile \n")
