@@ -283,13 +283,13 @@ class AWSGenerator(object):
             sec_group = sec_group.rstrip().lstrip()
             entrypt_cmd = ("ENTRYPOINT [\"eb\", \"create\", \"{env_name}\", \"-c\", "
                            "\"{cname}\", \"--vpc.securitygroups\", \"{sec_group}\", "
-                           "\"--keyname\", \"{key_name}\", \"--timeout\", \"20\", \"--instance-type\", \"t2.micro\"]  \n").format(env_name=env_name,
+                           "\"--keyname\", \"{key_name}\", \"--timeout\", \"20\", \"--instance_type\", \"t2.micro\"]  \n").format(env_name=env_name,
                                                                                                                                   cname=cname,
                                                                                                                                   sec_group=sec_group,
                                                                                                                                   key_name=key_name)
         else:
             entrypt_cmd = ("ENTRYPOINT [\"eb\", \"create\", \"{env_name}\", \"-c\", "
-                           "\"{cname}\", \"--keyname\", \"{key_name}\", \"--timeout\", \"20\", \"--instance-type\", \"t2.micro\"]  \n").format(env_name=env_name,
+                           "\"{cname}\", \"--keyname\", \"{key_name}\", \"--timeout\", \"20\", \"--instance_type\", \"t2.micro\"]  \n").format(env_name=env_name,
                                                                                                                                                cname=cname,
                                                                                                                                                key_name=key_name)
 
