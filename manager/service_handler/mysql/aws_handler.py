@@ -156,7 +156,7 @@ class MySQLServiceHandler(object):
                                                                                                                                               cidrblock=cidrblock)
             create_instance = ("aws rds create-db-instance --db-name {db_name}"
                                " --db-instance-identifier {db_id} --engine MySQL "
-                               " --db-instance-class db.t2.medium --master-username {user} "
+                               " --db-instance-class db.t2.micro --master-username {user} "
                                " --master-user-password '{password}' --allocated-storage 10 "
                                " --vpc-security-group-ids {sec_group_id}").format(db_name=db_name,
                                                                                   db_id=db_id,
@@ -171,7 +171,7 @@ class MySQLServiceHandler(object):
                                                                                                                                               cidrblock=cidrblock)
             create_instance = ("aws rds create-db-instance --db-name {db_name}"
                                " --db-instance-identifier {db_id} --engine MySQL "
-                               " --db-instance-class db.t2.medium --master-username {user} "
+                               " --db-instance-class db.t2.micro --master-username {user} "
                                " --master-user-password '{password}' --allocated-storage 10 "
                                " --vpc-security-group-ids {sec_group_id} --publicly-accessible").format(db_name=db_name,
                                                                                                         db_id=db_id,
@@ -352,7 +352,7 @@ class MySQLServiceHandler(object):
                      "      DBInstanceIdentifer: {db_id}\n"
                      "      DBName: {db_name}\n"
                      "      Engine: MySQL\n"
-                     "      DBInstanceClass: db.t2.medium\n"
+                     "      DBInstanceClass: db.t2.micro\n"
                      "      MasterUsername: {user}\n"
                      "      MasterUserPassword: {password}\n"
                      "      AllocatedStorage: 10\n"
