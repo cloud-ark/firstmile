@@ -22,6 +22,15 @@ touch install.log
 install_log="install.log"
 echo "Installing FirstMile. Installation logs stored in $install_log"
 
+# Determine Docker HOST IP
+DOCKER_MACHINE_ENV=`docker-machine env default` || { echo "docker-machine env default failed" ; exit 1; }
+cat > docker_machine_env <<EOF
+  echo $DOCKER_MACHINE_ENV
+EOF
+DOCKER_HOST=`grep DOCKER_HOST docker_machine_env | sed 's/\// /'g | sed 's/:/ /'g | awk '{print $3}'`
+echo "DOCKER_HOST=$DOCKER_HOST"
+echo "DOCKER_HOST=$DOCKER_HOST" > ./client/docker_host.txt
+
 # Install FirstMile client
 echo "Installing FirstMile client"
 pip install virtualenv >> $install_log
@@ -69,6 +78,7 @@ echo "CMD [\"python\", \"/src/cld.py\"]" >> Dockerfile
 # Start the firstmile server container
 #set -x
 echo "Starting FirstMile"
+eval "$(docker-machine env default)"
 docker build -t firstmile-img . >> $install_log
 docker run -u ubuntu -p 5002:5002 -v /var/run/docker.sock:/var/run/docker.sock -v $HOME:/home/ubuntu -d firstmile-img >> $install_log
 
