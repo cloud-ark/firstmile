@@ -8,13 +8,20 @@ import requests
 
 import common
 
+
 class Deployment(object):
+
+    DOCKER_HOST='localhost'
 
     log = logging.getLogger(__name__)
     log.setLevel(logging.INFO)
 
     def __init__(self):
-        pass
+        if os.path.exists("../docker_host.txt"):
+            fp = open("../docker_host.txt", "r")
+            line = fp.readline()
+            parts = line.split("=")
+            Deployment.DOCKER_HOST=parts[1].strip()
 
     def _make_tarfile(self, output_filename, source_dir):
         with tarfile.open(output_filename, "w:gz") as tar:
@@ -56,7 +63,8 @@ class Deployment(object):
 
     def create_service_instance(self, service_info, cloud_info):
         #service_list = self._parse_service_info(service_info)
-        req = urllib2.Request("http://localhost:5002/deployments")
+        req_url = ("http://{host}:5002/deployments").format(host=Deployment.DOCKER_HOST)
+        req = urllib2.Request(req_url)
         #req = urllib2.Request("http://127.0.0.1:5000/deployments")
         #req = urllib2.Request("http://192.168.33.10:5000/deployments")
         req.add_header('Content-Type', 'application/octet-stream')
@@ -93,7 +101,8 @@ class Deployment(object):
 
         data = {'app': app_info, 'service': service_info, 'cloud': cloud_info}
 
-        req = urllib2.Request("http://localhost:5002/deployments")
+        req_url=("http://{host}:5002/deployments").format(host=Deployment.DOCKER_HOST)
+        req = urllib2.Request(req_url)
         #req = urllib2.Request("http://127.0.0.1:5000/deployments")
         #req = urllib2.Request("http://192.168.33.10:5000/deployments")
         req.add_header('Content-Type', 'application/octet-stream')
@@ -111,7 +120,8 @@ class Deployment(object):
         return track_url
 
     def service_delete(self, dep_id):
-        app_url = "http://localhost:5002/servicesdep/" + dep_id
+        app_url = ("http://{host}:5002/servicesdep/").format(host=Deployment.DOCKER_HOST)
+        app_url = app_url + dep_id
         response = requests.delete(app_url)
         if response.status_code == 404:
             print("Service with deploy-id %s not found." % dep_id)
@@ -120,7 +130,8 @@ class Deployment(object):
         return response
 
     def service_secure(self, dep_id):
-        app_url = "http://localhost:5002/servicesdep/" + dep_id
+        app_url = ("http://{host}:5002/servicesdep/").format(host=Deployment.DOCKER_HOST)
+        app_url = app_url + dep_id
         response = requests.put(app_url)
         if response.status_code == 404:
             print("Service with deploy-id %s not found." % dep_id)
@@ -132,7 +143,8 @@ class Deployment(object):
 
 
     def delete(self, dep_id):
-        app_url = "http://localhost:5002/deployments/" + dep_id
+        app_url = ("http://{host}:5002/deployments/").format(host=Deployment.DOCKER_HOST)
+        app_url = app_url + dep_id
         response = requests.delete(app_url)
         if response.status_code == 404:
             print("Application with deploy-id %s not found." % dep_id)
@@ -141,7 +153,8 @@ class Deployment(object):
         return response
 
     def logs(self, dep_id):
-        app_url = "http://localhost:5002/logs/" + dep_id
+        app_url = ("http://{host}:5002/logs/").format(host=Deployment.DOCKER_HOST)
+        app_url = app_url + dep_id
         req = urllib2.Request(app_url)
         app_data = ''
         try:
@@ -154,7 +167,8 @@ class Deployment(object):
         return app_data
 
     def get(self, dep_id):
-        app_url = "http://localhost:5002/deployments/" + dep_id
+        app_url = ("http://{host}:5002/deployments/").format(host=Deployment.DOCKER_HOST)
+        app_url = app_url + dep_id
         req = urllib2.Request(app_url)
         app_data = ''
         try:
@@ -167,7 +181,7 @@ class Deployment(object):
         return app_data
 
     def get_all_apps(self):
-        app_url = "http://localhost:5002/apps"
+        app_url = ("http://{host}:5002/apps").format(host=Deployment.DOCKER_HOST)
         req = urllib2.Request(app_url)
         response = urllib2.urlopen(req)
         app_data = response.fp.read()
@@ -175,7 +189,8 @@ class Deployment(object):
         return app_data
 
     def get_app_info(self, appname):
-        app_url = "http://localhost:5002/apps/" + appname
+        app_url = ("http://{host}:5002/apps/").format(host=Deployment.DOCKER_HOST)
+        app_url = app_url + appname
         req = urllib2.Request(app_url)
         app_data = ''
         try:
@@ -188,7 +203,7 @@ class Deployment(object):
         return app_data
 
     def get_all_services(self):
-        app_url = "http://localhost:5002/services"
+        app_url = ("http://{host}:5002/services").format(host=Deployment.DOCKER_HOST)
         req = urllib2.Request(app_url)
         response = urllib2.urlopen(req)
         service_data = response.fp.read()
@@ -196,7 +211,8 @@ class Deployment(object):
         return service_data
 
     def get_service_info(self, service_name):
-        service_url = "http://localhost:5002/services/" + service_name
+        service_url = ("http://{host}:5002/services/").format(host=Deployment.DOCKER_HOST)
+        service_url = service_url + service_name
         req = urllib2.Request(service_url)
         response = urllib2.urlopen(req)
         service_data = response.fp.read()
@@ -204,7 +220,8 @@ class Deployment(object):
         return service_data
 
     def get_service_info_from_id(self, deploy_id):
-        service_url = "http://localhost:5002/servicesdep/" + deploy_id
+        service_url = ("http://{host}:5002/servicesdep/").format(host=Deployment.DOCKER_HOST)
+        service_url = service_url + deploy_id
         req = urllib2.Request(service_url)
         response = urllib2.urlopen(req)
         service_data = response.fp.read()
@@ -215,7 +232,8 @@ class Deployment(object):
         improper_input = common.verify_cloud(cloud)
         if improper_input:
             exit()
-        app_url = "http://localhost:5002/clouds/" + cloud
+        app_url = ("http://{host}:5002/clouds/").format(host=Deployment.DOCKER_HOST)
+        app_url = app_url + cloud
         req = urllib2.Request(app_url)
         response = urllib2.urlopen(req)
         app_data = response.fp.read()
