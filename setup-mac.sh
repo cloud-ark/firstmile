@@ -35,7 +35,7 @@ echo "DOCKER_HOST=$DOCKER_HOST" > ./client/docker_host.txt
 echo "Installing FirstMile client"
 pip install virtualenv >> $install_log
 virtenv="firstmile"
-virtualenv $virtenv >> $install_log
+virtualenv --python=python2.7 $virtenv >> $install_log
 source $virtenv/bin/activate >> $install_log
 cd client
 ../$virtenv/bin/python setup.py install >> $install_log

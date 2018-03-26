@@ -25,7 +25,7 @@ sudo service docker restart &>> $install_log
 echo "Installing FirstMile client"
 sudo pip install virtualenv &>> $install_log
 virtenv="firstmile"
-sudo virtualenv $virtenv &>> $install_log
+sudo virtualenv --python=python2.7 $virtenv &>> $install_log
 source $virtenv/bin/activate &>> $install_log
 
 cd client
