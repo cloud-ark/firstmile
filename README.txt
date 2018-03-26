@@ -11,11 +11,62 @@ and their secure binding with your web applications.
 Currently FirstMile supports Python Flask based web applications.
 
 
-Installation
---------------
+FirstMile has been tested on: Ubuntu 14.04, Ubuntu 16.04, Mac OS X (El Capitan, Darwin 15.4.0)
+
+
+Completely scripted installation
+---------------------------------
 - Run ./install.sh
 
-  - FirstMile has been tested on: Ubuntu 14.04, Ubuntu 16.04, Mac OS X (El Capitan, Darwin 15.4.0)
+
+Manual installation 
+------------------------
+If completely scripted installation fails for some reason, you can do manual setup of FirstMile as follows:
+
+Ubuntu:
+-------
+Open a terminal window and execute following:
+
+$ ./setup-ubuntu.sh
+
+$ source firstmile/bin/activate
+
+$ python cld.py
+
+Open another terminal window and execute following:
+
+$ <cd to directory where you have cloned firstmile>
+
+$ source firstmile/bin/activate
+
+$ cld app list
+
+
+Mac OS:
+-------
+Open a terminal window and execute following:
+
+Install Docker for Mac
+
+$ eval "$(docker-machine env default)"
+
+  --> This command will enable this shell window to run Docker commands
+      without sudo
+
+$ ./setup-mac.sh
+
+$ source firstmile/bin/activate
+
+$ python cld.py
+
+Open another terminal window and execute following:
+
+$ <cd to directory where you have cloned firstmile>
+
+$ source firstmile/bin/activate
+
+$ cld app list
+
 
 
 Available Commands
