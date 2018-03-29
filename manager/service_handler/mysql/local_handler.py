@@ -1,5 +1,9 @@
 import logging
 
+import os
+import sys
+import subprocess
+
 from docker import Client
 
 from common import service
@@ -54,6 +58,32 @@ class MySQLServiceHandler(object):
             cont_name = serv_version + "-mysql"
         return cont_name
 
+    def _execute_cmd(self, cmd):
+        err= ''
+        output=''
+        try:
+            chanl = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                                     stderr=subprocess.PIPE, shell=True).communicate()
+            err = chanl[1]
+            output = chanl[0]
+        except Exception as e:
+            logging.error(e)
+        return err, output
+
+    def _run_container_with_env(self, cont_name, env_vars_dict):
+        env_string = ""
+        for key, value in env_vars_dict.iteritems():
+            env_string = env_string + "-e " + '"' + key + '=' + value + '"' + " "
+            logging.debug("Environment string %s" % env_string)
+
+        """Run container asynchronously."""
+        run_cmd = ("docker run {env_string} -i -d --publish-all=true {cont_name}").format(
+            env_string=env_string,
+            cont_name=cont_name)
+        logging.debug("Docker run cmd:%s" % run_cmd)
+        err, output = self._execute_cmd(run_cmd)
+        return err, output
+
     def _deploy_service_container(self):             
         logging.debug("Deploying mysql container")
         #db_name = service_details['db_name']            
@@ -75,6 +105,37 @@ class MySQLServiceHandler(object):
         logging.debug("MySQL Service IP Address:%s" % service_ip_addr)
 
         self.db_info['host'] = service_ip_addr
+
+        return service_ip_addr
+
+    def _deploy_service_container_mac(self):
+        logging.debug("Deploying mysql container")
+        #db_name = service_details['db_name']                                                                      
+        env = {"MYSQL_ROOT_PASSWORD": self.mysql_root_password,
+               "MYSQL_DATABASE": self.mysql_db_name,
+               "MYSQL_USER": self.mysql_user,
+               "MYSQL_PASSWORD": self.mysql_password}
+        cont_name = self._get_cont_name()
+
+        err, cont_id = self._run_container_with_env(self.mysql_version, env)
+        cont_id = cont_id.strip()
+
+        port_cmd = ("docker inspect {cont_id} | grep HostPort | awk '{{print $2}}' | sed 's/\"//'g").format(cont_id=cont_id)
+
+        err, service_port = self._execute_cmd(port_cmd)
+        service_port = service_port.strip()
+
+        service_ip_addr = ''
+        if not err:
+            #docker_host_fp = "."                                                                                  
+            docker_host_fp = os.path.dirname(sys.modules[__name__].__file__)
+            fp = open(docker_host_fp + "/docker_host.txt", "r")
+            line = fp.readline()
+            parts = line.split("=")
+            service_ip_addr=parts[1].strip() + ":" + service_port
+            #service_ip_addr=parts[1].strip()
+            self.db_info['host'] = service_ip_addr
+            self.db_info['port'] = service_port
 
         return service_ip_addr
     
@@ -104,7 +165,13 @@ class MySQLServiceHandler(object):
 
     # Public interface
     def provision_and_setup(self):
-        service_ip = self._deploy_service_container()
+        service_ip = ''
+        import platform
+        if platform.system() == 'Darwin':
+            service_ip = self._deploy_service_container_mac()
+        else:
+            service_ip = self._deploy_service_container()
+
         self._setup_service_container()
         self._save_instance_information(service_ip)
         return service_ip

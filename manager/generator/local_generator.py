@@ -33,15 +33,17 @@ class LocalGenerator(object):
     def _generate_for_python_app(self, service_ip_dict):
 
         df_env_vars = ''
+        serv_ip = ''
         if bool(service_ip_dict):
             print_prefix = "ENV "
             env_key_suffix = " "
-            df_env_vars = utils.get_env_vars_string(self.task_def,
-                                                    service_ip_dict,
-                                                    self.app_variables,
-                                                    self.services,
-                                                    print_prefix,
-                                                    env_key_suffix)
+
+            df_env_vars, serv_ip = utils.get_env_vars_string(self.task_def,
+                                                                service_ip_dict,
+                                                                self.app_variables,
+                                                                self.services,
+                                                                print_prefix,
+                                                                env_key_suffix)
 
         entry_point = self.task_def.app_data['entry_point']
 
@@ -55,6 +57,12 @@ class LocalGenerator(object):
                   "ADD . /src\n"
                   "EXPOSE {app_port}\n"
                   ).format(app_port=self.app_port)
+            import platform
+
+            if platform.system() == 'Darwin':
+                parts = serv_ip.split(":")
+                serv_port = parts[1].strip()
+                df_env_var = df_env_vars + "\n" + "ENV PORT " + serv_port
             df = df + df_env_vars
             df = df + ("CMD [\"python\", \"/src/{entry_point}\"]").format(entry_point=entry_point)
         else:

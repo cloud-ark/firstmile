@@ -76,9 +76,14 @@ def get_env_vars_string(task_def, service_ip_dict, app_variables,
     serv = task_def.service_data[0]
     service_name = serv['service']['type']
 
+    serv_ip = ''
     for k, v in service_ip_dict.items():
         if k == service_name:
             host = v
+            serv_ip = host
+            parts = host.split(":")
+            if len(parts) > 1:
+                host = parts[0].strip()
             break
 
     df_env_vars = ''
@@ -86,6 +91,7 @@ def get_env_vars_string(task_def, service_ip_dict, app_variables,
         service_handler = services[service_name]
         service_instance_info = service_handler.get_instance_info()
         service_instance_info['host'] = host
+
         for key, val in app_variables.iteritems():
             service_var = key[:key.index("_var")]
             env_key = val
@@ -95,7 +101,7 @@ def get_env_vars_string(task_def, service_ip_dict, app_variables,
                                                                         key=env_key,
                                                                         value=env_val)
             df_env_vars = df_env_vars + generated_val
-    return df_env_vars
+    return df_env_vars, serv_ip
 
 def parse_artifact_name_and_version(line_contents):
     artifact = line_contents[1].rstrip().lstrip()
