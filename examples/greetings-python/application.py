@@ -16,19 +16,21 @@ def get_db_creds():
     username = os.environ.get("USER", None) or os.environ.get("username", None)
     password = os.environ.get("PASSWORD", None) or os.environ.get("password", None)
     hostname = os.environ.get("HOST", None) or os.environ.get("dbhost", None)
-    return db, username, password, hostname
+    port = os.environ.get("PORT", 3306)
+    return db, username, password, hostname, port
 
 
 def create_table():
     # Check if table exists or not. Create and populate it only if it does not exist.
-    db, username, password, hostname = get_db_creds()
+    db, username, password, hostname, port = get_db_creds()
     table_ddl = 'CREATE TABLE message(id INT UNSIGNED NOT NULL AUTO_INCREMENT, greeting TEXT, PRIMARY KEY (id))'
 
     cnx = ''
     try:
         cnx = mysql.connector.connect(user=username, password=password,
                                        host=hostname,
-                                       database=db)
+                                       database=db,
+                                       port=port)
     except Exception as exp:
         print(exp)
         import MySQLdb
@@ -49,7 +51,7 @@ def create_table():
 
 def populate_data():
 
-    db, username, password, hostname = get_db_creds()
+    db, username, password, hostname, port = get_db_creds()
 
     print("Inside populate_data")
     print("DB: %s" % db)
@@ -61,7 +63,8 @@ def populate_data():
     try:
         cnx = mysql.connector.connect(user=username, password=password,
                                        host=hostname,
-                                       database=db)
+                                       database=db,
+                                       port=port)
     except Exception as exp:
         print(exp)
         import MySQLdb
@@ -75,7 +78,7 @@ def populate_data():
 
 def query_data():
 
-    db, username, password, hostname = get_db_creds()
+    db, username, password, hostname, port = get_db_creds()
 
     print("Inside query_data")
     print("DB: %s" % db)
@@ -87,7 +90,8 @@ def query_data():
     try:
         cnx = mysql.connector.connect(user=username, password=password,
                                       host=hostname,
-                                      database=db)
+                                      database=db,
+                                      port=port)
     except Exception as exp:
         print(exp)
         import MySQLdb
@@ -115,13 +119,14 @@ def add_to_db():
     print(request.form['message'])
     msg = request.form['message']
 
-    db, username, password, hostname = get_db_creds()
+    db, username, password, hostname, port = get_db_creds()
 
     cnx = ''
     try:
         cnx = mysql.connector.connect(user=username, password=password,
                                       host=hostname,
-                                      database=db)
+                                      database=db,
+                                      port=port)
     except Exception as exp:
         print(exp)
         import MySQLdb
