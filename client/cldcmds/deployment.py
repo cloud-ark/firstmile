@@ -5,6 +5,7 @@ import urllib2
 import os
 import gzip
 import requests
+import sys
 
 import common
 
@@ -17,8 +18,9 @@ class Deployment(object):
     log.setLevel(logging.INFO)
 
     def __init__(self):
-        if os.path.exists("../docker_host.txt"):
-            fp = open("../docker_host.txt", "r")
+        docker_host_file_path = os.path.dirname(sys.modules[__name__].__file__)
+        if os.path.exists(docker_host_file_path + "/docker_host.txt"):
+            fp = open(docker_host_file_path + "/docker_host.txt", "r")
             line = fp.readline()
             parts = line.split("=")
             Deployment.DOCKER_HOST=parts[1].strip()
