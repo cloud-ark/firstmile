@@ -1,5 +1,7 @@
 #!/bin/bash
 
+-- Test -- 
+
 # Check if running as root -- if so, exit
 if (( $EUID == 0 )); then
    echo "Looks like you are trying to run install.sh as root."
