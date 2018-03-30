@@ -129,10 +129,13 @@ class MySQLServiceHandler(object):
         if not err:
             #docker_host_fp = "."                                                                                  
             docker_host_fp = os.path.dirname(sys.modules[__name__].__file__)
-            fp = open(docker_host_fp + "/docker_host.txt", "r")
-            line = fp.readline()
-            parts = line.split("=")
-            service_ip_addr=parts[1].strip() + ":" + service_port
+            if os.path.exists(docker_host_fp + "/docker_host.txt"):
+                fp = open(docker_host_fp + "/docker_host.txt", "r")
+                line = fp.readline()
+                parts = line.split("=")
+                service_ip_addr=parts[1].strip() + ":" + service_port
+            else:
+                service_ip_addr='0.0.0.0' + ":" + service_port
             #service_ip_addr=parts[1].strip()
             self.db_info['host'] = service_ip_addr
             self.db_info['port'] = service_port

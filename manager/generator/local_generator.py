@@ -62,7 +62,7 @@ class LocalGenerator(object):
             if platform.system() == 'Darwin':
                 parts = serv_ip.split(":")
                 serv_port = parts[1].strip()
-                df_env_var = df_env_vars + "\n" + "ENV PORT " + serv_port
+                df_env_vars = df_env_vars + "\n" + "ENV PORT " + serv_port + "\n"
             df = df + df_env_vars
             df = df + ("CMD [\"python\", \"/src/{entry_point}\"]").format(entry_point=entry_point)
         else:

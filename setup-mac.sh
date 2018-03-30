@@ -23,13 +23,13 @@ install_log="install.log"
 echo "Installing FirstMile. Installation logs stored in $install_log"
 
 # Determine Docker HOST IP
-DOCKER_MACHINE_ENV=`docker-machine env default` || { echo "docker-machine env default failed" ; exit 1; }
-cat > docker_machine_env <<EOF
-  echo $DOCKER_MACHINE_ENV
-EOF
-DOCKER_HOST=`grep DOCKER_HOST docker_machine_env | sed 's/\// /'g | sed 's/:/ /'g | awk '{print $3}'`
-echo "DOCKER_HOST=$DOCKER_HOST"
-echo "DOCKER_HOST=$DOCKER_HOST" > ./client/cldcmds/docker_host.txt
+#DOCKER_MACHINE_ENV=`docker-machine env default` || { echo "docker-machine env default failed" ; exit 1; }
+#cat > docker_machine_env <<EOF
+#  echo $DOCKER_MACHINE_ENV
+#EOF
+#DOCKER_HOST=`grep DOCKER_HOST docker_machine_env | sed 's/\// /'g | sed 's/:/ /'g | awk '{print $3}'`
+#echo "DOCKER_HOST=$DOCKER_HOST"
+#echo "DOCKER_HOST=$DOCKER_HOST" > ./client/cldcmds/docker_host.txt
 
 # Install FirstMile client
 echo "Installing FirstMile client"
