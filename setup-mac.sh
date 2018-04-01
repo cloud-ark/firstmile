@@ -30,6 +30,8 @@ EOF
 DOCKER_HOST=`grep DOCKER_HOST docker_machine_env | sed 's/\// /'g | sed 's/:/ /'g | awk '{print $3}'`
 echo "DOCKER_HOST=$DOCKER_HOST"
 echo "DOCKER_HOST=$DOCKER_HOST" > ./client/cldcmds/docker_host.txt
+echo "DOCKER_HOST=$DOCKER_HOST" > ./manager/service_handler/mysql/docker_host.txt
+echo "DOCKER_HOST=$DOCKER_HOST" > ./manager/deployer/docker_host.txt
 
 # Install FirstMile client
 echo "Installing FirstMile client"
