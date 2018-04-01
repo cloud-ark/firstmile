@@ -139,7 +139,7 @@ Deployment to Amazon Elastic Beanstalk:
      clicking the "Add permissions" button on the user panel.
 3) Note down SECRET_ACCESS_KEY and ACCESS_KEY_ID for this user. 
 4) Setup FirstMile to work with AWS
-   - cld cloud setup aws
+   - cld cloud setup --cloud aws
      > Provide values when asked by cld.
 
 5) Deploy hello-world sample application:
@@ -170,7 +170,7 @@ Deployment to Google App Engine:
    create a Google App Engine project from the GAE Console.
    - Create a project and note down the Project ID (Note that it is important to use Project ID and not the Project name).
 3) Setup FirstMile to work with Google 
-   - cld cloud setup google
+   - cld cloud setup --cloud google
      > Provide values when asked by cld.
 
 4) Deploy sample application greetings-python:
