@@ -8,6 +8,9 @@ from common import constants
 from common import docker_lib
 from common import fm_logger
 
+import os
+import sys
+
 from manager.service_handler.mysql import local_handler as lh
 
 fmlogging = fm_logger.Logging()
@@ -201,8 +204,17 @@ class LocalDeployer(object):
             ip_addr = self._deploy_app_container(app_obj)
             if ip_addr:
                 app_obj.update_app_status(constants.APP_DEPLOYMENT_COMPLETE)
+                import platform
+                if platform.system() == 'Darwin':
+                    ip_addr_parts = ip_addr.split(":")
+                    app_port = ip_addr_parts[1].strip()
+                    docker_host_fp = os.path.dirname(sys.modules[__name__].__file__)
+                    fp = open(docker_host_fp + "/docker_host.txt", "r")
+                    line = fp.readline()
+                    parts = line.split("=")
+                    ip_addr=parts[1].strip() + ":" + app_port
+                app_obj.update_app_ip(ip_addr)
             else:
                 app_obj.update_app_status(constants.DEPLOYMENT_ERROR)
-            app_obj.update_app_ip(ip_addr)
             self._cleanup()
         return ip_addr

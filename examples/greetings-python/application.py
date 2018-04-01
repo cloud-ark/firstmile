@@ -78,6 +78,8 @@ def populate_data():
 
 def query_data():
 
+    create_table()
+
     db, username, password, hostname, port = get_db_creds()
 
     print("Inside query_data")
